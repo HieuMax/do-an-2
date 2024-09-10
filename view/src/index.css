@@ -1,3 +1,13 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+    .bg-system {
+      /* ... */
+      background-color: #306BA0;
+    }
+    :hover.bg-system{
+        background-color: #306ca0d8;
+    }
+  }

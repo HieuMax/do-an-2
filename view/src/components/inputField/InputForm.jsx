@@ -1,3 +1,5 @@
+import { useEffect, useRef, useState } from "react"
+
 /*
   This example requires some changes to your config:
   
@@ -13,7 +15,39 @@
   ```
 */
 export default function InputForm() {
-    const userType = ["MSSV", "MSGV", "MQL"]
+    // const userType = ["MSSV", "MSGV", "MQL"]
+    const type = ["Sinh viên", "Giảng viên", "Quản lý"]
+    const [userType, setUserType] = useState(0);
+    const userTypeHandle = (type) => {
+        setUserType(type)
+    }
+
+    const checkFirstRender = useRef(true);
+
+    useEffect(() => {
+        if (checkFirstRender.current) {
+            checkFirstRender.current = false;
+            return;
+        }
+        document.getElementsByClassName('students')[userType].classList.add('bg-[#306BA0]');
+        document.getElementsByClassName('students')[userType].classList.remove('bg-[#BBBBBB]')
+        type.forEach(e => {
+            const off = type.indexOf(e)
+            // console.log('user: ', userType)
+            if (off != userType) {
+                // console.log('Off: ',off)
+                // console.log(userType)
+                document.getElementsByClassName('students')[off].classList.remove('bg-[#306BA0]');
+                document.getElementsByClassName('students')[off].classList.add('bg-[#BBBBBB]')
+                document.getElementsByClassName('students')[off].classList.add('hover:bg-[#306BA0]')
+            } else {
+                
+            }
+        });
+
+        console.log('ok')
+    }, [userType])
+
     return (
       <>
         {/*
@@ -37,10 +71,15 @@ export default function InputForm() {
           </div>
             
             <div className="flex min-h-full mt-4 w-1/2 justify-center lg:px-8 m-auto">
-                <div className="flex sm:mx-auto sm:w-full sm:max-w-sm py-5">
-                    {/* <input type="checkbox" class="checked:bg-blue-500 px-5 py-6" /> */}
-                    <div className="students border-solid border-2 border-black w-1/3 text-center cursor-pointer text-black hover:border-blue-300 hover:bg-gray-300 rounded-lg">
-                    STUDENT
+                <div className="flex sm:mx-auto sm:w-full sm:max-w-sm py-5 ">
+                    <div className="students py-1.5 bg-[#306BA0]  w-1/3 text-center cursor-pointer text-black  rounded-3xl m-3" onClick={() => {userTypeHandle(0)}}>
+                        <h2 className="text-white">Sinh viên</h2>
+                    </div>          
+                    <div className="students py-1.5 bg-[#BBBBBB]  w-1/3 text-center cursor-pointer text-black  rounded-3xl m-3 hover:bg-[#306BA0]" onClick={() => {userTypeHandle(1)}}>
+                        <h2 className="text-white">Giảng viên</h2>
+                    </div>          
+                    <div className="students py-1.5 bg-[#BBBBBB]  w-1/3 text-center cursor-pointer text-black  rounded-3xl m-3 hover:bg-[#306BA0]" onClick={() => {userTypeHandle(2)}}>
+                        <h2 className="text-white">Quản lý</h2>
                     </div>                    
                 </div>  
             </div>
@@ -58,7 +97,7 @@ export default function InputForm() {
                     type="email"
                     required
                     autoComplete="email"
-                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                    className="block px-3 w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                   />
                 </div>
               </div>
@@ -69,7 +108,7 @@ export default function InputForm() {
                     Password
                   </label>
                   <div className="text-sm">
-                    <a href="#" className="font-semibold text-indigo-600 hover:text-indigo-500">
+                    <a href="#" className="font-semibold  text-indigo-600 hover:text-indigo-500">
                       Forgot password?
                     </a>
                   </div>
@@ -80,8 +119,9 @@ export default function InputForm() {
                     name="password"
                     type="password"
                     required
+                    placeholder="Nhập mật khẩu của bạn" 
                     autoComplete="current-password"
-                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                    className="block px-3 w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                   />
                 </div>
               </div>
@@ -89,19 +129,19 @@ export default function InputForm() {
               <div>
                 <button
                   type="submit"
-                  className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                  className="flex w-full justify-center rounded-md bg-system px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:.bg-system focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
                 >
-                  Sign in
+                  Đăng nhập
                 </button>
               </div>
             </form>
   
-            <p className="mt-10 text-center text-sm text-gray-500">
+            {/* <p className="mt-10 text-center text-sm text-gray-500">
               Not a member?{' '}
               <a href="#" className="font-semibold leading-6 text-indigo-600 hover:text-indigo-500">
                 Start a 14 day free trial
               </a>
-            </p>
+            </p> */}
           </div>
         </div>
       </>

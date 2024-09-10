@@ -7,5 +7,8 @@ export default {
   theme: {
     extend: {},
   },
+  colors: {
+    'system': "#306BA0",
+  },
   plugins: [],
 }
