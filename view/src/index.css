@@ -10,4 +10,33 @@
     :hover.bg-system{
         background-color: #306ca0d8;
     }
+    .text-system {
+      color: #3a3940;
+    }
+    .text-activity {
+      color: #D8727D;
+    }
+    .bg-activity {
+      background-color: #d8727c41;
+    }
+    .avatar-size{
+      width: 300px;
+      height: 300px;
+    }
+    .border-system {
+      border: #306BA0;
+      border-style: solid;
+      border-width: 0px;
+      border-left-width: 8px;
+    }
+    .border-bg-system{
+      border: #306BA0;
+      border-style: solid;
+    }
+    .text-system-blue {
+      color: #306BA0
+    }
+    .bg-btn-system{
+      background-color: #565656;
+    }
   }

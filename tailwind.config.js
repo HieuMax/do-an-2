@@ -5,7 +5,20 @@ export default {
     "./view/src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      backgroundImage: {
+        'background-login': "url('/view/src/assets/HINH3-upwebgiamDL.jpg')"
+      },
+      screens: {
+        '3xl': '1600px',
+        'xlp': '1320px',
+        'xix': '900px',
+        '525': '525px',
+      },
+      zIndex: {
+        '100': '100',
+      },
+    },
   },
   colors: {
     'system': "#306BA0",
