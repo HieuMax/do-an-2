@@ -14,15 +14,6 @@ export default function ConfirmDialog({open, close, isConfirm, props}) {
     console.log('click ')
   }
   
-  // useEffect(() => {
-  //   closeModal();
-
-  // }, [isConfirm])
-
-  function openModal() {
-    setIsOpen(true)
-  }
-
   useEffect(() => {
     setIsOpen(open)
   }, [open])
