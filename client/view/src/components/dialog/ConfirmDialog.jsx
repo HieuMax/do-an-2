@@ -8,15 +8,17 @@ export default function ConfirmDialog({open, close, isConfirm, props}) {
     setIsOpen(false)
     close()
   }
-  const onClickConfirm = (status) => {
-    isConfirm(status)
+  const onClickConfirm = () => {
+    isConfirm()
     closeModal();
-    console.log('click ')
+    // console.log('click ')
   }
   
   useEffect(() => {
     setIsOpen(open)
+    // console.log(props.exist)
   }, [open])
+  
 
   return (
     <div>
@@ -54,9 +56,11 @@ export default function ConfirmDialog({open, close, isConfirm, props}) {
                   </Dialog.Title>
                   <div className="mt-2">
                     <p className="text-sm text-gray-500">
-                      {props.valid && props.input
+                      {props.valid && props.input && !props.exist
                         ? "Thành viên này sẽ được thêm vào thực hiện đề tài "
-                        : "Lỗi"
+                        : props.exist 
+                          ? "Thành viên này đã được thêm"
+                          : "Lỗi"
                       }
                       
                     </p>
@@ -68,7 +72,7 @@ export default function ConfirmDialog({open, close, isConfirm, props}) {
                       className="inline-flex justify-center rounded-md min-w-16 w-full bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
                       onClick={() => closeModal()}  
                     >
-                      {props.valid && props.input
+                      {props.valid && props.input && !props.exist
                         ? "Hủy"
                         : "Xác nhận"
                       }
@@ -76,13 +80,13 @@ export default function ConfirmDialog({open, close, isConfirm, props}) {
                     <button
                       type="button"
                       className={`
-                        ${props.valid && props.input
+                        ${props.valid && props.input && !props.exist
                           ? "block"
                           : "hidden"
                         }
                         inline-flex justify-center rounded-md border border-transparent bg-system px-4 py-2 text-sm font-medium text-white hover:bg-system focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2
                         `}
-                      onClick={() => onClickConfirm(true)}
+                      onClick={() => onClickConfirm()}
                     >
                       Xác nhận
                     </button>

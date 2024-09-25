@@ -42,6 +42,10 @@ export const ProjectDetail = ({props}) => {
     
   const [list, setList] = useState(0);
   const [member, setMember] = useState(false)
+
+  const [memList, setMemList] = useState([])
+
+
   const updateList = (item) => {
     if (item.id == list) return
     item.id != list ? setList(item.id) : ""
@@ -56,16 +60,19 @@ export const ProjectDetail = ({props}) => {
   const updateGVHD = (item) => {
     // setGVHD()
   }
-  const updateMember = () => {
 
+  const handleList = (item) => {
+    setMemList(item)
   }
-
 
   const [source, setSource] = useState(true);
   const [GVHD, setGVHD] = useState(dataGV[0].gv)
+  const [status, setStatus] = useState(0) // status of project 
 
-  const [status, setStatus] = useState(0)
-
+  const removeMember = (id) => {
+    const updatedList = memList.filter(item => item.id !== id);
+    setMemList(updatedList)
+  }
   return (
     <div className="py-3 px-3 h-full ">
 
@@ -320,13 +327,65 @@ export const ProjectDetail = ({props}) => {
                             </div>
                         </div>
                     </div>
+                    
+                    <div className={`
+                        ${memList.length>0 
+                            ? "block"
+                            : "hidden"
+                        }
+                        mt-6 text-lg font-medium leading-6 text-gray-900
+                        `}>
+                        <hr className='my-3'/>
+                        Sinh viên tham gia thực hiện đề tài
+                    </div>
+                    {
+                        memList.map((item) => (
+                        <div className="flex w-2/3 max-xl:w-full" key={item.id}>
+                            <div className=" w-4/5 max-w-7xl max-sm:w-full">
+                                {/* <label htmlFor="" className="block text-lg font-medium leading-6 text-gray-900">
+                                    Sinh viên chủ nhiệm đề tài
+                                </label> */}
+                                <div className="grid grid-flow-col gap-4 max-md:flex-col max-md:flex">
+                                    <div className="mt-3 col-span-1">
+                                        <label htmlFor="" className="block text-lg font-medium leading-6 text-gray-900">
+                                            Mã số sinh viên
+                                        </label>
+                                        <input
+                                            disabled
+                                            value={item.id}
+                                            className='block px-3 w-full rounded-md border-0 py-2 mt-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6`'
+                                        />
+                                    </div>
+                                    <div className="mt-3 col-span-1">
+                                        <label htmlFor="" className="block text-lg font-medium leading-6 text-gray-900">
+                                            Họ tên sinh viên
+                                        </label>
+                                        <input
+                                            disabled
+                                            value={item.name}
+                                            className='block px-3 w-full rounded-md border-0 py-2 mt-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6`'
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                            <button className="mx-3" onClick={() => removeMember(item.id)} >
+                                <div className="mt-10 mb-3 float-start" >
+                                    <div className="bg-alert text-center px-6 py-1.5 rounded-xl shadow-xl text-lg 
+                                        font-semibold text-white cursor-pointer w-fit m-auto hover:bg-alert">
+                                        Xóa 
+                                    </div>
+                                </div>
+                            </button>
+                        </div>
+                        ))
+                    }
                     <div className="mt-10 mb-3 float-start" onClick={() => setMember(!member)}>
                         <div className="bg-system text-center px-3 py-2 rounded-xl shadow-xl text-lg 
                             font-semibold text-white cursor-pointer w-fit m-auto">
                             Thêm thành viên
                         </div>
                     </div>
-                    <Dialog props={member} returnData={updateMember}/>
+                    <Dialog props={member} memList={memList} handleList={handleList}/>
                 </div>
             </div>
             <hr />

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react'
 import { UserPlus } from 'lucide-react'
 import ConfirmDialog from './ConfirmDialog'
@@ -23,11 +23,11 @@ const memberData = [
     class: "71K28"},
   ]
 
-export default function DialogCom({props, returnData}) {
+export default function DialogCom({props, handleList, memList}) {
   const [open, setOpen] = useState(false)
   const [prevent, setPrevent] = useState(true)
 
-  const [addedMem, setAddedmem] = useState([])
+//   const [addedMem, setAddedmem] = useState([])
   const [member, setMember] = useState({})
   useEffect(() => {
     if (prevent) {
@@ -39,10 +39,13 @@ export default function DialogCom({props, returnData}) {
 
   const [input, setInput] = useState(false);
   const [valid, setValid] = useState(true);
-  const [confirm, setIsConfirm] = useState(false);
-  const [mem, setMem] = useState()
+  const [exist, setExist] = useState(false);
+
+  const [mem, setMem] = useState() // mem handle view
   
   const [value, setValue] = useState()
+
+  const [openModal, setOpenModal] = useState(false);
 
   const handleChange = (item) => {
     setValue(item)
@@ -70,47 +73,45 @@ export default function DialogCom({props, returnData}) {
   const handleClose = () => {
     setOpen(false)
     setTimeout(() => {
-        setValid(true)
-        setInput(false)
-        setValue()
-        setMem();
+        onCloseForm();
     }, 300)
     clearTimeout();
   }
 
   const handleAdd = () => {
-    // setOpen(false)
+    const obj = memList.filter((item) => item.id === mem.id)
+    if(obj.length > 0) {
+        setExist(true);
+    } else setExist(false);
     setOpenModal(true)
   }
   const closeModal = () => setOpenModal(false)
-
-  const [openModal, setOpenModal] = useState(false);
-  const isConfirm = (status) => {
-    setIsConfirm(status)
-    if (confirm) handleConfirm(mem)
+  
+  const isConfirm = () => {
+    const memArr = memList.filter((item) => item !== mem)
+    memArr.push(mem)
+    handleList(memArr)
     handleClose();
-    // console.log(status)
-  }
-
-  useEffect(() => {
-    setAddedmem([
-        ...addedMem.filter((item) => item !== mem),
-        mem
-    ])
-    console.log(mem)
-  }, [confirm])
-
-  const handleConfirm = (item) => {
-    // console.log('confirmed')
-    // console.log(item)
-    // setAddedmem([...addedMem, item])
-    console.log(addedMem)
   }
 
   const searchedMember = {
     valid: valid,
-    input: input
+    input: input,
+    exist: exist
   }
+
+  const onCloseForm = () => {
+    setValid(true)
+    setInput(false)
+    setExist(false)
+    setValue()
+    setMem();
+  }
+
+  useEffect(() => {
+
+  }, [memList])
+
   
   return (
     <div className="">

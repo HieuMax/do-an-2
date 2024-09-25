@@ -16,6 +16,12 @@
     .text-activity {
       color: #D8727D;
     }
+    .bg-alert{
+      background-color: #B80011;
+    }
+    :hover.bg-alert{
+      background-color: #b80012e0;
+    }
     .bg-activity {
       background-color: #d8727c41;
     }
