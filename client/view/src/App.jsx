@@ -7,8 +7,8 @@ import ErrorPage from './pages/3.errorPage/ErrorPage'
 import { SidebarFunc } from './components/sidebar/SidebarFunc'
 import { Profile } from './pages/4.profile/Profile'
 import Navbar from './components/header/Navbar'
-import { ProjectList } from './pages/5.projectList/ProjectList'
 import { ProjectDetail } from './pages/6.projectDetail/ProjectDetail'
+import { ProjectListProvider } from './pages/5.projectList/ProjectListProvider'
 
 const Dashboard = () => {
   const [expand, setExpand] = useState(false);
@@ -58,7 +58,7 @@ const router = createBrowserRouter([
       },
       {
         path: "/project-list",
-        element: <ProjectList />
+        element: <ProjectListProvider />
       },
       {
         path: "/regist-project",

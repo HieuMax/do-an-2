@@ -6,9 +6,9 @@ import { InforProjectCard } from '../components/card/InforProjectCard';
 
 export default function Pagination({prop, parent}) {
   const data = prop;
-
   const [currentPage, setCurrentPage] = useState(1);
   const newsPerPage = 6
+  if (!prop) return
   const totalPages = prop.length%newsPerPage != 0 ? Math.floor(prop.length/newsPerPage) + 1 : prop.length/newsPerPage
 
   const indexOfLastItem = currentPage * newsPerPage;

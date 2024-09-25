@@ -1,38 +1,65 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useContext, useEffect, useState } from 'react'
 import Dropdown from '../../components/dropdown/Dropdown'
 import { ListCard } from '../../components/card/ListCard'
+import { getAllProjects } from '../../controller/1.projects/project';
+import ProjectsContext from '../../provider/projectProvider';
+import { Loading } from '../../utils/Loading';
 
 export const ProjectList = () => {
     const [list, setList] = useState(0);
-    const data = [
-        {id: "Project 1", name: "Thiết kees hệ thống", mentor: "Nguyen A", status: 0 },
-        {id: "Project 2", name: "Minh hoa hệ thống", mentor: "Nguyen A", status: 1},
-        {id: "Project 3", name: "Minh hoa hệ thống 2", mentor: "Nguyen A", status: 2},
-        {id: "Project 4", name: "Minh hoa hệ thống 3", mentor: "Nguyen A", status: 3},
-        {id: "Project 5", name: "Minh hoa hệ thống 4", mentor: "Nguyen Tran Le Phuong Le", status: 4},
-        {id: "Project 6", name: "Lorem ipsum dolor, sit amet consectetur adipisicing elit. Odio ab incidunt vel eligendi veritatis, quam pariatur sed dolores. Sed in enim architecto quos alias eveniet laborum ea possimus debitis dolor!", mentor: "Nguyen A", status: 0} 
-    ]
+
+    const {
+        state: { projects },
+        dispatch,
+    } = useContext(ProjectsContext);
+
+    useEffect(() => {
+        async function fetchData() {
+            try {
+                const projectsData = await getAllProjects();
+                setTimeout(() => {
+                    dispatch({ 
+                        type: "LOADED_PROJECTS",
+                        payload: projectsData
+                    })
+                }, 1200)
+                clearTimeout();
+            } catch (error) {
+                throw new Error(error)
+            }
+        }
+        fetchData();
+    }, [dispatch])
+
+
     const status = [
         {id: 0 ,name: "Danh sách chưa duyệt"},
         {id: 1 ,name: "Danh sách đã duyệt"},
         {id: 2 ,name: "Danh sách đã nộp đề cương"},
         {id: 3 ,name: "Danh sách đã chấm đề cương"}
     ]
+
     const updateList = (item) => {
         setList(item.id)
     }
+    
     const [log, setLog] = useState({
-        data: data,
+        data: projects? projects.detai: [],
         parent: "ListProject"
     })
 
     useEffect(() => {
-        const dataFill = data.filter(item => (item.status === list || (item.status >= 3 && list == 3 )))
+        const filteredProjects = Array.isArray(projects.detai) 
+            ? projects.detai.filter(item => (
+                (item.trangthai === list || (item.trangthai >= 3 && list === 3))
+              )) 
+            : []; 
         setLog({
-            data: dataFill,
+            data: projects? filteredProjects: [],
             parent: log.parent
         })
-    }, [list])
+    }, [projects,list])
+
 
   return (
     <div className="py-3 px-3 h-full ">
@@ -55,7 +82,12 @@ export const ProjectList = () => {
                             </div>
                         </div>
                     </div>
-                    <ListCard props={log} />
+
+                    {
+                        projects.detai && log.data
+                        ? <ListCard props={log} />
+                        : <Loading />
+                    }
                 </div>
             </div>
         </div>
