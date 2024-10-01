@@ -9,12 +9,16 @@ const getAll = (name) => {
             return getAllFromDb('giangvien');
         case 'projects':
             return getAllFromDb('detai');
+        case 'departments':
+            return getAllFromDb('khoa');
+        default: 
+            return
     }
 }
 
 const getAllFromDb = async (name) => {
     // prevent SQL injection
-    const allowedTables = ['sinhvien', 'giangvien', 'detai'];
+    const allowedTables = ['sinhvien', 'giangvien', 'detai', 'khoa'];
     if (!allowedTables.includes(name)) {
         return json({"error": "Invalid table name"});
     }
@@ -37,6 +41,19 @@ const getById = (obj, id) => {
             return getMentorById(id);
         case 'projects':
             return getProjectById(id);
+        case 'departments':
+            return getDepartmentById(id);
+        default: 
+            return
+    }
+}
+
+const getByKeyObject = (table, key, obj) => {
+    switch (table) {
+        case "mentors": 
+            return getMentorByQuery(key, obj)
+        default: 
+            return
     }
 }
 
@@ -51,9 +68,10 @@ const getStudentById = async(id) => {
 }
 const getProjectById = async(id) => {
     const query = "SELECT * FROM detai WHERE detaiid = $1"
+    const member = await getMemberOfProject(id);
     try {
         const results = await pool.query(query, [id]);
-        return {"data": results.rows[0]};
+        return {"data": results.rows[0], "members": member};
     } catch (err) {
         return {"error": err.message};
     }
@@ -68,8 +86,59 @@ const getMentorById = async(id) => {
     }
 }
 
+const getMentorByQuery = async(key, obj) => {
+    const allowedTables = ['khoaid'];
+    if (!allowedTables.includes(key)) {
+        return json({"error": "Invalid table name"});
+    }
+    const query = `SELECT * FROM giangvien WHERE ${key} = $1`
+    try {
+        const results = await pool.query(query, [obj]);
+        return {"data": results.rows};
+    } catch (err) {
+        return {"error": err.message};
+    }
+}
+
+const getDepartmentById = async(id) => {
+    const query = "SELECT * FROM khoa WHERE khoaid = $1"
+    try {
+        const results = await pool.query(query, [id]);
+        return {"data": results.rows[0]};
+    } catch (err) {
+        return {"error": err.message};
+    }
+}
+
+const getMemberOfProject = async(id) => {
+    const query = `
+    SELECT sinhvien.sinhvienid, sinhvien.hoten
+    FROM thanhvienthuchien 
+    INNER JOIN sinhvien ON sinhvien.sinhvienid = thanhvienthuchien.sinhvienid
+    WHERE detaiid = $1 `
+    try {
+        const results = await pool.query(query, [id]);
+        return {"data": results.rows};
+    } catch (err) {
+        return {"error": err.message};
+    }
+}
+
+
+// Update
+const updateStatus = async (status, id) => {
+    const query = `UPDATE detai SET trangthai = $1 WHERE detaiid = $2`
+    try {
+        const result = await pool.query(query, [status, id]);
+        return {"status": 200, message: "Updated successfully"};
+    } catch (err) {
+        return {"error": err.message}        
+    }
+}
 
 module.exports = {
     getAll,
-    getById
+    getById,
+    getByKeyObject,
+    updateStatus
 }

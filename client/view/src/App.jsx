@@ -9,6 +9,7 @@ import { Profile } from './pages/4.profile/Profile'
 import Navbar from './components/header/Navbar'
 import { ProjectDetail } from './pages/6.projectDetail/ProjectDetail'
 import { ProjectListProvider } from './pages/5.projectList/ProjectListProvider'
+import { RegisteredProject } from './pages/6.projectDetail/RegisteredProject'
 
 const Dashboard = () => {
   const [expand, setExpand] = useState(false);
@@ -59,6 +60,10 @@ const router = createBrowserRouter([
       {
         path: "/project-list",
         element: <ProjectListProvider />
+      },
+      {
+        path: "/project-list/:id",
+        element: <RegisteredProject />
       },
       {
         path: "/regist-project",

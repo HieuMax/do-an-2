@@ -1,7 +1,7 @@
 import { Dialog, Transition } from '@headlessui/react'
 import { Fragment, useEffect, useState } from 'react'
 
-export default function ConfirmDialog({open, close, isConfirm, props}) {
+export default function ConfirmDialog({open, close, isConfirm, props, parent}) {
   let [isOpen, setIsOpen] = useState(true)
 
   function closeModal() {
@@ -52,18 +52,44 @@ export default function ConfirmDialog({open, close, isConfirm, props}) {
                     as="h3"
                     className="text-lg font-medium leading-6 text-gray-900"
                   >
-                    Xác nhận thêm thành viên
+                    {
+                      props
+                       ? "Xác nhận thêm thành viên"
+                       : "Xác nhận duyệt đề tài"
+                    }
                   </Dialog.Title>
                   <div className="mt-2">
-                    <p className="text-sm text-gray-500">
-                      {props.valid && props.input && !props.exist
-                        ? "Thành viên này sẽ được thêm vào thực hiện đề tài "
-                        : props.exist 
-                          ? "Thành viên này đã được thêm"
-                          : "Lỗi"
-                      }
-                      
-                    </p>
+                    {
+                      props 
+                      ? (
+                        <p className="text-sm text-gray-500">
+                          {props.valid && props.input && !props.exist
+                            ? "Thành viên này sẽ được thêm vào thực hiện đề tài "
+                            : props.exist 
+                              ? "Thành viên này đã được thêm"
+                              : "Lỗi"
+                          }
+                          
+                        </p>
+                      )
+                      : (
+                        <p className={`
+                          ${
+                            parent == "Approve"
+                                ? "text-green-600"
+                                : "text-red-600"
+                            
+                          } text-sm font-semibold my-3
+                        `}>
+                            {
+                              parent == "Approve"
+                                ? "Duyệt đề tài"
+                                : "Từ chối đề tài"
+                            }
+                        </p>
+                      )
+                    }
+                    
                   </div>
 
                   <div className="mt-4 justify-center gap-4 flex">
@@ -72,7 +98,7 @@ export default function ConfirmDialog({open, close, isConfirm, props}) {
                       className="inline-flex justify-center rounded-md min-w-16 w-full bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
                       onClick={() => closeModal()}  
                     >
-                      {props.valid && props.input && !props.exist
+                      {props && props.valid && props.input && !props.exist || parent == "Approve" || parent == "Reject"
                         ? "Hủy"
                         : "Xác nhận"
                       }
@@ -80,7 +106,7 @@ export default function ConfirmDialog({open, close, isConfirm, props}) {
                     <button
                       type="button"
                       className={`
-                        ${props.valid && props.input && !props.exist
+                        ${props && props.valid && props.input && !props.exist || parent == "Approve" || parent == "Reject"
                           ? "block"
                           : "hidden"
                         }

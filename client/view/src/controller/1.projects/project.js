@@ -1,5 +1,5 @@
 import { API_ENDPOINT } from "..";
-import { getNameMentorById } from "../2.mentors/mentors";
+import { getMentorById, getNameMentorById } from "../2.mentors/mentors";
 
 const url = "/projects";
 
@@ -14,4 +14,39 @@ export const getAllProjects = async () => {
     return projects;
 }
 
+export const getProjectById = async(id) => {
+    const response = await fetch(`${API_ENDPOINT}${url}/${id}`)
+    const project = await response.json();
+    // const fillInforMentor = async () => {
+    const mentor = await getMentorById(project.detai.giangvienchunhiemid)
+    // console.log(project.detai)
+    const filledProject = {
+        ...project.detai,
+        hotenGV: mentor.hoten,
+        emailGV: mentor.mail,
+        sdtGV: mentor.sdt,
+        ...project.members
+    }
+    return filledProject;
+    // }
+}
+
+export const updateStatusProject = async (status, id) => {
+    const data = {
+        status: status,
+        id: id
+    }
+    const response = await fetch(`${API_ENDPOINT}${url}/updateStatus`, {
+        method: "PUT",
+        headers: {
+            'Content-type': 'application/json',
+            'apiKey': "notest"
+        },
+        body: JSON.stringify(data)
+    })
+    // console.log(response)
+    // if(response.ok) {
+    //     console.log("ok")
+    // }
+}
 // module.exports = 

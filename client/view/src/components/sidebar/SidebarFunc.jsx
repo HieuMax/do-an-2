@@ -28,7 +28,7 @@ export const SidebarFunc = ({expand}) => {
   }, [location.pathname]);
 
   const handleClick = (item) => {
-
+    window.scroll(0,0)
     if (item.href) {
       navigate(item.href);
     }

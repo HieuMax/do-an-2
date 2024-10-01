@@ -15,3 +15,9 @@ export const getNameMentorById = async (id) => {
     // console.log(name)
     return name;
 }
+export const getMentorById = async (id) => {
+    const response = await fetch(`${API_ENDPOINT}${url}/${id}`)
+    const mentor = await response.json();
+    // console.log(name)
+    return mentor.giangvien;
+}

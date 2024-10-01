@@ -1,9 +1,11 @@
 import React, { useEffect, useReducer, useState } from 'react'
-import Dropdown from '../../components/dropdown/Dropdown'
+import DropdownData from '../../components/dropdown/DropdownData'
 import { ProgressBar } from '../../components/progress/ProgressBar';
 import { ProgressBarVertical } from '../../components/progress/ProgressBarVertical';
 import { ComboboxCom } from '../../components/combobox/Combobox';
 import Dialog from '../../components/dialog/Dialogs';
+import { getAllDepartments, getDepartmentsById } from '../../controller/3.departments/departments';
+import DepartmentContext, { DeparmentReducer, DepartmentInitialState } from '../../provider/detailProvider';
 
 const dataGV = [
     {idKhoa: 1, gv: [
@@ -29,32 +31,73 @@ const linhVuc = [
     {id: 3 ,name: "ABC"},
     {id: 4 ,name: "Khác"},
   ]
-const khoa = [
-    {id: 1 ,name: "CNTT"},
-    {id: 2 ,name: "KD"},
-    {id: 3 ,name: "Cơ điện"},
-    {id: 4 ,name: "Máy tính"}
-  ]
+
 const user = {id: "227480100000", name: "Hieu Max"}
 
 
 export const ProjectDetail = ({props}) => {
     
+  const [khoa, setKhoa] = useState();
+  const [giangVien, setGiangVien] = useState();
+  const [depended, setDepended] = useState(false)
   const [list, setList] = useState(0);
   const [member, setMember] = useState(false)
-
   const [memList, setMemList] = useState([])
 
+  const [state, dispatch] = useReducer(
+    DeparmentReducer,
+    DepartmentInitialState
+  )
+  
+  useEffect(() => {
+    const fetchData = async () => {
+        const khoa = await getAllDepartments()
+        const idDe = Object.values(khoa[0])[0]
+        const mentors = await getDepartmentsById(idDe)
+        setKhoa(khoa)
+        setGiangVien(mentors.staffs)
+        dispatch({
+            type: "LOADED_DEPARTMENTS",
+            payload: khoa
+        })
+        // dispatch({
+        //     type: "CHANGED_LIST",
+        //     payload: mentors.staffs
+        // })
+    }
+    fetchData();
+  }, [])
 
-  const updateList = (item) => {
-    if (item.id == list) return
-    item.id != list ? setList(item.id) : ""
-    let data = []
-    dataGV.map(khoa => {
-        (khoa.idKhoa === item.id) ? data = khoa.gv : ""
-    })
-    if (data.length < 1) data.push({id: -1, name: "Không có dữ liệu"})
-    setGVHD(data)
+
+//   useEffect(() => {
+//     // console.log(state.staffs[0].hoten)
+
+//   }, [state])
+
+
+  const updateList = async (item) => {
+    const idDe = Object.values(item)[0]
+    const khoa = await getDepartmentsById(idDe)
+    setDepended(true)
+    // console.log(khoa.staffs)
+
+    // dispatch({
+    //     type: "CHANGED_LIST",
+    //     payload: khoa.staffs
+    // })
+    if(khoa.staffs.length < 1) setGiangVien(-1)
+    else setGiangVien(khoa.staffs)
+    // setKhoa(khoa.khoa)
+
+    
+    // if (item.id == list) return
+    // item.id != list ? setList(item.id) : ""
+    // let data = []
+    // dataGV.map(khoa => {
+    //     (khoa.idKhoa === item.id) ? data = khoa.gv : ""
+    // })
+    // if (data.length < 1) data.push({id: -1, name: "Không có dữ liệu"})
+    // setGVHD(data)
   }
 
   const updateGVHD = (item) => {
@@ -66,8 +109,6 @@ export const ProjectDetail = ({props}) => {
   }
 
   const [source, setSource] = useState(true);
-  const [GVHD, setGVHD] = useState(dataGV[0].gv)
-  const [status, setStatus] = useState(0) // status of project 
 
   const removeMember = (id) => {
     const updatedList = memList.filter(item => item.id !== id);
@@ -80,10 +121,10 @@ export const ProjectDetail = ({props}) => {
             <h1 className="text-2xl font-bold underline">Đăng ký đề tài</h1>
             {/* Progress bar */}
             <div className="max-xix:hidden">
-                <ProgressBar status={status}/>
+                <ProgressBar status={0}/>
             </div>
             <div className="xix:hidden">
-                <ProgressBarVertical status={status} />
+                <ProgressBarVertical status={0} />
             </div>
             {/* Project Information */}
             <div className="statusButton py-3 ">
@@ -183,116 +224,119 @@ export const ProjectDetail = ({props}) => {
                                 </div>
                             </div>
                         </div>
-                        <div className={`
-                            ${source
-                                ? ""
-                                : "flex-col"
-                            }
-                            mt-2 w-full flex max-md:flex-col`}>
-                            <div className="w-1/3 mr-6  max-xl:w-3/4 max-lg:w-full ">
-                                <label htmlFor="" className="block text-lg font-medium leading-6 text-gray-900">
-                                    Đơn vị - {
-                                        source
-                                          ? "Khoa"
-                                          : "Trường giảng viên công tác"
-                                    }
-                                </label>
-                                <div className={
-                                    ` ${source
-                                        ? ""
-                                        : "hidden"
-                                    }
-                                    w-full py-1.5`
-                                }>
-                                    <Dropdown update={updateList} prop={khoa} parent={"Project Detail"}/>
-                                </div>
-                                <div className={`mt-2
-                                    ${source
-                                        ? "hidden"
-                                        : "block"
-                                    }
-                                    `}>
-                                    <input
-                                    id="tenGVHD"
-                                    name="tenGVHD"
-                                    type="text"
-                                    required
-                                    placeholder="Trường công tác"
-                                    className='my-3
-                                        block px-3 w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6`
-                                    '
-                                    />
-                                </div>
-                            </div>
-                            <div className="w-full ">
-                                <label htmlFor="" className="block text-lg font-medium leading-6 text-gray-900">
-                                    {source 
-                                      ? "Giảng viên"
-                                      : "Thông tin liên hệ"
-                                    }
-                                </label>
-                                <div className={`
-                                    ${source
-                                        ? "w-1/3 max-xl:w-3/4"
-                                        : "w-full"
-                                    } py-1.5 `}>
-                                    <div className={`
-                                        ${source 
-                                            ? "block"
+                        <DepartmentContext.Provider value = {{ state, dispatch}}>
+                            <div className={`
+                                ${source
+                                    ? ""
+                                    : "flex-col"
+                                }
+                                mt-2 w-full flex max-md:flex-col`}>
+                                <div className="w-1/3 mr-6  max-xl:w-3/4 max-lg:w-full ">
+                                    <label htmlFor="" className="block text-lg font-medium leading-6 text-gray-900">
+                                        Đơn vị - {
+                                            source
+                                            ? "Khoa"
+                                            : "Trường giảng viên công tác"
+                                        }
+                                    </label>
+                                    <div className={
+                                        ` ${source
+                                            ? ""
                                             : "hidden"
                                         }
-                                        `}>
-                                        <Dropdown update={updateGVHD} prop={GVHD} parent={"Project Detail"} defaultOption={list}/>
+                                        w-full py-1.5`
+                                    }>
+                                            <DropdownData update={updateList} prop={khoa} parent={"Project Detail - 1"}/>
                                     </div>
-                                    <div className={`
+                                    <div className={`mt-2
                                         ${source
                                             ? "hidden"
-                                            : "grid grid-flow-col gap-4 py-3 max-lg:flex max-lg:flex-col"
+                                            : "block"
                                         }
                                         `}>
-                                        <div className="">
-                                            <label htmlFor="" className="block text-sm font-medium leading-6 text-gray-900">
-                                                Họ tên người hướng dẫn
-                                            </label>
-                                            <input
-                                                id="tenNgHD"
-                                                name="tenNgHD"
-                                                type="text"
-                                                required
-                                                placeholder="Họ tên người hướng dẫn"
-                                                className='block px-3 w-full rounded-md border-0 py-2 mt-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6`'
-                                            />
+                                        <input
+                                        id="tenGVHD"
+                                        name="tenGVHD"
+                                        type="text"
+                                        required
+                                        placeholder="Trường công tác"
+                                        className='my-3
+                                            block px-3 w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6`
+                                        '
+                                        />
+                                    </div>
+                                </div>
+                                <div className="w-full ">
+                                    <label htmlFor="" className="block text-lg font-medium leading-6 text-gray-900">
+                                        {source 
+                                        ? "Giảng viên"
+                                        : "Thông tin liên hệ"
+                                        }
+                                    </label>
+                                    <div className={`
+                                        ${source
+                                            ? "w-1/3 max-xl:w-3/4"
+                                            : "w-full"
+                                        } py-1.5 `}>
+                                        <div className={`
+                                            ${source 
+                                                ? "block"
+                                                : "hidden"
+                                            }
+                                            `}>
+                                            {/* <DepartmentContext.Provider value = {{ state, dispatch}}> */}
+                                                <DropdownData update={updateGVHD} prop={giangVien} parent={"Project Detail"} depended={depended}/>
                                         </div>
-                                        <div className="">
-                                            <label htmlFor="" className="block text-sm font-medium leading-6 text-gray-900">
-                                                Số điện thoại
-                                            </label>
-                                            <input
-                                                id="sdtNgHD"
-                                                name="sdtNgHD"
-                                                type="tel"
-                                                required
-                                                placeholder="Số điện thoại người hướng dẫn"
-                                                className='block px-3 w-full rounded-md border-0 py-2 mt-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6`'
-                                            />
-                                        </div>
-                                        <div className="">
-                                            <label htmlFor="" className="block text-sm font-medium leading-6 text-gray-900">
-                                                Email
-                                            </label>
-                                            <input
-                                                id="emailNgHD"
-                                                name="emailNgHD"
-                                                type="email"
-                                                required
-                                                placeholder="Email người hướng dẫn"
-                                                className='block px-3 w-full rounded-md border-0 py-2 mt-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6`'
-                                            />
+                                        <div className={`
+                                            ${source
+                                                ? "hidden"
+                                                : "grid grid-flow-col gap-4 py-3 max-lg:flex max-lg:flex-col"
+                                            }
+                                            `}>
+                                            <div className="">
+                                                <label htmlFor="" className="block text-sm font-medium leading-6 text-gray-900">
+                                                    Họ tên người hướng dẫn
+                                                </label>
+                                                <input
+                                                    id="tenNgHD"
+                                                    name="tenNgHD"
+                                                    type="text"
+                                                    required
+                                                    placeholder="Họ tên người hướng dẫn"
+                                                    className='block px-3 w-full rounded-md border-0 py-2 mt-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6`'
+                                                />
+                                            </div>
+                                            <div className="">
+                                                <label htmlFor="" className="block text-sm font-medium leading-6 text-gray-900">
+                                                    Số điện thoại
+                                                </label>
+                                                <input
+                                                    id="sdtNgHD"
+                                                    name="sdtNgHD"
+                                                    type="tel"
+                                                    required
+                                                    placeholder="Số điện thoại người hướng dẫn"
+                                                    className='block px-3 w-full rounded-md border-0 py-2 mt-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6`'
+                                                />
+                                            </div>
+                                            <div className="">
+                                                <label htmlFor="" className="block text-sm font-medium leading-6 text-gray-900">
+                                                    Email
+                                                </label>
+                                                <input
+                                                    id="emailNgHD"
+                                                    name="emailNgHD"
+                                                    type="email"
+                                                    required
+                                                    placeholder="Email người hướng dẫn"
+                                                    className='block px-3 w-full rounded-md border-0 py-2 mt-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6`'
+                                                />
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </DepartmentContext.Provider>
                     </div>
                 </div>
                 <hr />                         

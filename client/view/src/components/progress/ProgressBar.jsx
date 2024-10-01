@@ -5,6 +5,7 @@ export const ProgressBar = ({props, status}) => {
     const progress = [
         {status: 0, name: "Đăng ký đề tài mới"},
         {status: 1, name: "Phê duyệt"},
+        // {status: 2, name: "Phê duyệt cấp 2"},
         {status: 2, name: "Thuyết trình đề cương"},
         {status: 3, name: "Thực hiện"},
         {status: 4, name: "Báo cáo"},
