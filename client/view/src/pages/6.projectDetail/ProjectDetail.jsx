@@ -6,24 +6,9 @@ import { ComboboxCom } from '../../components/combobox/Combobox';
 import Dialog from '../../components/dialog/Dialogs';
 import { getAllDepartments, getDepartmentsById } from '../../controller/3.departments/departments';
 import DepartmentContext, { DeparmentReducer, DepartmentInitialState } from '../../provider/detailProvider';
+import { FileUpload } from '../../components/dialog/FileUpload';
+import UploadFile from '../../third-party/components/Data Entry/UploadFile';
 
-const dataGV = [
-    {idKhoa: 1, gv: [
-        {id: "001", name: "Nguyen A"},
-        {id: "002", name: "Tran B"},
-        {id: "003", name: "Le Nguyen C"},
-    ]},
-    {idKhoa: 2, gv: [
-        {id: "004", name: "Nguyen ATT"},
-        {id: "005", name: "Tran BTT"},
-        {id: "006", name: "Le Nguyen CTT"},
-    ]},
-    {idKhoa: 3, gv: [
-        {id: "007", name: "XZZ"},
-        {id: "008", name: "XXZZ"},
-        {id: "009", name: "ASDXX"},
-    ]},
-  ]
 const linhVuc = [
     {id: 0 ,name: "CNTT"},
     {id: 1 ,name: "KD"},
@@ -40,7 +25,6 @@ export const ProjectDetail = ({props}) => {
   const [khoa, setKhoa] = useState();
   const [giangVien, setGiangVien] = useState();
   const [depended, setDepended] = useState(false)
-  const [list, setList] = useState(0);
   const [member, setMember] = useState(false)
   const [memList, setMemList] = useState([])
 
@@ -69,35 +53,12 @@ export const ProjectDetail = ({props}) => {
   }, [])
 
 
-//   useEffect(() => {
-//     // console.log(state.staffs[0].hoten)
-
-//   }, [state])
-
-
   const updateList = async (item) => {
     const idDe = Object.values(item)[0]
     const khoa = await getDepartmentsById(idDe)
-    setDepended(true)
-    // console.log(khoa.staffs)
-
-    // dispatch({
-    //     type: "CHANGED_LIST",
-    //     payload: khoa.staffs
-    // })
+    setDepended(!depended)
     if(khoa.staffs.length < 1) setGiangVien(-1)
     else setGiangVien(khoa.staffs)
-    // setKhoa(khoa.khoa)
-
-    
-    // if (item.id == list) return
-    // item.id != list ? setList(item.id) : ""
-    // let data = []
-    // dataGV.map(khoa => {
-    //     (khoa.idKhoa === item.id) ? data = khoa.gv : ""
-    // })
-    // if (data.length < 1) data.push({id: -1, name: "Không có dữ liệu"})
-    // setGVHD(data)
   }
 
   const updateGVHD = (item) => {
@@ -111,14 +72,32 @@ export const ProjectDetail = ({props}) => {
   const [source, setSource] = useState(true);
 
   const removeMember = (id) => {
-    const updatedList = memList.filter(item => item.id !== id);
+    const updatedList = memList.filter(item => item.sinhvienid !== id);
     setMemList(updatedList)
   }
+  
+  const [ isOpenUpload, setIsOpenUpload ] = useState(false)
+  
+  const toggleUpload = () => {
+    setIsOpenUpload(!isOpenUpload)
+  }
+  const uploadForm = {
+    open: isOpenUpload,
+    isOpen: () => toggleUpload(),
+
+  }
+
+  const openUploadForm = () => {
+    setIsOpenUpload(true)
+  }
+
+
   return (
     <div className="py-3 px-3 h-full ">
 
         <div className="h-full max-w-full  flex p-3 flex-col">
             <h1 className="text-2xl font-bold underline">Đăng ký đề tài</h1>
+            
             {/* Progress bar */}
             <div className="max-xix:hidden">
                 <ProgressBar status={0}/>
@@ -127,6 +106,7 @@ export const ProjectDetail = ({props}) => {
                 <ProgressBarVertical status={0} />
             </div>
             {/* Project Information */}
+            
             <div className="statusButton py-3 ">
                 <div className="bg-blue-00">
                     <div>
@@ -139,7 +119,6 @@ export const ProjectDetail = ({props}) => {
                             name="tenDeTai"
                             type="text"
                             required
-                            // autoComplete=""
                             placeholder="Thiết kế hệ thống"
                             className="block px-3 w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                             />
@@ -384,11 +363,8 @@ export const ProjectDetail = ({props}) => {
                     </div>
                     {
                         memList.map((item) => (
-                        <div className="flex w-2/3 max-xl:w-full" key={item.id}>
+                        <div className="flex w-2/3 max-xl:w-full" key={item.sinhvienid}>
                             <div className=" w-4/5 max-w-7xl max-sm:w-full">
-                                {/* <label htmlFor="" className="block text-lg font-medium leading-6 text-gray-900">
-                                    Sinh viên chủ nhiệm đề tài
-                                </label> */}
                                 <div className="grid grid-flow-col gap-4 max-md:flex-col max-md:flex">
                                     <div className="mt-3 col-span-1">
                                         <label htmlFor="" className="block text-lg font-medium leading-6 text-gray-900">
@@ -396,7 +372,7 @@ export const ProjectDetail = ({props}) => {
                                         </label>
                                         <input
                                             disabled
-                                            value={item.id}
+                                            value={item.sinhvienid}
                                             className='block px-3 w-full rounded-md border-0 py-2 mt-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6`'
                                         />
                                     </div>
@@ -406,13 +382,13 @@ export const ProjectDetail = ({props}) => {
                                         </label>
                                         <input
                                             disabled
-                                            value={item.name}
+                                            value={item.hoten}
                                             className='block px-3 w-full rounded-md border-0 py-2 mt-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6`'
                                         />
                                     </div>
                                 </div>
                             </div>
-                            <button className="mx-3" onClick={() => removeMember(item.id)} >
+                            <button className="mx-3" onClick={() => removeMember(item.sinhvienid)} >
                                 <div className="mt-10 mb-3 float-start" >
                                     <div className="bg-alert text-center px-6 py-1.5 rounded-xl shadow-xl text-lg 
                                         font-semibold text-white cursor-pointer w-fit m-auto hover:bg-alert">
@@ -441,13 +417,18 @@ export const ProjectDetail = ({props}) => {
                             Tài liệu đề xuất (.doc | .docx | .pdf)
                         </label>
                         <div className="px-3 w-full rounded-md border-0 py-2 mt-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6
-                        flex items-center justify-between">
-                            <input 
-                            type="file" 
+                        flex items-center justify-between"
+                        onClick={()=> openUploadForm()}
+
+                        >
+                            <div 
+                            // type="file" 
                             className="file:hidden"
- 
-                            name='file'
-                            id="inputGroupFile02"/> 
+                            // accept='.docx, .doc, .pdf'
+                            // name='file'
+                            id="inputGroupFile02">
+                                Không có tệp nào được chọn
+                            </div> 
                             <label className="input-group-text" htmlFor='inputGroupFile02'>
                                 <div className="">
                                     <div className="bg-system text-center px-3 py-2 rounded-xl shadow-xl text-lg 
@@ -458,6 +439,9 @@ export const ProjectDetail = ({props}) => {
                             </label>
                         </div>
                     </div>
+                </div>
+                <div className="">
+                    <FileUpload props={uploadForm}/>
                 </div>
             </div>
         </div>

@@ -1,5 +1,6 @@
 const projectRouter = require('express').Router();
-const { getAll, getById, updateStatus } = require('../controller/controller')
+const { getAll, getById, updateStatus } = require('../controller/controller');
+const upload = require('../middleware/multer');
 
 module.exports = projectRouter;
 
@@ -38,4 +39,19 @@ projectRouter.put('/updateStatus', async (req, res, next) => {
 
     // const result = await updateStatus(id);
 
+})
+
+projectRouter.post('/uploadFile', upload.single('file'), (req,res) => {
+    // console.log(upload)
+    console.log(req.file)
+    // console.log(upload.storage.getFilename)
+    if(!req.file) {
+        return res.status(400).send('No file uploaded');
+    }
+    res.send('File uploaded successfully: ' + req.file.filename);
+    // const 
+})
+
+projectRouter.post('/preparefile', (req, res) => {
+    return res.status(200).send({ message: "well connect"})
 })

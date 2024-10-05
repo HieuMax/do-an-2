@@ -11,6 +11,8 @@ const getAll = (name) => {
             return getAllFromDb('detai');
         case 'departments':
             return getAllFromDb('khoa');
+        case 'classes':
+            return getAllFromDb('lop');
         default: 
             return
     }
@@ -18,7 +20,7 @@ const getAll = (name) => {
 
 const getAllFromDb = async (name) => {
     // prevent SQL injection
-    const allowedTables = ['sinhvien', 'giangvien', 'detai', 'khoa'];
+    const allowedTables = ['sinhvien', 'giangvien', 'detai', 'khoa', 'lop'];
     if (!allowedTables.includes(name)) {
         return json({"error": "Invalid table name"});
     }
@@ -43,6 +45,8 @@ const getById = (obj, id) => {
             return getProjectById(id);
         case 'departments':
             return getDepartmentById(id);
+        case 'classes':
+            return getClassById(id);
         default: 
             return
     }
@@ -102,6 +106,15 @@ const getMentorByQuery = async(key, obj) => {
 
 const getDepartmentById = async(id) => {
     const query = "SELECT * FROM khoa WHERE khoaid = $1"
+    try {
+        const results = await pool.query(query, [id]);
+        return {"data": results.rows[0]};
+    } catch (err) {
+        return {"error": err.message};
+    }
+}
+const getClassById = async(id) => {
+    const query = "SELECT * FROM lop WHERE lopid = $1"
     try {
         const results = await pool.query(query, [id]);
         return {"data": results.rows[0]};

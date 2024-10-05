@@ -49,4 +49,17 @@ export const updateStatusProject = async (status, id) => {
     //     console.log("ok")
     // }
 }
+
+export const uploadFile = async (formData) => {
+    console.log(formData)
+    try {
+        const response = await fetch(`${API_ENDPOINT}${url}/uploadFile`, {
+            method: 'POST',
+            body: formData,
+        })
+        return response
+    } catch (error) {
+        return { error: error }
+    }
+}
 // module.exports = 

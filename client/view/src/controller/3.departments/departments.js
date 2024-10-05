@@ -21,6 +21,8 @@ export const getAllDepartments = async () => {
 export const getDepartmentsById = async (id) => {
     const response = await fetch(`${API_ENDPOINT}${url}/${id}`)
     const departments = await response.json();
-    // console.log(departments
+
     return departments;
 }
+
+

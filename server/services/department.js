@@ -18,6 +18,7 @@ departmentRouter.get('/:id', async (req, res) => {
     const id = req.params.id;
     const result = await getById(obj, id)
     const table = "mentors"
+    // console.log()
     const key = Object.keys(result.data)[0]
     // console.log(key)
     // console.log(id)

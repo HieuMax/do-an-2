@@ -4,30 +4,17 @@ import { useCallback, useEffect, useState } from 'react'
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react'
 import { UserPlus } from 'lucide-react'
 import ConfirmDialog from './ConfirmDialog'
+import { getStudentsById } from '../../controller/4.students/students'
 
 const data = {
     title: "Thêm thành viên",
 }
 
-const memberData = [
-    {id: "1",
-    name: "Tommy Xiao",
-    class: "71K28"},
-
-    {id: "2",
-    name: "Xiaomy",
-    class: "71K28"},
-
-    {id: "3",
-    name: "Toiao",
-    class: "71K28"},
-  ]
 
 export default function DialogCom({props, handleList, memList}) {
   const [open, setOpen] = useState(false)
   const [prevent, setPrevent] = useState(true)
 
-//   const [addedMem, setAddedmem] = useState([])
   const [member, setMember] = useState({})
   useEffect(() => {
     if (prevent) {
@@ -40,9 +27,8 @@ export default function DialogCom({props, handleList, memList}) {
   const [input, setInput] = useState(false);
   const [valid, setValid] = useState(true);
   const [exist, setExist] = useState(false);
-
-  const [mem, setMem] = useState() // mem handle view
-  
+  const [mem, setMem] = useState();
+ 
   const [value, setValue] = useState()
 
   const [openModal, setOpenModal] = useState(false);
@@ -52,9 +38,10 @@ export default function DialogCom({props, handleList, memList}) {
   }
 
   // get data from fetch with skeleton loading
-  const handleSearch = () => {
+  const handleSearch = async () => {
     if (!value) return
-    if (mem) {
+    const mem = await fetchData();
+    if (mem.sinhvienid) {
         setValid(true)
         setInput(true)
         setMember(mem)
@@ -64,11 +51,13 @@ export default function DialogCom({props, handleList, memList}) {
     };
   }
 
-  useEffect(() => {
+  const fetchData = async() => {
     if (!value) return
-    const validValue = memberData.filter((mem) => mem.id === value)
-    setMem(validValue.length > 0? validValue[0] : "")
-  }, [value])
+    const validValue = await getStudentsById(value)
+    // console.log(validValue)
+    return validValue.sinhvien
+  }
+
 
   const handleClose = () => {
     setOpen(false)
@@ -79,7 +68,8 @@ export default function DialogCom({props, handleList, memList}) {
   }
 
   const handleAdd = () => {
-    const obj = memList.filter((item) => item.id === mem.id)
+    const mem = member;
+    const obj = memList.filter((item) => item.sinhvienid === mem.sinhvienid)
     if(obj.length > 0) {
         setExist(true);
     } else setExist(false);
@@ -88,6 +78,7 @@ export default function DialogCom({props, handleList, memList}) {
   const closeModal = () => setOpenModal(false)
   
   const isConfirm = () => {
+    const mem = member;
     const memArr = memList.filter((item) => item !== mem)
     memArr.push(mem)
     handleList(memArr)
@@ -174,7 +165,7 @@ export default function DialogCom({props, handleList, memList}) {
                                     <span className='font-semibold'>Thông tin thành viên</span>
                                     <div className="mt-6 flex flex-col">
                                         <span className='text-gray-400'>Họ tên</span>
-                                        <span>{member.name}</span>
+                                        <span>{member.hoten}</span>
                                     </div>
                                     <div className="mt-6 flex flex-col">
                                         <span className='text-gray-400'>Lớp</span>

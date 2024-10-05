@@ -15,12 +15,6 @@ export default function DropdownData({prop, update, parent, depended}) {
   const data = prop
   const [option, setOption] = useState();
 
-  // const handleOption = () => {
-  //   if(!data) return
-  //   if(parent == parents[0]) setOption(departments[0]);
-  //   else if (parent == parents[1] ) setOption(staffs[0] ? staffs[0].hoten : "");
-  // }
-
   const parseOption = (item) => {
     switch(parent) {
       case parents[0]:
@@ -35,21 +29,29 @@ export default function DropdownData({prop, update, parent, depended}) {
 
   useEffect(() => {
     if (!data) return
-    setOption(parseOption(data[0]));
+    if(parent == parents[0])
+      setOption(parseOption(data[0]));
   }, [departments, staffs])
 
   const handleChangeOption = (item) => {
-    // const changeOption = parseOption(item);
-    // if(changeOption === option) return
-    // setOption(changeOption)
-    // update(changeOption)
+    const changeOption = parseOption(item);
+    if(changeOption === option) return
+    setOption(changeOption)
+    if(parent == parents[0]) {
+      update(item)
+    }
   }
 
-  // const data = {
-  //   mota: mota,
-  //   tenkhoa,
-  //   thanh: thanhvien
-  // }
+
+  const handleFieldMentor = () => {
+    if(parent == parents[1]) {
+      setOption();
+    }
+  }
+
+  useEffect(() => {
+    handleFieldMentor()
+  }, [depended])
 
   const parseName = (item, obj) => {
     if (!item) return
@@ -82,7 +84,7 @@ export default function DropdownData({prop, update, parent, depended}) {
         justify-between inline-flex w-full gap-x-1.5 rounded-md px-3 py-2 text-sm font-semibold shadow-sm ring-1 ring-inset ring-gray-300`}>
           {
             data && data.length > 0 
-            ? option
+            ? parent == parents[0] ? option : option //handleFieldMentor()
             : ""
           }
           <ChevronDownIcon aria-hidden="true" className="-mr-1 h-5 w-5 text-gray-400" />

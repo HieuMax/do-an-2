@@ -12,12 +12,26 @@ studentRouter.get('/', async (req, res) => {
     }
 })
 
+const getClassOfStudent = async(id) => {
+    const result = await getById("classes", id) ;
+    if (result.error) {
+        return result.error
+    } 
+    // console.log(result)
+    return result.data
+}
+    
 studentRouter.get('/:id', async (req, res) => {
     const id = req.params.id;
     const result = await getById(obj, id)
     if (result.error) {
         res.status(500).json({"error": result.error});
     } else {
-        res.json({sinhvien: result.data})
+        const classStu = await getClassOfStudent(result.data ? result.data.lopid : "");
+        res.json({sinhvien: {
+            ...result.data, 
+            class: classStu ? classStu.tenlop : ""
+        }})
     }
 })
+
