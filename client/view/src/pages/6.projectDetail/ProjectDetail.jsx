@@ -91,6 +91,12 @@ export const ProjectDetail = ({props}) => {
     setIsOpenUpload(true)
   }
 
+  const [ fileArray, setFileArray ] = useState([])
+
+  const handleFile = (arr) => {
+    setFileArray(arr)
+  }
+
 
   return (
     <div className="py-3 px-3 h-full ">

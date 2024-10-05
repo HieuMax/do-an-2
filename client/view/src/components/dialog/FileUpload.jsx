@@ -20,10 +20,6 @@ export const FileUpload = ({ props }) => {
     setFileArray([])
   }
   const [ fileArray, setFileArray ] = useState([])
-  
-  useEffect(() => {
-    // console.log(fileArray)
-  }, [fileArray])
 
   const handleFile = (arr) => {
     setFileArray(arr)
