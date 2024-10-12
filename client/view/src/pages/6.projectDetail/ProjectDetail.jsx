@@ -5,11 +5,16 @@ import { ProgressBarVertical } from '../../components/progress/ProgressBarVertic
 import { ComboboxCom } from '../../components/combobox/Combobox';
 import Dialog from '../../components/dialog/Dialogs';
 import { getAllDepartments, getDepartmentsById } from '../../controller/3.departments/departments';
-import DepartmentContext, { DeparmentReducer, DepartmentInitialState } from '../../provider/detailProvider';
+import DepartmentContext, { DeparmentReducer, DepartmentInitialState, FileContext } from '../../provider/detailProvider';
 import { FileUpload } from '../../components/dialog/FileUpload';
-import UploadFile from '../../third-party/components/Data Entry/UploadFile';
+import { message } from 'antd';
+import { registNewProject, uploadFile } from '../../controller/1.projects/project';
+import ConfirmDialog from '../../components/dialog/ConfirmDialog';
+import { Loading } from '../../utils/Loading';
+import { useNavigate } from 'react-router-dom';
+import NotificationBottomRight from '../../third-party/components/Notification/NotificationBottomRight';
 
-const linhVuc = [
+const staticLinhVuc = [
     {id: 0 ,name: "CNTT"},
     {id: 1 ,name: "KD"},
     {id: 2 ,name: "NCKH"},
@@ -17,22 +22,26 @@ const linhVuc = [
     {id: 4 ,name: "Khác"},
   ]
 
-const user = {id: "227480100000", name: "Hieu Max"}
-
+const user = {id: "SV001", name: "Hieu Max"}
 
 export const ProjectDetail = ({props}) => {
-    
+  const navigate = useNavigate();
+
   const [khoa, setKhoa] = useState();
   const [giangVien, setGiangVien] = useState();
   const [depended, setDepended] = useState(false)
   const [member, setMember] = useState(false)
   const [memList, setMemList] = useState([])
+  const [ linhVuc, setLinhVuc ] = useState(staticLinhVuc)
+  const [ GVHD, setGVHD ] = useState()
+  const [ isRegist, setIsRegist ] = useState(false);
+  const [ finishRegist, setFinishRegist ] = useState(false)
 
   const [state, dispatch] = useReducer(
     DeparmentReducer,
     DepartmentInitialState
   )
-  
+  FileContext
   useEffect(() => {
     const fetchData = async () => {
         const khoa = await getAllDepartments()
@@ -44,14 +53,9 @@ export const ProjectDetail = ({props}) => {
             type: "LOADED_DEPARTMENTS",
             payload: khoa
         })
-        // dispatch({
-        //     type: "CHANGED_LIST",
-        //     payload: mentors.staffs
-        // })
     }
     fetchData();
   }, [])
-
 
   const updateList = async (item) => {
     const idDe = Object.values(item)[0]
@@ -59,15 +63,12 @@ export const ProjectDetail = ({props}) => {
     setDepended(!depended)
     if(khoa.staffs.length < 1) setGiangVien(-1)
     else setGiangVien(khoa.staffs)
+    updateGVHD()
   }
 
-  const updateGVHD = (item) => {
-    // setGVHD()
-  }
+  const updateGVHD = (item) => { setGVHD(item) }
 
-  const handleList = (item) => {
-    setMemList(item)
-  }
+  const handleList = (item) => { setMemList(item) }
 
   const [source, setSource] = useState(true);
 
@@ -81,25 +82,151 @@ export const ProjectDetail = ({props}) => {
   const toggleUpload = () => {
     setIsOpenUpload(!isOpenUpload)
   }
+
+  const [ fileArray, setFileArray ] = useState([])
+  const [ displayFile, setDisplayFile ] = useState([])
+
   const uploadForm = {
     open: isOpenUpload,
     isOpen: () => toggleUpload(),
-
+    fileArray: fileArray,
+    isConfirmToDisplay: () => isConfirmToDisplay(),
+    displayFile: displayFile
   }
 
   const openUploadForm = () => {
     setIsOpenUpload(true)
   }
 
-  const [ fileArray, setFileArray ] = useState([])
+  const isConfirmToDisplay = () => {
+    setDisplayFile(fileArray)
+  }
 
   const handleFile = (arr) => {
     setFileArray(arr)
   }
 
+  const handleLinhVuc = (item) => setLinhVuc(item)
 
+  const registProject = async () => {
+    let flag = false;
+    if (!source) {
+        message.error("Tính năng giảng viên ngoài trường đang được cập nhật - Thử lại sau!")
+        return
+    }
+    const data = {
+        tenDeTai: document.getElementById('tenDeTai').value,
+        linhVuc: linhVuc.name,
+        kinhPhi: document.getElementById('kinhPhi').value,
+        thoiGianThucHien: document.getElementById('thoiGianThucHien').value,
+        giangVienChuNhiemID: GVHD ? GVHD.giangvienid : "",
+        thanhVienThucHien: memList ? memList : 0,
+        sinhvienid: user.id,
+    }
+    // console.log(data)
+    // return
+    const parseName = (key) => {
+        switch(key) {
+            case "tenDeTai":
+                return "Tên đề tài"
+            case "linhVuc":
+                return "Lĩnh vực"
+            case "kinhPhi":
+                return "Kinh phí"
+            case "thoiGianThucHien":
+                return "Thời gian thực hiện"
+            case "giangVienHD":
+                return "Giảng viên hướng dẫn"
+            case "tailieudexuat":
+                return "Chưa tải lên tài liệu đề xuất"
+            
+        }
+    }
+    Object.keys(data).forEach(item =>{
+        if((data[item] == null || data[item] == "") && item != "thanhVienThucHien") {
+            message.error(`Chưa điền thông tin cho ${parseName(item)}`)
+            return
+        }
+        if(item == "kinhPhi") {
+            const kinhphi = Number.parseFloat(data[item])
+            if (kinhphi < 0 || kinhphi > 100000000) {
+                message.error("Kinh phí không hợp lệ") 
+                flag = true;
+                return
+            }
+        } else if (item == "thoiGianThucHien") {
+            const thoiGian = Number.parseInt(data[item])
+            if (thoiGian < 1 || thoiGian > 24) {
+                message.error("Thời gian thực hiện không hợp lệ") 
+                flag = true;
+                return
+            }
+        }
+    })
+
+    if(flag) return
+
+    if(fileArray.length < 1) {
+        message.error("Tài liệu đề xuất chưa được chọn")
+        return
+    }
+
+    const handleUploadFile = async () => {
+        const formData = new FormData();
+        fileArray.forEach(file => {
+            formData.append('file', file.originFileObj);
+        });
+
+        try {
+            const response = await uploadFile(formData);
+            // console.log(response)
+            // data = { ...data, TaiLieuDeXuat: response.filename }
+            data.TaiLieuDeXuat = response.filename
+            data.originalfilename = response.originalname.originalname
+        } catch (error) {
+            
+        }
+    }
+    await handleUploadFile();
+    try {
+        // console.log(data)
+        const response = await registNewProject(data)
+        if(response.error) {
+            return response.error
+        }
+        if(response.status === 201) {
+            NotificationBottomRight("Đăng ký đề tài thành công")
+            setFinishRegist(true)
+            setTimeout(() => {
+                navigate(`/project-list`)
+            }, 700)
+            clearTimeout()
+
+        } else {
+            message.error("Đăng ký thất bại - Thử lại sau")
+        }
+    } catch (error) {
+        throw new Error(error);
+    }
+  }
+
+
+  useEffect(() => {
+    if(!isRegist) return
+    document.body.style.overflowY = "hidden"
+  }, [isRegist])
+
+  const cancelRegist = () => {
+    setTimeout(() => {
+        document.body.style.overflowY = "scroll"
+    }, 180)
+    setIsRegist(false)
+  }
+  if(finishRegist) return(
+    <Loading />
+  )
   return (
-    <div className="py-3 px-3 h-full ">
+    <div className={`${finishRegist ? "hidden" : ""} py-3 px-3 h-full `}>
 
         <div className="h-full max-w-full  flex p-3 flex-col">
             <h1 className="text-2xl font-bold underline">Đăng ký đề tài</h1>
@@ -120,14 +247,7 @@ export const ProjectDetail = ({props}) => {
                             Tên đề tài
                         </label>
                         <div className="mt-2">
-                            <input
-                            id="tenDeTai"
-                            name="tenDeTai"
-                            type="text"
-                            required
-                            placeholder="Thiết kế hệ thống"
-                            className="block px-3 w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                            />
+                            <input id="tenDeTai" name="tenDeTai" type="text" required placeholder="Thiết kế hệ thống" className="block px-3 w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
                         </div>
                     </div>
                 </div>
@@ -139,7 +259,7 @@ export const ProjectDetail = ({props}) => {
                         </label>
                         <div className="mt-2 w-3/4 max-xl:w-3/4">
                             <div className="w-full py-1.5">
-                                <ComboboxCom props={linhVuc}/>
+                                <ComboboxCom props={staticLinhVuc} handleLinhVuc={handleLinhVuc}/>
                             </div>
                         </div>
                     </div>
@@ -416,6 +536,7 @@ export const ProjectDetail = ({props}) => {
             </div>
             <hr />
             {/* File upload */}
+            <FileContext.Provider value={{ fileArray, handleFile}}>
             <div className="my-6">
                 <div className="flex w-2/3 max-xl:w-full">
                     <div className=" w-4/5 max-w-7xl max-sm:w-full">
@@ -428,12 +549,12 @@ export const ProjectDetail = ({props}) => {
 
                         >
                             <div 
-                            // type="file" 
                             className="file:hidden"
-                            // accept='.docx, .doc, .pdf'
-                            // name='file'
                             id="inputGroupFile02">
-                                Không có tệp nào được chọn
+                                {displayFile.length > 0
+                                 ? displayFile && displayFile.map(item => item.name + " | ")
+                                 : "Không có tệp nào được chọn"
+                                }
                             </div> 
                             <label className="input-group-text" htmlFor='inputGroupFile02'>
                                 <div className="">
@@ -449,6 +570,17 @@ export const ProjectDetail = ({props}) => {
                 <div className="">
                     <FileUpload props={uploadForm}/>
                 </div>
+            </div>
+            </FileContext.Provider>
+
+            <div className="" >
+                <div className="mt-10 mb-3 float-end" onClick={() => setIsRegist(true)}>
+                    <div className="bg-system text-center px-3 py-2 rounded-xl shadow-xl text-lg 
+                        font-semibold text-white cursor-pointer w-fit m-auto">
+                        Đăng ký
+                    </div>
+                </div>
+                <ConfirmDialog open={isRegist} props={""} parent={"Normal"} close={cancelRegist} isConfirm={registProject} titlehead="Đăng ký đề tài mới"/>
             </div>
         </div>
     </div>

@@ -2,21 +2,65 @@ import React, { useEffect, useState } from 'react'
 import { ProgressBar } from '../../components/progress/ProgressBar';
 import { ProgressBarVertical } from '../../components/progress/ProgressBarVertical';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { getProjectById, updateStatusProject } from '../../controller/1.projects/project';
+import { downloadFile, getMarkOfProject, getProjectById, getProposalFile, updateStatusProject } from '../../controller/1.projects/project';
 import { ConvertToMoney } from '../../utils/ConvertToMoney';
 import { Loading } from '../../utils/Loading';
 import { BadgeCheck } from 'lucide-react';
 import ConfirmDialog from '../../components/dialog/ConfirmDialog';
+import NotificationBottomRight from '../../third-party/components/Notification/NotificationBottomRight';
+import { ProjectGrading } from '../7.projectGrading/ProjectGrading';
+import TimelineCom from '../../third-party/components/Data Display/Timeline';
+import { UploadCom } from '../../components/fileupload/UploadCom';
 
 const user = {id: "227480100000", name: "Hieu Max"}
-const role = [
-    {session: "token", role: "mentor",}
-]
-const file = "filepath.docx"
+
+const accesstoken = { id: "SV001", role: "sinhvien" }
+
 
 export const RegisteredProject = ({props}) => {
   const [openModalConfirm, setOpenModalConfirm] = useState(false);
   const [openModalReject, setOpenModalReject] = useState(false);
+  const [openModalGrading, setOpenModalGrading] = useState(false)
+  const [ data, setData ] = useState()
+  const [ proposalFile, setProposalFile ] = useState()
+  const [ logicStatus, setLogicStatus ] = useState()
+  const [ isConfirmForm, setIsConfirmForm ] = useState(false)
+  const location = useLocation();
+  const { detaiId } = location.state; 
+  const [project, setProject] = useState({})
+  const [status, setStatus] = useState() // statusCss of project 
+  const [statusCss, setStatusCss] = useState()
+  const navigate = useNavigate();
+  const [ propsTimeline, setPropsTimeline ] = useState({
+    proposal: false
+  })
+  const [ propsUpfile, setPropsUpfile ] = useState({
+    label: "Tài liệu thuyết minh",
+    detaiid: detaiId,
+    action: false,
+    affter_action: () => handleAffterAction(),
+  })
+
+  const closeConfirmDialog = () => setIsConfirmForm(false) 
+  const handleIsConfirm = () => {
+
+    setPropsUpfile({
+        ...propsUpfile,
+        action: true
+    })
+    setInterval(() => {}, [10]);
+    clearInterval();
+  }
+
+  const handleAffterAction = () => {
+    setTimeout(() => {
+        setLogicStatus(logicStatus+1)
+    }, 500)
+    clearTimeout();
+    window.location.reload()
+
+  }
+
 
   const closeModal= () => {
     setTimeout(() => {
@@ -28,11 +72,8 @@ export const RegisteredProject = ({props}) => {
   
 
   const isConfirm = () => {
-    // const updatestatusCss = project.trangthai;
-    // console.log(updateStatus)
     updateStatusProject(project.trangthai+1, project.detaiid)
     .then(() => {
-        // document.body.scrollTop = 0
         window.scrollTo(0, 0)
         return(
             <div className="h-screen w-full bg-red-300">
@@ -46,7 +87,6 @@ export const RegisteredProject = ({props}) => {
                 const projectRes = await getProjectById(detaiId);
                 setTimeout(() => {
                     setProject(projectRes)
-    
                 }, 500)
                 setStatus(setTrangThai(projectRes.trangthai))
                 setStatusCss(projectRes.trangthai)
@@ -55,6 +95,7 @@ export const RegisteredProject = ({props}) => {
             }        
         }
         fetchData();
+        window.location.reload();
     })
   }
 
@@ -68,12 +109,7 @@ export const RegisteredProject = ({props}) => {
   }, [openModalConfirm, openModalReject])
 
 
-  const location = useLocation();
-  const { detaiId } = location.state; 
-  const [project, setProject] = useState({})
-  const [status, setStatus] = useState() // statusCss of project 
-  const [statusCss, setStatusCss] = useState()
-  const navigate = useNavigate();
+
 
   const setTrangThai = (trangThai) => {
     switch(trangThai) {
@@ -92,6 +128,8 @@ export const RegisteredProject = ({props}) => {
     }
   }
 
+//   console.log(logicStatus)
+
   useEffect(() => {
     const fetchData = async () => {
         try {
@@ -100,6 +138,7 @@ export const RegisteredProject = ({props}) => {
                 setProject(projectRes)
 
             }, 500)
+            setLogicStatus(projectRes.trangthai)
             setStatus(setTrangThai(projectRes.trangthai))
             setStatusCss(projectRes.trangthai)
         } catch (error) {
@@ -107,8 +146,48 @@ export const RegisteredProject = ({props}) => {
         }        
     }
     fetchData();
+    const fetchMark = async () => {
+        const datajson = {
+          userid: accesstoken.id,
+          detaiid: detaiId,
+          role: accesstoken.role == "giangvien"? "nguoichamdiem" : "sinhvien"
+        }
+        const response = await getMarkOfProject(datajson);
+        if(response.data.length < 1) {
+          setData()
+        } else {
+          setData(response)
+        }
+  
+      } 
+      fetchMark()
+      const fetchProposal = async() => {
+        const response = await getProposalFile(detaiId);
+        // console.log(response !== undefined)
+        if(response === undefined || (response && response.length < 1)) {
+            setProposalFile()
+        } else {
+            setProposalFile(response)
+            setPropsTimeline({...propsTimeline, proposal: true})
+        }
+      }
+      fetchProposal();
+
   }, [detaiId])
-//   console.log(project)
+
+
+
+  const download = (p) => {
+    const filename = p.tailieudexuat?  p.tailieudexuat :  p.tailieupath
+    const originalname = p.originalfilename
+    downloadFile(filename, originalname).then(
+        NotificationBottomRight("Tệp đã được tải")
+    )
+  }
+
+  const closeModalGrading = () => {
+    setOpenModalGrading(false)
+  }
 
   return (
     <div className="py-3 px-3 h-full scroll-smooth">
@@ -385,37 +464,127 @@ export const RegisteredProject = ({props}) => {
                 </div>
             </div>
             <hr />
+
+
             {/* File upload */}
             <div className="my-6">
-                <div className="flex w-2/3 max-xl:w-full">
-                    <div className=" w-4/5 max-w-7xl max-sm:w-full">
-                        <label htmlFor="" className="block text-lg font-medium leading-6 text-gray-900">
-                            Tài liệu đề xuất (.doc | .docx | .pdf)
-                        </label>
-                        <div className=
-                        {`
-                            px-3 w-full rounded-md border-0 py-2 mt-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6
-                        flex items-center justify-between
-                            `
-                        }
-                        >
-                            <input 
-                            type="file" 
-                            className="file:hidden"
-                            
-                            name='file'
-                            id="inputGroupFile02"/> 
-                            <label className={` input-group-text`} htmlFor='inputGroupFile02'>
-                                <div className="">
-                                    <div className="bg-system text-center px-3 py-2 rounded-xl shadow-xl text-lg 
-                                        font-semibold text-white cursor-pointer w-fit m-auto">
-                                        Upload
-                                    </div>
-                                </div>
+                <div className="flex w-full max-xl:w-full flex-row-reverse">
+                    <div className="mt-3 w-2/3">
+                        <TimelineCom props={propsTimeline}/>
+                    </div>
+                    <div className="w-full">
+                        {/* Recommend file*/}
+                        <div className=" w-4/5 max-w-7xl max-sm:w-full">
+                            <label htmlFor="" className="block text-lg font-medium leading-6 text-gray-900">
+                                Tài liệu đề xuất (.doc | .docx | .pdf)
                             </label>
+                            <div className=
+                            {`
+                                px-3 w-full rounded-md border-0 py-2 mt-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6
+                            flex items-center justify-between
+                                `
+                            }
+                            >
+                                <div 
+                                className="file:hidden"
+                                id="inputGroupFile02">
+                                    {project.originalfilename
+                                    //  ? project && project.map(item => item.originalname + " | ")
+                                    ? project && project.originalfilename
+                                    : "Không có tệp nào được chọn"
+                                    }
+                                </div> 
+                                <label className={` input-group-text`} htmlFor='inputGroupFile02'>
+                                    <div className="" onClick={() => download(project)}>
+                                        <div className="bg-system text-center px-3 py-2 rounded-xl shadow-xl text-lg 
+                                            font-semibold text-white cursor-pointer w-fit m-auto">
+                                            Download
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
                         </div>
+                        {/* Presentation file */}
+                        {   
+                            project.trangthai >= 2
+                                ? accesstoken.role == "sinhvien" && !(proposalFile && proposalFile.originalfilename) && logicStatus == 2
+                                  ? <div className="">
+                                        <UploadCom props={propsUpfile}/>
+                                    </div>
+
+                                  : (<div className=" w-4/5 max-w-7xl max-sm:w-full my-6">
+                                        <label htmlFor="" className="block text-lg font-medium leading-6 text-gray-900">
+                                            Tài liệu thuyết minh (.doc | .docx | .pdf)
+                                        </label>
+                                        <div className=
+                                        {`
+                                            px-3 w-full rounded-md border-0 py-2 mt-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6
+                                        flex items-center justify-between
+                                            `
+                                        }
+                                        >
+                                            <div 
+                                            className="file:hidden"
+                                            id="inputGroupFile02">
+                                                {
+                                                proposalFile && proposalFile.originalfilename
+                                                ? proposalFile && proposalFile.originalfilename
+                                                : "Không có tệp nào được chọn"
+                                                }
+                                            </div> 
+                                            <label className={` input-group-text`} htmlFor='inputGroupFile02'>
+                                                <div className="" onClick={() => download(proposalFile)}>
+                                                    <div className="bg-system text-center px-3 py-2 rounded-xl shadow-xl text-lg 
+                                                        font-semibold text-white cursor-pointer w-fit m-auto">
+                                                        Download
+                                                    </div>
+                                                </div>
+                                            </label>
+                                        </div>
+                                    </div>)
+                                : ""
+                            
+                        }
+                        {/* Report file */}
+                        {
+                            project.trangthai > 4
+                              ? (<div className=" w-4/5 max-w-7xl max-sm:w-full my-6">
+                                    <label htmlFor="" className="block text-lg font-medium leading-6 text-gray-900">
+                                        Tài liệu báo cáo (.doc | .docx | .pdf)
+                                    </label>
+                                    <div className=
+                                    {`
+                                        px-3 w-full rounded-md border-0 py-2 mt-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6
+                                    flex items-center justify-between
+                                        `
+                                    }
+                                    >
+                                        <div 
+                                        className="file:hidden"
+                                        id="inputGroupFile02">
+                                            {project.originalfilename
+                                            //  ? project && project.map(item => item.originalname + " | ")
+                                            ? project && project.originalfilename
+                                            : "Không có tệp nào được chọn"
+                                            }
+                                        </div> 
+                                        <label className={` input-group-text`} htmlFor='inputGroupFile02'>
+                                            <div className="" onClick={() => download(project)}>
+                                                <div className="bg-system text-center px-3 py-2 rounded-xl shadow-xl text-lg 
+                                                    font-semibold text-white cursor-pointer w-fit m-auto">
+                                                    Download
+                                                </div>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>)
+                              : ""
+                        }
+                        
                     </div>
                 </div>
+
+                {/* Approval */}
                 <div className={`${project.trangthai < 2
                     ? "w-full flex justify-end gap-4 mt-8"
                     : "hidden"
@@ -438,6 +607,39 @@ export const RegisteredProject = ({props}) => {
                         <ConfirmDialog open={openModalReject} close={closeModal} isConfirm={isReject} parent={"Reject"}/>
                     </div>
                 </div>
+
+                {/* Grading */}
+                {
+                    accesstoken.role == "giangvien"
+                      ? (<div className={`${project.trangthai < 2 ? "hidden" : ""} w-full flex justify-end gap-4 mt-8`}>
+                            <div className="bg-system text-center px-3 py-2 rounded-xl shadow-xl text-lg 
+                                                font-semibold text-white cursor-pointer w-fit "
+                                onClick={() => setOpenModalGrading(true)}                    
+                            >
+                                        Chấm điểm
+                            </div>
+                            <ProjectGrading open={openModalGrading} close={closeModalGrading} userToken={accesstoken} detaiid={project.detaiid} data={data}/>
+                        </div>)
+                      : ""
+                }
+                
+                {/* Confirm change */}
+                {
+                    accesstoken.role == "sinhvien" && logicStatus%2==0
+                      ? (<div className={`${project.trangthai < 2 ? "hidden" : ""} w-full flex justify-end gap-4 mt-8`}>
+                            <div className="bg-system text-center px-3 py-2 rounded-xl shadow-xl text-lg hover:bg-red-system-hover
+                                                font-semibold text-white cursor-pointer w-fit bg-red-system"
+                                    onClick={() => setIsConfirmForm(true)}                    
+                            >
+                                        Xác nhận thay đổi
+                            </div>
+                            <div className="z-100">
+                                <ConfirmDialog  titlehead={"Xác nhận thay đổi"} parent={"Confirm"} props={""} open={isConfirmForm} close={closeConfirmDialog} isConfirm={handleIsConfirm}/>
+                            </div>
+                            {/* <ProjectGrading open={openModalGrading} close={closeModalGrading} userToken={accesstoken} detaiid={project.detaiid} data={data}/> */}
+                        </div>)
+                     : ""
+                }
             </div>
         </div>)
             : <div className="h-screen flex justify-center items-center"><Loading /></div>

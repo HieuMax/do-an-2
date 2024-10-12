@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { createContext } from 'react'
 
 export const DepartmentInitialState = {
     departments: [],
@@ -22,5 +22,8 @@ const DepartmentContext = React.createContext({
     state: DepartmentInitialState,
     dispatch: (action) => {},
 });
+
+export const FileContext = createContext()
+export const MarkContext = createContext()
 
 export default DepartmentContext;

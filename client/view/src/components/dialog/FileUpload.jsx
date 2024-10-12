@@ -1,59 +1,41 @@
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react'
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import UploadFile from '../../third-party/components/Data Entry/UploadFile'
-
 import { message } from 'antd';
-import { uploadFile } from '../../controller/1.projects/project';
+import { FileContext } from '../../provider/detailProvider';
 
 
 export const FileUpload = ({ props }) => {
-  const [open, setOpen] = useState(true)
-//   const [openModal, setOpenModal] = useState(false);
+  const [open, setOpen] = useState(false)
 
   useEffect(() => {
     setOpen(props.open)
   }, [props.open])
 
+  const { fileArray, handleFile } = useContext(FileContext);
+
   const close = () => {
     setOpen(false)
     props.isOpen();
-    setFileArray([])
   }
-  const [ fileArray, setFileArray ] = useState([])
 
-  const handleFile = (arr) => {
-    setFileArray(arr)
+  const cancel = () => {
+    if(props.displayFile.length < 1 && fileArray.length < 1) {
+        handleFile([])
+    } else {
+        handleFile(props.displayFile)
+    }
+    close()
   }
 
   const isConfirmUpload = async () => {
-    // console.log(fileArray)
     if(fileArray && fileArray.length < 1) {
         message.error(`Tải lên thất bại: Không có tệp nào được chọn.`);
         return
     }
-    // const files = document.getElementById('fileInput').files;
-
-    const formData = new FormData();
-    // const formData2 = new FormData(); 
-
-
-    // for (let i = 0; i < files.length; i++) {
-    //     formData2.append('file', files[i]);
-    //     console.log(files[i])
-    // }
-
-    fileArray.forEach(file => {
-        // console.log(file)
-        formData.append('file', file.originFileObj);
-        // console.log(file.originFileObj)
-    });
-    try {
-        const response = await uploadFile(formData);
-        console.log(response)
-    } catch (error) {
-        
-    }
-
+    message.success(`Tải lên thành công.`);
+    props.isConfirmToDisplay();
+    close()
   }
 
   return (
@@ -92,15 +74,12 @@ export const FileUpload = ({ props }) => {
                         onClick={() => isConfirmUpload()}
                         className="inline-flex min-w-16 w-full justify-center rounded-md bg-system px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-system-500 sm:ml-3 sm:w-auto"
                     >
-                        Tải lên
+                        Xác nhận
                     </button>
-                    <div className="hidden">
-                        {/* <ConfirmDialog open={openModal} close={closeModal} isConfirm={isConfirm} props={searchedMember}/> */}
-                    </div>
                     <button
                         type="button"
                         data-autofocus
-                        onClick={close}
+                        onClick={() => cancel()}
                         className="mt-3 inline-flex min-w-16 w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
                     >
                         Hủy

@@ -17,7 +17,12 @@ export default {
       },
       zIndex: {
         '100': '100',
+        '999': '999',
       },
+      colors: {
+        'red-system': "#B80011",
+        'red-system-hover': "#C23C48",
+      }
     },
   },
   colors: {

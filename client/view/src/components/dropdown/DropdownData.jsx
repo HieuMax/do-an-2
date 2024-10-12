@@ -39,7 +39,10 @@ export default function DropdownData({prop, update, parent, depended}) {
     setOption(changeOption)
     if(parent == parents[0]) {
       update(item)
+    } else if (parent === parents[1]) {
+      update(item)
     }
+    // console.log(item)
   }
 
 
