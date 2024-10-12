@@ -9,7 +9,13 @@ import { Profile } from './pages/4.profile/Profile'
 import Navbar from './components/header/Navbar'
 import { ProjectDetail } from './pages/6.projectDetail/ProjectDetail'
 import { ProjectListProvider } from './pages/5.projectList/ProjectListProvider'
-
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import CouncilListProvider from './pages/10.councilList/CouncilListProvider'
+import CouncilAssignmentProvider from './pages/12.councilAssignment/CouncilAssignmentProvider'
+import TeacherListProvider from './pages/11.teacherList/TeacherListProvider'
+import AddTeacher from './pages/11.teacherList/AddTeacher'
+import AddTeacherProvider from './pages/11.teacherList/AddTeacherProvider'
 const Dashboard = () => {
   const [expand, setExpand] = useState(false);
   const handleExpand = (item) => {
@@ -63,7 +69,27 @@ const router = createBrowserRouter([
       {
         path: "/regist-project",
         element: <ProjectDetail />
-      }
+      },
+      {
+        path: "/dsda",
+        element: <CouncilListProvider />
+      },
+      {
+        path: "/phanCong",
+        element: <CouncilAssignmentProvider />
+      },
+      {
+        path: "/dsgv",
+        element: <TeacherListProvider />
+      },
+      {
+        path: "/addTeacher",
+        element: <AddTeacherProvider />
+      },
+      {
+        path: "/editTeacher/:id",
+        element: <AddTeacherProvider isEdit = {true}/>
+      },
     ]
   },
   { 
@@ -78,9 +104,12 @@ const router = createBrowserRouter([
 
 const App = () => {
   return (
-    <div>
+    <>
+    <ToastContainer />
       <RouterProvider router={router} />
-    </div>
+
+    </>
+
   )
 }
 
