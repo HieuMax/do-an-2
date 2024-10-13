@@ -117,11 +117,26 @@ CREATE TABLE ThanhVienThucHien (
 );
 
 -- Table for TaiLieuNghienCuu (Research Documents)
-CREATE TABLE TaiLieuNghienCuu (
+CREATE TABLE tailieuthuyetminh (
+    tailieupath PATH NOT NULL,
+    detaiid VARCHAR(10) PRIMARY KEY,
+    ngayNop DATE NOT NULL,
+    FOREIGN KEY (detaiid) REFERENCES DeTai(deTaiId)
+)
+
+CREATE TABLE diemtailieuthuyetminh (
     taiLieuThuyetMinh PATH NOT NULL,
     diemTaiLieu FLOAT NOT NULL,
     nhanXet TEXT NULL,
     deTaiID VARCHAR(10) NOT NULL,
+    diemTC1 DECIMAL(5, 2) NOT NULL,
+    diemTC2 DECIMAL(5, 2) NOT NULL,
+    diemTC3 DECIMAL(5, 2) NOT NULL,
+    diemTC4 DECIMAL(5, 2) NOT NULL,
+    diemTC5 DECIMAL(5, 2) NOT NULL,
+    diemTC6 DECIMAL(5, 2) NOT NULL,
+    diemTC7 DECIMAL(5, 2) NOT NULL,
+    diemTC8 DECIMAL(5, 2) NOT NULL,
     FOREIGN KEY (deTaiID) REFERENCES DeTai(deTaiID),
     PRIMARY KEY (deTaiID)
 );
@@ -158,5 +173,11 @@ CREATE TABLE BangDiemThanhPhan (
     FOREIGN KEY (vaiTro) REFERENCES ThanhVienHD(vaiTro)
 )
 
-
-
+-- 0: Mới đăng ký
+-- 1: GVHD duyệt
+-- 2: Hội đồng góp ý và duyệt
+-- 3: Nộp đề cương (đợi chấm)
+-- 4: Đã chấm điểm thuyết minh -> thực hiện
+-- 5: Nộp tài liệu báo cáo
+-- 6: Chấm tài liệu báo cáo
+-- 7: Nghiệm thu và các bước tiếp theo

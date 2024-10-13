@@ -1,10 +1,10 @@
 import { Combobox, ComboboxButton, ComboboxInput, ComboboxOption, ComboboxOptions } from '@headlessui/react'
 import { CheckIcon, ChevronDownIcon } from '@heroicons/react/20/solid'
 import clsx from 'clsx'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 
-export const ComboboxCom = ({props}) => {
+export const ComboboxCom = ({props, handleLinhVuc}) => {
   const data = props
 
   const [query, setQuery] = useState('')
@@ -17,7 +17,11 @@ export const ComboboxCom = ({props}) => {
           return data.name.toLowerCase().includes(query.toLowerCase())
         })
 
-  return (
+  useEffect(() => {
+    // if(selected == data[0]) return
+    handleLinhVuc(selected)
+  }, [selected])
+  return ( 
     <div className="h-full">
       <Combobox value={selected} onChange={(value) => setSelected(value)} onClose={() => setQuery('')}>
         <div className="relative ">
@@ -42,7 +46,7 @@ export const ComboboxCom = ({props}) => {
             'transition duration-100 ease-in data-[leave]:data-[closed]:opacity-0'
           )}
         >
-          {filteredData.map((data) => (
+          {filteredData.length > 0 && filteredData.map((data) => (
             <div className="hover:text-white" key={data.id}>
               <ComboboxOption
                 key={data.id}

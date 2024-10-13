@@ -1,4 +1,4 @@
-import { ArrowLeftFromLine, FileChartColumn, LayoutDashboard, List, ListChecks, User } from 'lucide-react';
+import { ArrowLeftFromLine, Bell, FileChartColumn, LayoutDashboard, List, ListChecks, User } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { Sidebar2, SidebarItem } from './Sidebar2';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -13,6 +13,10 @@ export const SidebarFunc = ({expand}) => {
         { name: 'Đăng ký đề tài', href: '/regist-project', current: false, icon: <List size={20} /> },
         { name: 'Trạng thái đề tài', href: '/project-list', current: false, icon: <ListChecks size={20} /> , alert: true },
         { name: 'Kết quả báo cáo', href: '/report', current: false, icon: <FileChartColumn size={20}/> },
+        { name: 'Danh sách hội đồng', href: '/dsda', current: false},
+        { name: 'Phân công hội đồng', href: '/phanCong', current: false},
+        { name: 'Danh sách giảng viên', href: '/dsgv', current: false},
+        { name: 'Trung tâm thông báo', href: '/notification', current: false, icon: <Bell size={20}/> },
         { name: 'Đăng xuất', href: '/login', current: false, icon: <ArrowLeftFromLine size={20}/> },
     ]
   );  // Use state to track active links
@@ -28,7 +32,7 @@ export const SidebarFunc = ({expand}) => {
   }, [location.pathname]);
 
   const handleClick = (item) => {
-
+    window.scroll(0,0)
     if (item.href) {
       navigate(item.href);
     }

@@ -6,10 +6,10 @@ import ProjectsContext from '../../provider/projectProvider';
 import { Loading } from '../../utils/Loading';
 
 export const ProjectList = () => {
-    const [list, setList] = useState(0);
+    // const [list, setList] = useState(0);
 
     const {
-        state: { projects },
+        state: { projects, list },
         dispatch,
     } = useContext(ProjectsContext);
 
@@ -21,6 +21,10 @@ export const ProjectList = () => {
                     dispatch({ 
                         type: "LOADED_PROJECTS",
                         payload: projectsData
+                    })
+                    dispatch({
+                        type: "CHANGED_LIST",
+                        payload: list
                     })
                 }, 1200)
                 clearTimeout();
@@ -40,7 +44,10 @@ export const ProjectList = () => {
     ]
 
     const updateList = (item) => {
-        setList(item.id)
+        dispatch({
+            type: "CHANGED_LIST",
+            payload: item.id
+        })
     }
     
     const [log, setLog] = useState({
@@ -58,7 +65,7 @@ export const ProjectList = () => {
             data: projects? filteredProjects: [],
             parent: log.parent
         })
-    }, [projects,list])
+    }, [projects, list])
 
 
   return (
@@ -72,11 +79,11 @@ export const ProjectList = () => {
                     <div className="w-fit">
                         <Dropdown prop={status} update={updateList}/>
                     </div>
-                    <div className="flex max-md:h-full h-16 mt-3 shadow-md border-r border-b box-border p-3 text-lg">
-                        <div className="grid grid-cols-5 gap-4 items-center w-full justify-between px-3">
-                            <div className="col-end-1 px-2 font-bold">Mã đề tài</div>
+                    <div className="flex max-md:h-full h-16 mt-3 shadow-md border-r border-b box-border p-3 text-lg max-lg:hidden">
+                        <div className="grid grid-cols-5 gap-8 items-center w-full justify-between px-3">
+                            <div className="px-2 font-bold ">Mã đề tài</div>
                             <div className="line-clamp-1 font-semibold col-span-2 ">Tên đề tài</div>
-                            <div className="line-clamp-1 text-center">Giảng viên hướng dẫn</div>
+                            <div className="line-clamp-1 xlp:text-center ">Giảng viên hướng dẫn</div>
                             <div className={`flex justify-center text-center p-2 rounded-md`}>
                                 Trạng thái
                             </div>
