@@ -107,6 +107,12 @@ const CouncilAssignmentCard = ({ props }) => {
                         </td>
 
                         <td className="whitespace-nowrap px-3 py-4 sm:text-base text-sm text-center">
+                            <button
+                              className="bg-gray-400 text-white px-4 py-2 rounded min-w-[120px] mr-2"
+                              onClick={() => handleAssignClick(board)}
+                            >
+                              Xem đề tài
+                            </button>
                             {board.hoidongphancong ? (
                                 <button
                                  className="bg-gray-600 text-white px-4 py-2 rounded min-w-[120px] mr-2"

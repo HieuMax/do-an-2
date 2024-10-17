@@ -6,7 +6,8 @@ const mentors = require('../services/mentor');
 const projects = require('../services/project');
 const departments = require('../services/department');
 const classes = require("../services/classes");
-const councils = require('../services/councils')
+const councils = require('../services/councils');
+const notificate = require("../services/notificate");
 
 apiRouter.use('/students', students);
 apiRouter.use('/mentors', mentors);
@@ -14,5 +15,6 @@ apiRouter.use('/projects', projects);
 apiRouter.use('/departments', departments);
 apiRouter.use('/classes', classes);
 apiRouter.use('/councils', councils);
+apiRouter.use('/notify', notificate);
 
 module.exports = apiRouter

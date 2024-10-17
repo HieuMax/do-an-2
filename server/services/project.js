@@ -49,14 +49,14 @@ projectRouter.get('/download/:filename', async(req, res) => {
 
 projectRouter.get('/marks', async(req, res) => {
     const { detaiid, role, userid, type } = req.query;
-    // console.log('query')
-    if(type != "thuyetminh") return res.status(404).send({ error: "error" })
-
+    const allowType = ["thuyetminh", "dexuat"]
+    if(!allowType.includes(type)) return res.status(404).send({ error: "error" })
+        
     if(!detaiid || !role || !userid) {
         return res.status(400).send({ error: "error" })
     }
     try {
-        const result = await getMarkOfProject(detaiid, role, userid)
+        const result = await getMarkOfProject(detaiid, role, userid, type)
         if(result.error) {
             res.status(500).json({"error": result.error})
         } else {
@@ -80,9 +80,9 @@ projectRouter.get('/proposalFile/:id', async(req, res) => {
     }
 })
 
-//
-// PUT ---------------------------------------------------------------
-//
+// ------------------------------------------------------------------------------------------------------------------------------
+// PUT --------------------------------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------------------------------------
 
 projectRouter.put('/updateStatus', async (req, res, next) => {
     const body = req.body
@@ -103,9 +103,9 @@ projectRouter.put('/updatefile', (req, res) => {
 })
 
 
-//
-// POST ---------------------------------------------------------------
-//
+// ------------------------------------------------------------------------------------------------------------------------------
+// POST --------------------------------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------------------------------------
 
 projectRouter.post('/uploadFile', upload.single('file'), (req,res) => {
     if(!req.file) {

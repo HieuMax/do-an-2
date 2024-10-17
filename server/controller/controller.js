@@ -339,18 +339,33 @@ const getLastIdProject = async () => {
     }
 }
 
-const getMarkOfProject = async(detaiid, role, userid) => {
-    if (role == "nguoichamdiem") {
-        const query = `SELECT * FROM diemtailieuthuyetminh WHERE detaiid = $1 AND nguoichamdiem = $2`
-        const result = await pool.query(query, [detaiid, userid])
-        // console.log(result)
-        return { "data": result.rows }
-        
-    } else if(role == "sinhvien") {
-        const query = `SELECT * FROM diemtailieuthuyetminh WHERE detaiid = $1`
-        const result = await pool.query(query, [detaiid])
-        return { "data": result.rows }
-
+const getMarkOfProject = async(detaiid, role, userid, type) => {
+    if(type == "dexuat") {
+        if (role == "nguoichamdiem") {
+            const query = `SELECT * FROM diemtailieudexuat WHERE detaiid = $1 AND nguoichamdiem = $2`
+            const result = await pool.query(query, [detaiid, userid])
+            // console.log(result)
+            return { "data": result.rows }
+            
+        } else if(role == "sinhvien") {
+            const query = `SELECT * FROM diemtailieudexuat WHERE detaiid = $1`
+            const result = await pool.query(query, [detaiid])
+            return { "data": result.rows }
+    
+        }
+    } else if (type == "thuyetminh") {
+        if (role == "nguoichamdiem") {
+            const query = `SELECT * FROM diemtailieuthuyetminh WHERE detaiid = $1 AND nguoichamdiem = $2`
+            const result = await pool.query(query, [detaiid, userid])
+            // console.log(result)
+            return { "data": result.rows }
+            
+        } else if(role == "sinhvien") {
+            const query = `SELECT * FROM diemtailieuthuyetminh WHERE detaiid = $1`
+            const result = await pool.query(query, [detaiid])
+            return { "data": result.rows }
+    
+        }
     }
 }
 
@@ -419,6 +434,8 @@ const registNewProject = async (data) => {
                 throw result_memList.error
             }
         }
+        // Ham create thong bao
+
         // console.log(result)
         return { status: 201 }
     } catch (error) {
@@ -455,16 +472,25 @@ const permission = async(token, detaiid) => {
 }
 
 const markProject = async(type, data) => {
-    const allowedTables = ["diemtailieuthuyetminh"]
+    const allowedTables = ["diemtailieuthuyetminh", "diemtailieudexuat"]
     if(!allowedTables.includes(type)) {
         return json({ status: 500, message: "Invalid server" })
     }
     const permis = await permission(data.nguoichamdiem, data.detaiid)
+    // console.log(permis)
+    // console.log(data.nguoichamdiem)
+    // console.log(data.detaiid)
     if(!permis) {
         return { "Error": "Not permission" }
     } else {
-        const query = `INSERT INTO diemtailieuthuyetminh (nguoichamdiem, diemtailieu, nhanxet, detaiid, diemtc1, diemtc2, diemtc3, diemtc4, diemtc5, diemtc6, diemtc7, diemtc8) VALUES 
+        let query;
+        if (type == allowedTables[0]) {
+            query = `INSERT INTO diemtailieuthuyetminh (nguoichamdiem, diemtailieu, nhanxet, detaiid, diemtc1, diemtc2, diemtc3, diemtc4, diemtc5, diemtc6, diemtc7, diemtc8) VALUES 
         ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`
+        } else if (type == allowedTables[1]) {
+            query = `INSERT INTO diemtailieudexuat (nguoichamdiem, diemtailieu, nhanxet, detaiid, diemtc1, diemtc2, diemtc3, diemtc4, diemtc5, diemtc6, diemtc7, diemtc8) VALUES 
+        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`
+        }
         try {
             const result = await pool.query(query, [data.nguoichamdiem, data.mark, data.comment, data.detaiid, data.diemtc1, data.diemtc2, data.diemtc3, data.diemtc4, data.diemtc5, data.diemtc6, data.diemtc7, data.diemtc8])
             if(result.error) {
@@ -482,6 +508,8 @@ const markType = (type, data) => {
     switch(type){
         case "ThuyetMinh":
             return markProject("diemtailieuthuyetminh", data)
+        case "DeXuat":
+            return markProject("diemtailieudexuat", data)
         default: 
             return
     }

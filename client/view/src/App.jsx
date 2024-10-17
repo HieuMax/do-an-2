@@ -16,8 +16,8 @@ import 'react-toastify/dist/ReactToastify.css';
 import CouncilListProvider from './pages/10.councilList/CouncilListProvider'
 import CouncilAssignmentProvider from './pages/12.councilAssignment/CouncilAssignmentProvider'
 import TeacherListProvider from './pages/11.teacherList/TeacherListProvider'
-import AddTeacher from './pages/11.teacherList/AddTeacher'
 import AddTeacherProvider from './pages/11.teacherList/AddTeacherProvider'
+import { NotificationPage } from './pages/8.Notification/NotificationPage'
 const Dashboard = () => {
   const [expand, setExpand] = useState(false);
   const handleExpand = (item) => {
@@ -75,6 +75,10 @@ const router = createBrowserRouter([
       {
         path: "/regist-project",
         element: <ProjectDetail />
+      },
+      {
+        path: "/notification",
+        element: <NotificationPage />
       },
       {
         path: "/dsda",

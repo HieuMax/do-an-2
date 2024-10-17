@@ -9,7 +9,9 @@ export default function TableGrading ({ props, close, data }) {
         info: Object.values(props).filter((item) => item.STT !== ""), 
         totalMark: "-"
     });
+    // useEffect(() => {
 
+    // }, []) 
     useEffect(() => {
         // console.log(data.data[0])
         if (!data) {
@@ -76,7 +78,7 @@ export default function TableGrading ({ props, close, data }) {
               {
                 record.data 
                   ? record.data
-                  : record.max == 100 
+                  : record.max == 100 || record.max == 80
                     ? <span>{handleTotalMark()? handleTotalMark() : mark.totalMark}</span> 
                     : <InputNumber min={0} max={record.max} onChange={() => onChange(record)} id={`input${record.key}`} 
                                   value={mark.info[mark.info.indexOf(mark.info.filter(item => item.key === record.key)[0])].mark}

@@ -173,6 +173,96 @@ CREATE TABLE BangDiemThanhPhan (
     FOREIGN KEY (vaiTro) REFERENCES ThanhVienHD(vaiTro)
 )
 
+CREATE TABLE diemtailieudexuat (
+	detaiid VARCHAR(13) NOT NULL,
+  nguoichamdiem VARCHAR(13) NOT NULL,
+  nhanxet TEXT NULL,
+  diemtailieu DOUBLE PRECISION NOT NULL,
+  diemTC1 SMALLINT NOT NULL,
+  diemTC2 SMALLINT NOT NULL,
+  diemTC3 SMALLINT NOT NULL,
+  diemTC4 SMALLINT NOT NULL,
+  diemTC5 SMALLINT NOT NULL,
+  diemTC6 SMALLINT NOT NULL,
+  diemTC7 SMALLINT NOT NULL,
+  diemTC8 SMALLINT NOT NULL,
+  PRIMARY KEY (detaiid,nguoichamdiem),
+  FOREIGN KEY (detaiid) REFERENCES DeTai(deTaiId),
+  FOREIGN KEY (nguoichamdiem) REFERENCES giangvien(giangvienid)
+)
+
+
+-- Notify
+CREATE TABLE groupConsumer (
+  groupConsumerId VARCHAR(5) PRIMARY KEY,
+  name_group TEXT NOT NULL
+)
+
+CREATE TABLE consumers (
+	groupConsumerId VARCHAR(5) NOT NULL,
+  taikhoanid integer NOT NULL,
+  PRIMARY KEY (taikhoanid, groupConsumerId),
+  FOREIGN KEY (taikhoanid) REFERENCES taikhoan(taikhoanid),
+  FOREIGN KEY (groupConsumerId) REFERENCES groupConsumer(groupConsumerId)
+)
+
+CREATE TABLE Topics (
+  id SERIAL PRIMARY KEY,
+  title TEXT NOT NULL,
+  groupConsumerId VARCHAR(5) NOT NULL,
+  detaiid VARCHAR(10) NOT NULL,
+  FOREIGN KEY (detaiid) REFERENCES detai(detaiid),
+  FOREIGN KEY (groupConsumerId) REFERENCES groupConsumer(groupConsumerId)
+)
+
+CREATE TABLE UnseenMsgs (
+  taikhoanid integer NOT NULL,
+  messagesid TEXT NOT NULL,
+  time_stamp TEXT,
+  PRIMARY KEY (taikhoanid, messagesid),
+  FOREIGN KEY (taikhoanid) REFERENCES taikhoan(taikhoanid)
+)
+
+
+------------------------------------------------------------------------------------------------------
+-- TRIGGER -------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------
+
+--Trigger update status when approving
+CREATE OR REPLACE FUNCTION tg_autoCheckDuyetDeXuat()
+RETURNS TRIGGER AS
+$$
+DECLARE
+    flag_update SMALLINT;
+    var_detaiid VARCHAR(13);
+BEGIN
+    -- Get detaiid from the inserted row
+    var_detaiid := NEW.detaiid;
+
+    -- Count the number of nguoichamdiem for the detaiid
+    SELECT COUNT(nguoichamdiem) INTO flag_update
+    FROM diemtailieudexuat
+    WHERE detaiid = var_detaiid;
+
+    -- If 5 nguoichamdiem found, update the detai table
+    IF flag_update = 5 THEN
+        UPDATE detai
+        SET trangthai = 2
+        WHERE detaiid = var_detaiid;
+    END IF;
+
+    RETURN NEW;
+END;
+$$
+LANGUAGE plpgsql;
+
+-- Now create the trigger
+CREATE TRIGGER tg_autoCheckDuyetDeXuat
+AFTER INSERT
+ON diemtailieudexuat
+FOR EACH ROW
+EXECUTE FUNCTION tg_autoCheckDuyetDeXuat();
+
 -- 0: Mới đăng ký
 -- 1: GVHD duyệt
 -- 2: Hội đồng góp ý và duyệt

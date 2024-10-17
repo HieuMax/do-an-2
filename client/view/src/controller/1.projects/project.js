@@ -98,6 +98,7 @@ export const uploadProposalfile = async (data) => {
 
 
 export const markProject = async(data) => {
+    // console.log(data)
     try {
         const response = await fetch(`${API_ENDPOINT}${url}/markProject`, {
             method: 'POST',
@@ -118,7 +119,7 @@ export const markProject = async(data) => {
 export const getMarkOfProject = async(data) => {
     // console.log(data)
     try {
-        const response = await fetch(`${API_ENDPOINT}${url}/marks?type=thuyetminh&role=${data.role}&detaiid=${data.detaiid}&userid=${data.userid}`)
+        const response = await fetch(`${API_ENDPOINT}${url}/marks?type=${data.type}&role=${data.role}&detaiid=${data.detaiid}&userid=${data.userid}`)
         const projectMark = await response.json();
         // console.log(projectMark)
         return projectMark;

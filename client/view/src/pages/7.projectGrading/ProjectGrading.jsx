@@ -8,93 +8,37 @@ import NotificationBottomRight_err from '../../third-party/components/Notificati
 import { Tag } from 'antd';
 import { SwitchCom } from '../../third-party/components/Data Entry/Switch';
 import { MarkContext } from '../../provider/detailProvider';
-import { getMarkOfProject, markProject } from '../../controller/1.projects/project';
+import { markProject } from '../../controller/1.projects/project';
 import handleTotalMark from '../../utils/SumArray';
+import { gradingProposalForm } from './formGradeProposal';
+import { gradingRecomForm } from './formGradeRecom';
 
 
 
 
-export const ProjectGrading = ({ open, close, userToken, detaiid, data }) => {
-  const gradingData = [
-    {
-      STT: '1',
-      description: 'Tổng quan tình hình nghiên cứu thuộc lĩnh vực đề tài',
-      max: 15,
-      key: 'TC1',
-      data: data? data.data[0]["diemtc1"]: ""
-    },
-    {
-      STT: '2',
-      description: 'Tính cấp thiết/ sự cần thiết của đề tài',
-      max: 8,
-      key: 'TC2',
-      data: data? data.data[0]["diemtc2"]: ""
-
-    },
-    {
-      STT: '3',
-      description: 'Mục tiêu đề tài',
-      max: 5,
-      key: 'TC3',
-      data: data? data.data[0]["diemtc3"]: ""
-
-    },
-    {
-      STT: '4',
-      description: 'Cách tiếp cận và phương pháp thực hiện',
-      max: 30,
-      key: 'TC4',
-      data: data? data.data[0]["diemtc4"]: ""
-
-    },
-    {
-      STT: '5',
-      description: 'Nội dung nghiên cứu và tiến độ thực hiện',
-      max: 20,
-      key: 'TC5',
-      data: data? data.data[0]["diemtc5"]: ""
-
-    },
-    {
-      STT: '6',
-      description: 'Sản phẩm đề tài',
-      max: 10,
-      key: 'TC6',
-      data: data? data.data[0]["diemtc6"]: ""
-
-    },
-    {
-      STT: '7',
-      description: 'Hiệu quả, phương thức chuyển giao kết quả nghiên cứu và khả năng ứng dụng',
-      max: 5,
-      key: 'TC7',
-      data: data? data.data[0]["diemtc7"]: ""
-
-    },
-    {
-      STT: '8',
-      description: 'Kinh phí thực hiện',
-      max: 7,
-      key: 'TC8',
-      data: data? data.data[0]["diemtc8"]: ""
-    },
-    {
-      STT: '',
-      description: 'Cộng',
-      max: 100,
-      key: 'TC',
-      data: data? data.data[0]["diemtailieu"]: ""
-    },
-  ];
+export const ProjectGrading = ({ open, close, userToken, detaiid, data, form }) => {
 
   const [ resTotal, setResTotal ] = useState()
   const [ total, setTotal ] = useState()
   const [ comment, setComment ] = useState()
   const [ isConfirmForm, setIsConfirmForm ] = useState(false)
   const [ isConfirm, setIsConfirm ] = useState(false)
-  
+
+  // Depend on form
+  const [ gradingForm, setGradingForm ] = useState({});
+  const [ typeForm, setTypeForm ] = useState()
   const closeGradeForm = () => { setIsConfirmForm(false) }
-  // console.log(gradingData)
+
+  useEffect(() => {
+    if(form == "Grading-proposal") {
+      setGradingForm(gradingProposalForm(data));
+      setTypeForm("ThuyetMinh")
+    } else if (form == "Grading-recom") {
+      setGradingForm(gradingRecomForm(data));
+      setTypeForm("DeXuat")
+    }
+  }, [form])
+
   const handleIsConfirm = async () => {
     const total = handleTotalMark(resTotal)
     if(!total) {
@@ -104,13 +48,12 @@ export const ProjectGrading = ({ open, close, userToken, detaiid, data }) => {
     if(!total) return
     setTotal(total)
 
-
     const data = {
       nguoichamdiem: userToken.id,
       mark: total,
       comment: comment,
       detaiid: detaiid,
-      type: "ThuyetMinh",
+      type: typeForm,
       diemtc1: resTotal.info[0]["mark"],
       diemtc2: resTotal.info[1]["mark"],
       diemtc3: resTotal.info[2]["mark"],
@@ -120,7 +63,6 @@ export const ProjectGrading = ({ open, close, userToken, detaiid, data }) => {
       diemtc7: resTotal.info[6]["mark"],
       diemtc8: resTotal.info[7]["mark"],
     }
-
     
     try {
       const response = await markProject(data)
@@ -180,7 +122,7 @@ export const ProjectGrading = ({ open, close, userToken, detaiid, data }) => {
                   </div>
                 <MarkContext.Provider value={{ handleResMark, handleComment }}>
                   <div className="">
-                      <TableGrading props={gradingData} close={open} data={data}/>
+                      <TableGrading props={gradingForm} close={open} data={data}/>
                       {/* comment */}
                       <div className="w-full flex justify-between gap-4 mt-8 items-end">
                           <div className="my-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-10/12">

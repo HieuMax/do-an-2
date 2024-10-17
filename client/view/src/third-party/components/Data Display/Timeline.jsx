@@ -8,7 +8,11 @@ const TimelineCom = ({ props }) => (
           <>
             <p className='text-base'>Tài liệu đề xuất</p>
             <br />
-            <Tag color="default" className='text-sm cursor-pointer hover:bg-gray-200'>Xem nhận xét</Tag>
+            {
+              props.status == 2
+                ?  <Tag color="default" className='text-sm cursor-pointer hover:bg-gray-200' onClick={() => props.action_click_timeline()}>Xem nhận xét</Tag>
+                : ""
+            }
             {/* <span className='cursor-pointer'>Xem nhận xét</span> */}
             <br />
             <br />
