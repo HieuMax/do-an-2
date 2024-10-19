@@ -1,5 +1,6 @@
 import { ChevronFirst, ChevronLast, Menu, MoreVertical } from 'lucide-react'
 import React, { createContext, useContext, useEffect, useState } from 'react'
+import { useAuthStore } from '../../api/authStore'
 
 const SidebarContext = createContext()
 export const Sidebar2 = ({ children, expand }) => {
@@ -7,8 +8,12 @@ export const Sidebar2 = ({ children, expand }) => {
   
   const [widthWindow, setWidthWindow] = useState(window.innerWidth);
 
+
+  const { user } = useAuthStore();
+
   // Listen to window resize events
   useEffect(() => {
+
     const handleResize = () => {
       setWidthWindow(window.innerWidth);
     };
@@ -60,7 +65,7 @@ export const Sidebar2 = ({ children, expand }) => {
 
             <div className="border-t flex p-3 mb-9">
                 <img 
-                src="https://ui-avatars.com/api/?background=c7d2fe&color=3730a&bold=true&name=Hieu+Max" 
+                src={user.avtimg}
                 alt="" 
                 className='w-10 h-10 rounded-md'
                 />
@@ -69,8 +74,8 @@ export const Sidebar2 = ({ children, expand }) => {
                     overflow-hidden transition-all ${expanded ? "w-52 ml-3" : "w-0"}
                 `}>
                     <div className='leading-4'>
-                        <h4 className='font-semibold'>Hieu Max</h4>
-                        <span className='text-xs text-gray-600'>HieuMax@gmail.com</span>
+                        <h4 className='font-semibold'>{user.hoten}</h4>
+                        <span className='text-xs text-gray-600'>{user.mail}</span>
                     </div>
                 </div>
             </div>

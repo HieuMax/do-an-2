@@ -1,11 +1,17 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser')
 const cors = require('cors');
 const connectCloundinary = require('./config/cloundinary')
 const { socket_on, wss } = require('./controller/websocket');
+const corsOptions = require('./config/corsOptions');
 
 const app = express();
 
+app.use((req, res, next) => {
+  res.set('Cache-Control', 'no-store')
+  next()
+})
 
 module.exports = app;
 const dotenv = require('dotenv');
@@ -15,7 +21,10 @@ connectCloundinary()
 
 const PORT = process.env.PORT || 8000;
 
-app.use(cors());
+app.use(cookieParser())
+
+app.use(cors(corsOptions));
+
 app.use(bodyParser.json())
 app.use(
   bodyParser.urlencoded({
