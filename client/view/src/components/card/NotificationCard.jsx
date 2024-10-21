@@ -13,12 +13,12 @@ export const NotificationCard = ({ item }) => {
             <div className="space-y-2 w-full px-3">
                 <div className="font-semibold text-xl flex items-center justify-between">{item.title}{item.tag && item.tag}</div>
                 <div className="text-gray-600 opacity-80 flex items-center " >
-                    {item.time}
+                    {item.time_stamp}
                     <p className='w-2.5 h-2.5 opacity-80 bg-gray-700 rounded-full mx-3'/> 
-                    {item.id}
+                    {item.detaiid}
                 </div>
                 <div className="bg-gray-100 w-full p-3 rounded-lg">
-                    {item.description}
+                    {item.message}
                 </div>
             </div>
         </div>

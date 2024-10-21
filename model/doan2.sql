@@ -194,12 +194,12 @@ CREATE TABLE diemtailieudexuat (
 
 -- Notify
 CREATE TABLE groupConsumer (
-  groupConsumerId VARCHAR(5) PRIMARY KEY,
+  groupConsumerId VARCHAR(10) PRIMARY KEY,
   name_group TEXT NOT NULL
 )
 
 CREATE TABLE consumers (
-	groupConsumerId VARCHAR(5) NOT NULL,
+	groupConsumerId VARCHAR(10) NOT NULL,
   taikhoanid integer NOT NULL,
   PRIMARY KEY (taikhoanid, groupConsumerId),
   FOREIGN KEY (taikhoanid) REFERENCES taikhoan(taikhoanid),
@@ -209,7 +209,7 @@ CREATE TABLE consumers (
 CREATE TABLE Topics (
   id SERIAL PRIMARY KEY,
   title TEXT NOT NULL,
-  groupConsumerId VARCHAR(5) NOT NULL,
+  groupConsumerId VARCHAR(10) NOT NULL,
   detaiid VARCHAR(10) NOT NULL,
   FOREIGN KEY (detaiid) REFERENCES detai(detaiid),
   FOREIGN KEY (groupConsumerId) REFERENCES groupConsumer(groupConsumerId)

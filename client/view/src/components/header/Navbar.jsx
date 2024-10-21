@@ -3,6 +3,7 @@ import { BellIcon } from '@heroicons/react/24/outline'
 import { NotificationDialog } from '../dialog/NotificationDialog'
 import { useEffect, useState } from 'react'
 import { Avatar, Badge } from 'antd'
+import { getNotificate } from '../../controller/7.notify/notify'
 
 
 function classNames(...classes) {
@@ -11,13 +12,22 @@ function classNames(...classes) {
 
 export default function Navbar() {
   const [ openNoti, setOpenNoti ] = useState(false)
-
+  const [ countNoti, setCountNoti ] = useState()
+  const [ data, setData ] = useState()
   const closeNoti = () => setOpenNoti(false)
   // useEffect(() => console.log(openNoti), [openNoti])
   // addEventListener("click", () => {
   //   document.body.click
   // })
-  const data = ["", "", ""]
+  useEffect(() => {
+    const fetchNoti = async() => {
+      const result = await getNotificate()
+      setData(result)
+      setCountNoti(result.length)
+    }
+    fetchNoti()
+  }, [])
+
   return (
     <>
       <div className="" >
@@ -28,7 +38,7 @@ export default function Navbar() {
 
               <div className="hidden md:block">
                 <div className="ml-4 flex items-center md:ml-6">
-                  <Badge count={data.length} overflowCount={999} className='select-none'>
+                  <Badge count={countNoti} overflowCount={999} className='select-none'>
 
                     <button
                       onClick={() => setOpenNoti(!openNoti)}
@@ -48,7 +58,7 @@ export default function Navbar() {
             </div>
           </div>
         </Disclosure>
-        <div className="overflow-hidden"><NotificationDialog open={openNoti} close={closeNoti}/></div>
+        <div className="overflow-hidden"><NotificationDialog open={openNoti} close={closeNoti} data={data}/></div>
 
       </div>
     </>

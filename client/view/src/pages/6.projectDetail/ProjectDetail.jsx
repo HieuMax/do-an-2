@@ -13,6 +13,7 @@ import ConfirmDialog from '../../components/dialog/ConfirmDialog';
 import { Loading } from '../../utils/Loading';
 import { useNavigate } from 'react-router-dom';
 import NotificationBottomRight from '../../third-party/components/Notification/NotificationBottomRight';
+import { getNotify } from '../../controller/7.notify/notify';
 
 const staticLinhVuc = [
     {id: 0 ,name: "CNTT"},
@@ -201,6 +202,7 @@ export const ProjectDetail = ({props}) => {
                 navigate(`/project-list`)
             }, 700)
             clearTimeout()
+            await getNotify("Regist new project")
 
         } else {
             message.error("Đăng ký thất bại - Thử lại sau")

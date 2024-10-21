@@ -1,6 +1,7 @@
 const { json } = require('express');
 const pool = require('../database/database')
 const path = require('path');
+const { createTopic, createGroupConsumer, checkExistConsumer, createMsg } = require('./notifyController');
 
 
 
@@ -421,7 +422,7 @@ const registNewProject = async (data) => {
         values: valuesArray
     }
 
-    try {
+    // try {
         const result = await pool.query(query)
         if(result.error) {
             throw result.error
@@ -435,12 +436,25 @@ const registNewProject = async (data) => {
             }
         }
         // Ham create thong bao
-
+        const groupid = await createGroupConsumer(`HD${String(detaiId).substring(2)}`, `Giảng viên hướng dẫn đề tài ${detaiId}`)
+        
+        if(groupid) {
+            const topicId = await createTopic("Phê duyệt đề tài", groupid, detaiId) // Create topic for groupConsumer subcribe
+            // console.log("here")
+            await checkExistConsumer(valuesArray[4], groupid) // Assign mentor to groupConsumer
+            // console.log(valuesArray)
+            // console.log(valuesArray[5])
+            const student = await getById('students', valuesArray[5])
+            // console.log(student)
+            const msg = "Sinh viên " + student.data.hoten + " đã đăng ký đề tài " + valuesArray[0] + ", yêu cầu phê duyệt đề tài."
+            console.log(msg)
+            await createMsg(valuesArray[5], topicId, msg, Date.now(), "sinhvien") // Student sent - so get type of student
+        }
         // console.log(result)
         return { status: 201 }
-    } catch (error) {
-        return {"error": error.message}
-    }
+    // } catch (error) {
+    //     return {"error": error.message}
+    // }
 }
 
 const uploadProposal = async (data) => {
