@@ -3,13 +3,14 @@ import authorizedAxiosInstance from "../utils/authorizedAxios";
 import { API_ENDPOINT } from "../controller";
 import { handleLogoutApi } from ".";
 import axios from "axios";
+import { registToServer } from "../provider/websocket";
 axios.defaults.withCredentials = true;
 
 export const useAuthStore = create((set) => ({
 	user: JSON.parse(localStorage.getItem('userInfo')) || null,
 	isAuthenticated: !!localStorage.getItem('userInfo'),  // Kiểm tra xem có thông tin người dùng trong localStorage không
 	error: null,
-	error: null,
+	// error: null,
 	isLoading: false,
 	isCheckingAuth: true,
 	message: null,
@@ -29,7 +30,6 @@ export const useAuthStore = create((set) => ({
 				isLoading: false,
 			});
 			localStorage.setItem('userInfo', JSON.stringify(userInfo))
-
 		} catch (error) {
 			set({ error: error.response?.data?.message || "Error logging in", isLoading: false });
 			throw error;
@@ -51,6 +51,7 @@ export const useAuthStore = create((set) => ({
 		try {
 			const response = await authorizedAxiosInstance.get(`${API_ENDPOINT}/dashboard/accessa`);
 			set({ user: response.data, isAuthenticated: true, isCheckingAuth: false });
+			// return { isAuthenticated }
 		} catch (error) {
 			set({ error: null, isCheckingAuth: false, isAuthenticated: false });
 		}
@@ -64,6 +65,22 @@ export const useAuthStore = create((set) => ({
 			set({ error: null, isCheckingAuth: false, isAuthenticated: false });
 		}
 	},
+	connectSocketServer: async (auth) => {
+		if (!auth) return
+		set({ connect: false, error: null });
+		try {
+
+			const userId = JSON.parse(window.localStorage.getItem("userInfo")).taikhoanid
+			// if (!registToServer(userId)) {
+			// 	set({ connect: false, error: "Connected fail" });
+			// } 
+			registToServer(userId)
+
+		} catch (error) {
+			set({ error: error, connect: false });
+		}
+	},
 
 
 }));
+

@@ -11,7 +11,7 @@ export default function InputForm() {
   const [maSo, setMaSo] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate()
-	const { login, isAuthenticated } = useAuthStore();
+	const { login, isAuthenticated, connectSocketServer } = useAuthStore();
 
   const userTypeHandle = (type) => {
     setUserType(type);

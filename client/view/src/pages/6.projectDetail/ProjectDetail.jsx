@@ -202,7 +202,8 @@ export const ProjectDetail = ({props}) => {
                 navigate(`/project-list`)
             }, 700)
             clearTimeout()
-            await getNotify("Regist new project")
+            await getNotify(data.giangVienChuNhiemID, "Regist new project")
+            // console.log(data.giangVienChuNhiemID)
 
         } else {
             message.error("Đăng ký thất bại - Thử lại sau")

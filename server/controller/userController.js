@@ -83,7 +83,8 @@ const login = async (req, res) => {
     res.status(StatusCodes.OK).json({
       ...userInfo,
       accessToken,
-      refreshToken
+      refreshToken,
+      // accessSide: vaitro
     });
 
   } catch (error) {

@@ -5,37 +5,14 @@ import { getNotificate, getNotify } from '../../controller/7.notify/notify'
 
 export const NotificationPage = () => {
   const [ data, setData ] = useState()
-  // const data = [
-  //   {
-  //       tag: <Tag color='blue'>Phê duyệt</Tag>,
-  //       title: "Xét duyệt đề tài",
-  //       time: "2 giờ trước",
-  //       id: "DT2024001",
-  //       description: "Yêu cầu xét duyệt giảng viên hướng dẫn"
-  //   },
-  //   {
-  //       tag: <Tag color='orange'>Chấm điểm</Tag>,
-  //       title: "Chấm điểm",
-  //       time: "1 giờ trước",
-  //       id: "DT2024001",
-  //       description: "Đề tài DT2024001 đã nộp tài liệu thuyết minh, có thể chấm điểm"
-  //   },
-  //   {
-  //       title: "Chấm điểm",
-  //       time: "1 giờ trước",
-  //       id: "DT2024001",
-  //       description: "Lorem ipsum, dolor sit amet consectetur adipisicing elit. Voluptate fuga, tempore magnam vero sequi inventore adipisci, repudiandae quam iusto quae deleniti consequuntur, blanditiis rerum quisquam eius asperiores animi reprehenderit fugiat."
-  //   }
-  // ]
-  // data.reverse()
 
-  const [ test, setTest ] = useState('');
-  const notification = async() => await getNotify("Test")
-
+  const notification = async() => await getNotify("GV001","Test")
+  
   useEffect(() => {
     const fetchNoti = async() => {
       const result = await getNotificate()
       setData(result)
+      // console.log()
     }
     fetchNoti()
     // console.log(data)
@@ -66,7 +43,7 @@ export const NotificationPage = () => {
         </ul>
       </div>
       <div className="flex-col w-full">
-        {data && data.map((item, i) => <div key={i}><NotificationCard item={item}/></div>)}
+        {data  && !data.error && data.map((item, i) => <div key={i}><NotificationCard item={item}/></div>)}
       </div>
     </div>
   )

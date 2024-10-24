@@ -30,7 +30,7 @@ const access = async (req, res) => {
       vaitro,
       ...result.rows[0]  // Kết hợp dữ liệu từ truy vấn với thông tin tài khoản
     };
-
+    // console.log('ere')
     return res.status(StatusCodes.OK).json(userInfo);
   } catch (error) {
     console.error('Error accessing user information:', error);

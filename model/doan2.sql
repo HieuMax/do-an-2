@@ -216,11 +216,14 @@ CREATE TABLE Topics (
 )
 
 CREATE TABLE UnseenMsgs (
-  taikhoanid integer NOT NULL,
-  messagesid TEXT NOT NULL,
-  time_stamp TEXT,
+  taikhoanid INTEGER NOT NULL,
+  messagesid SERIAL NOT NULL,
+  time_stamp TEXT NOT NULL,
+  topicId INTEGER NOT NULL,
+  _message TEXT,
   PRIMARY KEY (taikhoanid, messagesid),
-  FOREIGN KEY (taikhoanid) REFERENCES taikhoan(taikhoanid)
+  FOREIGN KEY (taikhoanid) REFERENCES taikhoan(taikhoanid),
+  FOREIGN KEY (topicId) REFERENCES Topics(id)
 )
 
 
