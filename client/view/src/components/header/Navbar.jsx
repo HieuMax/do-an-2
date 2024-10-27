@@ -7,6 +7,9 @@ import { getNotificate } from '../../controller/7.notify/notify'
 import socket from '../../provider/websocket'
 import { NotificationCard } from '../card/NotificationCard'
 import NotifyInfo from '../../third-party/components/Notification/NotifyInfo'
+import { useAuthStore } from '../../api/authStore'
+import { useNavigate } from 'react-router-dom'
+import { handleLogoutApi } from '../../api'
 
 
 function classNames(...classes) {
@@ -20,25 +23,64 @@ export default function Navbar() {
   const [ data, setData ] = useState()
   const closeNoti = () => setOpenNoti(false)
 
+  const { user } = useAuthStore();
+
   const fetchNoti = async() => {
     const result = await getNotificate()
     setData(result)
-    setCountNoti(result.length)
+    setCountNoti(result && result.length)
     return result
   }
+
+  const validateUser = () => {
+    const localUserInfo = JSON.parse(window.localStorage.getItem("userInfo"));
+    if (!localUserInfo || user && user.taikhoanid !== localUserInfo.taikhoanid || !user) {
+      throw new Error("Dangerous error: You changed localStorage");
+    }
+  };
+
   useEffect(() => {
-    fetchNoti();
-  }, [])
+    const validateAndFetch = async () => {
+      try {
+        // validateUser();
+        await fetchNoti();
+      } catch (error) {
+        console.error(error.message);
+      }
+    };
+
+    validateAndFetch();
+
+  }, []);
 
   useEffect(() => {
     socket.onmessage = function(event) {
       async function handleEvent (){
         const result = await fetchNoti()
+        console.log(result)
         NotifyInfo(<NotificationCard item={result && result[0]}/>)
       }
       handleEvent();
     };
   }, [socket])
+
+
+  const navigate = useNavigate()
+  useEffect(() => {
+    const handleStorageChange = async (event) => {
+      if (event.key === "userInfo") {
+        console.warn("Detected change in localStorage userInfo");
+        await handleLogoutApi()
+        navigate('/login')
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [])
 
   return (
     <>

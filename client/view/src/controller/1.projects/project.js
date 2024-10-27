@@ -1,10 +1,21 @@
 import { API_ENDPOINT } from "..";
+import { useAuthStore } from "../../api/authStore";
 import { getMentorById, getNameMentorById } from "../2.mentors/mentors";
 
 const url = "/projects";
 
 export const getAllProjects = async () => {
-    const response = await fetch(`${API_ENDPOINT}${url}`);
+    const userInfo = JSON.parse(window.localStorage.getItem('userInfo'))
+    // const userId = userInfo.userId
+    // const role = userInfo.vaitro
+    // const { user } = useAuthStore()
+    // const data = { uid: uid }
+    // console.log(uid)
+    const data = {
+        userId: userInfo.userId,
+        typeOfUser: userInfo.vaitro
+    }
+    const response = await fetch(`${API_ENDPOINT}${url}/accessProject/${JSON.stringify(data)}`);
     const projects = await response.json();
     const arr = projects.detai
     arr.forEach(async(element) => {
@@ -32,9 +43,11 @@ export const getProjectById = async(id) => {
 }
 
 export const updateStatusProject = async (status, id) => {
+    const uid = JSON.parse(window.localStorage.getItem('userInfo')).taikhoanid
     const data = {
         status: status,
-        id: id
+        id: id,
+        uid: uid
     }
     const response = await fetch(`${API_ENDPOINT}${url}/updateStatus`, {
         method: "PUT",

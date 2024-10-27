@@ -1,5 +1,5 @@
 const projectRouter = require('express').Router();
-const { getAll, getById, updateStatus, getLastIdProject, registNewProject, updateFile, downloadFile, markType, getMarkOfProject, uploadProposal, getProposalFile } = require('../controller/controller');
+const { getAll, getById, updateStatus, getLastIdProject, registNewProject, updateFile, downloadFile, markType, getMarkOfProject, uploadProposal, getProposalFile, getAccessProject } = require('../controller/controller');
 const upload = require('../middleware/multer');
 const { generateid } = require('../utils/generateid');
 
@@ -9,6 +9,17 @@ const obj = "projects"
 
 projectRouter.get('/', async(req, res) => {
     const result = await getAll(obj);
+    if (result.error) {
+        res.status(500).json({"error": result.error});
+    } else {
+        res.json({detai: result.data})
+    }
+})
+
+projectRouter.get('/accessProject/:uid', async(req, res) => {
+    const { uid } = req.params
+    const data = JSON.parse(uid)
+    const result = await getAccessProject(data.userId, data.typeOfUser);
     if (result.error) {
         res.status(500).json({"error": result.error});
     } else {
@@ -87,7 +98,8 @@ projectRouter.get('/proposalFile/:id', async(req, res) => {
 projectRouter.put('/updateStatus', async (req, res, next) => {
     const body = req.body
     const header = req.headers
-    const result = await updateStatus(body.status, body.id)
+
+    const result = await updateStatus(body.status, body.id, body.uid)
     if (result.status === 200) {
         res.status(200).send(result.message)
     } else {
@@ -121,7 +133,7 @@ projectRouter.post('/preparefile', (req, res) => {
 projectRouter.post('/registNewProject', async (req, res) => {
     const result = await getLastIdProject()
     const estimateProject = 3
-    const newId = generateid(result.data.detaiid.length == 9 ? result.data.detaiid : "", result.data.detaiid.length - estimateProject)
+    const newId = generateid(result.data && result.data.detaiid.length == 9 ? result.data.detaiid : "", result.data? result.data.detaiid.length - estimateProject : 0)
 
     const data = {
         ...req.body,
@@ -178,8 +190,9 @@ projectRouter.post('/markProject', async(req, res) => {
         diemtc8: diemtc8,
     }
     try {
+        // console.log(data)
         const response = await markType(type, data)
-        console.log(response)
+        // console.log(response)
         if(response.status === 201) {       
             // res.status(201).send(response.status)
             res.sendStatus(response.status)

@@ -1,4 +1,4 @@
-import { ChevronFirst, ChevronLast, Menu, MoreVertical } from 'lucide-react'
+import { ChevronFirst, ChevronLast } from 'lucide-react'
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { useAuthStore } from '../../api/authStore'
 
@@ -7,7 +7,6 @@ export const Sidebar2 = ({ children, expand }) => {
   const [expanded, setExpanded] = useState(true);
   
   const [widthWindow, setWidthWindow] = useState(window.innerWidth);
-
 
   const { user } = useAuthStore();
 
@@ -65,7 +64,7 @@ export const Sidebar2 = ({ children, expand }) => {
 
             <div className="border-t flex p-3 mb-9">
                 <img 
-                src={user.avtimg}
+                src={user && user.avtimg}
                 alt="" 
                 className='w-10 h-10 rounded-md'
                 />
@@ -74,8 +73,8 @@ export const Sidebar2 = ({ children, expand }) => {
                     overflow-hidden transition-all ${expanded ? "w-52 ml-3" : "w-0"}
                 `}>
                     <div className='leading-4'>
-                        <h4 className='font-semibold'>{user.hoten}</h4>
-                        <span className='text-xs text-gray-600'>{user.mail}</span>
+                        <h4 className='font-semibold'>{user &&user.hoten}</h4>
+                        <span className='text-xs text-gray-600'>{user &&user.mail}</span>
                     </div>
                 </div>
             </div>

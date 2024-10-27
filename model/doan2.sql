@@ -125,21 +125,22 @@ CREATE TABLE tailieuthuyetminh (
 )
 
 CREATE TABLE diemtailieuthuyetminh (
-    taiLieuThuyetMinh PATH NOT NULL,
-    diemTaiLieu FLOAT NOT NULL,
-    nhanXet TEXT NULL,
-    deTaiID VARCHAR(10) NOT NULL,
-    diemTC1 DECIMAL(5, 2) NOT NULL,
-    diemTC2 DECIMAL(5, 2) NOT NULL,
-    diemTC3 DECIMAL(5, 2) NOT NULL,
-    diemTC4 DECIMAL(5, 2) NOT NULL,
-    diemTC5 DECIMAL(5, 2) NOT NULL,
-    diemTC6 DECIMAL(5, 2) NOT NULL,
-    diemTC7 DECIMAL(5, 2) NOT NULL,
-    diemTC8 DECIMAL(5, 2) NOT NULL,
-    FOREIGN KEY (deTaiID) REFERENCES DeTai(deTaiID),
-    PRIMARY KEY (deTaiID)
-);
+  nguoichamdiem VARCHAR(13) NOT NULL,
+  diemtailieu DOUBLE PRECISION NOT NULL,
+  nhanxet TEXT NULL,
+  detaiid VARCHAR(10) NOT NULL,
+  diemTC1 SMALLINT NOT NULL,
+  diemTC2 SMALLINT NOT NULL,
+  diemTC3 SMALLINT NOT NULL,
+  diemTC4 SMALLINT NOT NULL,
+  diemTC5 SMALLINT NOT NULL,
+  diemTC6 SMALLINT NOT NULL,
+  diemTC7 SMALLINT NOT NULL,
+  diemTC8 SMALLINT NOT NULL,
+  PRIMARY KEY (detaiid,nguoichamdiem),
+  FOREIGN KEY (detaiid) REFERENCES DeTai(deTaiId),
+  FOREIGN KEY (nguoichamdiem) REFERENCES giangvien(giangvienid)
+)
 
 -- Table for TaiLieuBaoCao (Report Documents)
 CREATE TABLE TaiLieuBaoCao (
@@ -186,6 +187,7 @@ CREATE TABLE diemtailieudexuat (
   diemTC6 SMALLINT NOT NULL,
   diemTC7 SMALLINT NOT NULL,
   diemTC8 SMALLINT NOT NULL,
+  diemtailieu DOUBLE PRECISION NOT NULL,
   PRIMARY KEY (detaiid,nguoichamdiem),
   FOREIGN KEY (detaiid) REFERENCES DeTai(deTaiId),
   FOREIGN KEY (nguoichamdiem) REFERENCES giangvien(giangvienid)
@@ -221,9 +223,18 @@ CREATE TABLE UnseenMsgs (
   time_stamp TEXT NOT NULL,
   topicId INTEGER NOT NULL,
   _message TEXT,
-  PRIMARY KEY (taikhoanid, messagesid),
+  PRIMARY KEY (messagesid),
   FOREIGN KEY (taikhoanid) REFERENCES taikhoan(taikhoanid),
   FOREIGN KEY (topicId) REFERENCES Topics(id)
+)
+
+CREATE TABLE SeenMsgs (
+  taikhoanid INTEGER NOT NULL,
+  messagesid INTEGER NOT NULL,
+  seen BOOL NOT NULL,
+  PRIMARY KEY (taikhoanid, messagesid),
+  FOREIGN KEY (taikhoanid) REFERENCES taikhoan(taikhoanid),
+  FOREIGN KEY (messagesid) REFERENCES UnseenMsgs(messagesid)
 )
 
 
@@ -231,6 +242,9 @@ CREATE TABLE UnseenMsgs (
 -- TRIGGER -------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------
 
+---------------------------------------------------------------
+-------------------- Tai Lieu De Xuat -------------------------
+---------------------------------------------------------------
 --Trigger update status when approving
 CREATE OR REPLACE FUNCTION tg_autoCheckDuyetDeXuat()
 RETURNS TRIGGER AS
@@ -265,6 +279,44 @@ AFTER INSERT
 ON diemtailieudexuat
 FOR EACH ROW
 EXECUTE FUNCTION tg_autoCheckDuyetDeXuat();
+
+---------------------------------------------------------------
+-------------------- Tai Lieu Thuyet Minh ---------------------
+---------------------------------------------------------------
+--Trigger update status when mark presentation of documentation
+CREATE OR REPLACE FUNCTION tg_autoCheckChamDiemThuyetMinh()
+RETURNS TRIGGER AS
+$$
+DECLARE
+    flag_update SMALLINT;
+    var_detaiid VARCHAR(13);
+BEGIN
+    -- Get detaiid from the inserted row
+    var_detaiid := NEW.detaiid;
+
+    -- Count the number of nguoichamdiem for the detaiid
+    SELECT COUNT(nguoichamdiem) INTO flag_update
+    FROM diemtailieuthuyetminh
+    WHERE detaiid = var_detaiid;
+
+    -- If 5 nguoichamdiem found, update the detai table
+    IF flag_update = 5 THEN
+        UPDATE detai
+        SET trangthai = 3
+        WHERE detaiid = var_detaiid;
+    END IF;
+
+    RETURN NEW;
+END;
+$$
+LANGUAGE plpgsql;
+
+-- Now create the trigger
+CREATE TRIGGER tg_autoCheckChamDiemThuyetMinh
+AFTER INSERT
+ON diemtailieuthuyetminh
+FOR EACH ROW
+EXECUTE FUNCTION tg_autoCheckChamDiemThuyetMinh();
 
 -- 0: Mới đăng ký
 -- 1: GVHD duyệt

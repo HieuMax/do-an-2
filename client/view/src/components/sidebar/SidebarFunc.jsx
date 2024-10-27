@@ -12,25 +12,13 @@ export const SidebarFunc = ({expand}) => {
   const location = useLocation();  // To get the current path
   const navigate = useNavigate();  // To programmatically navigate
   const [navigation, setNavigation] = useState([])
-  // const [navigation, setNavigation] = useState(
-  //   [
-  //       { name: 'Home', href: '/', current: true, icon: <LayoutDashboard size={20} />, alert: false, active: true}, 
-  //       { name: 'Thông tin cá nhân', href: '/profile', current: false , icon: <User size={20} />},
-  //       { name: 'Đăng ký đề tài', href: '/regist-project', current: false, icon: <List size={20} /> },
-  //       { name: 'Trạng thái đề tài', href: '/project-list', current: false, icon: <ListChecks size={20} /> },
-  //       { name: 'Kết quả báo cáo', href: '/report', current: false, icon: <FileChartColumn size={20} />, alert: true  },
-  //       { name: 'Danh sách hội đồng', href: '/dsda', current: false, icon: <School size={20} /> },
-  //       { name: 'Phân công hội đồng', href: '/phanCong', current: false, icon: <SquareCheckBig size={20} /> },
-  //       { name: 'Danh sách giảng viên', href: '/dsgv', current: false, icon: <Users size={20} /> },
-  //       { name: 'Trung tâm thông báo', href: '/notification', current: false, icon: <Bell size={20} /> },
-  //       { name: 'Đăng xuất', href: '/login', current: false, icon: <ArrowLeftFromLine size={20} /> },
-  //   ]
-  // );  // Use state to track active links
+
 // --------------------------------------------------Menu thay đổi theo vai trò----------------------------------------------------------------
   const { user } = useAuthStore();
 
   useEffect(() => {
     let sideObj;  
+    if(!user) return
     if(user.vaitro == "Student") {
       sideObj = _StudentSidebar
     } else if (user.vaitro == "Teacher") {
@@ -39,6 +27,17 @@ export const SidebarFunc = ({expand}) => {
       sideObj = _AdminSidebar
     }
     setNavigation(sideObj)
+    const location = window.location.pathname
+    const item = {
+      href: `/${location.substring(location.lastIndexOf('/')+1)}`
+    }
+    setNavigation((prevNav) =>
+      prevNav.map((navItem) =>
+        navItem.name === item.name || navItem.href === item.href
+          ? { ...navItem, active: true }
+          : { ...navItem, active: false }
+      )
+    );
   }, [user])
 
 // ------------------------------------------------------------------------------------------------------------------
@@ -51,6 +50,7 @@ export const SidebarFunc = ({expand}) => {
       }))
     );
   }, [location.pathname]);
+
 
   const handleClick = async (item) => {
     window.scroll(0,0)

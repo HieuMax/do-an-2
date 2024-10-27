@@ -7,6 +7,7 @@ import { registToServer } from "../provider/websocket";
 axios.defaults.withCredentials = true;
 
 export const useAuthStore = create((set) => ({
+	// user: null,
 	user: JSON.parse(localStorage.getItem('userInfo')) || null,
 	isAuthenticated: !!localStorage.getItem('userInfo'),  // Kiểm tra xem có thông tin người dùng trong localStorage không
 	error: null,
@@ -19,9 +20,11 @@ export const useAuthStore = create((set) => ({
 		set({ isLoading: true, error: null });
 		try {
 			const response = await authorizedAxiosInstance.post(`${API_ENDPOINT}/auth/login`, { tendangnhap, matkhau, vaitro });
+
 			const userInfo = {
 				taikhoanid: response.data.taikhoanid,
-				vaitro: response.data.vaitro
+				vaitro: response.data.vaitro,
+				userId: response.data.userId
 			  };
 			set({
 				isAuthenticated: true,

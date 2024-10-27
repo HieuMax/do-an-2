@@ -3,6 +3,7 @@ const ms = require('ms');
 const { JwtProvider, ACCESS_TOKEN_SECRET_SIGNATURE, REFRESH_TOKEN_SECRET_SIGNATURE } = require('../providers/JwtProvider');
 const pool = require('../database/database')
 const bcryptjs = require('bcryptjs');
+const { getById } = require('./controller');
 
 /**
  * Mock nhanh thông tin user thay vì phải tạo Database rồi query.
@@ -46,10 +47,25 @@ const login = async (req, res) => {
     }
 
     // Trường hợp nhập đúng thông tin tài khoản, tạo token và trả về cho phía Client
+    let obj = '';
+    if (user.vaitro == 'Student') {
+      obj = 'student-Byaccount'
+    } else if (user.vaitro == 'Teacher') {
+      obj = 'mentor-Byaccount'
+    } else if (user.vaitro == 'Admin') {
+      obj = 'admin-Byaccount'
+    }
+    const userId = await getById(obj, user.taikhoanid)
     const userInfo = {
       taikhoanid: user.taikhoanid,
-      vaitro: user.vaitro
+      vaitro: user.vaitro,
+      userId: userId.data.sinhvienid
+              ? userId.data.sinhvienid
+              : userId.data.giangvienid
+                ? userId.data.giangvienid
+                : userId.data.manql
     };
+   
 
     // Tạo ra 2 loại token: accessToken và refreshToken
     const accessToken = await JwtProvider.generateToken(

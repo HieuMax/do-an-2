@@ -7,14 +7,16 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { getProjectById } from '../../controller/1.projects/project'
 import { Loading } from '../../utils/Loading'
 
-export const DisplayProjectDetail = ({ user, action }) => {
+export const DisplayProjectDetail = ({ action }) => {
   const navigate = useNavigate();
   const [status, setStatus] = useState() // statusCss of project 
   const [statusCss, setStatusCss] = useState()
   const [project, setProject] = useState({})
   const location = useLocation();
-  const { detaiId } = location.state; 
-
+  const { detaiId } = location.state 
+    ? location.state
+    : {detaiId: location.pathname.substring(location.pathname.lastIndexOf('/')+1)}; 
+    
   const setTrangThai = (trangThai) => {
     switch(trangThai) {
         case 0: 
@@ -47,6 +49,11 @@ export const DisplayProjectDetail = ({ user, action }) => {
       }
       fetchData();
   }, [])
+
+//   useEffect(() => {
+//     console.log(project && project)
+//   }, [project])
+
   return (
     <div className="h-full max-w-full  flex p-3 flex-col">
         {project && project.detaiid
@@ -259,8 +266,9 @@ export const DisplayProjectDetail = ({ user, action }) => {
                                     Mã số sinh viên
                                 </label>
                                 <input
+                                    id='sinhVienChuNhiem'
                                     disabled
-                                    value={user.id}
+                                    value={project && project.sinhvienid}
                                     className='block px-3 w-full rounded-md border-0 py-2 mt-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6`'
                                 />
                             </div>
@@ -270,7 +278,7 @@ export const DisplayProjectDetail = ({ user, action }) => {
                                 </label>
                                 <input
                                     disabled
-                                    value={user.name}
+                                    value={project && project.hoten}
                                     className='block px-3 w-full rounded-md border-0 py-2 mt-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6`'
                                 />
                             </div>

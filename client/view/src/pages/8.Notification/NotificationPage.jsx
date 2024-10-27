@@ -1,16 +1,20 @@
 import React, { useEffect, useState } from 'react'
 import { NotificationCard } from '../../components/card/NotificationCard'
 import { Checkbox, Tag } from 'antd'
-import { getNotificate, getNotify } from '../../controller/7.notify/notify'
+import { getFullNotification, getNotify, sendMessToAdmin } from '../../controller/7.notify/notify'
 
 export const NotificationPage = () => {
   const [ data, setData ] = useState()
 
-  const notification = async() => await getNotify("GV001","Test")
-  
+  const notification = async() => {
+    await getNotify("GV001","Test", "giangvien")
+    // await getNotify(data.giangVienChuNhiemID, "Regist new project", "giangvien")
+  }
+  const noti2 = async () => await getNotify("SV001","Test", "sinhvien");
+  const notiAdmin = async () => await sendMessToAdmin("Test");
   useEffect(() => {
     const fetchNoti = async() => {
-      const result = await getNotificate()
+      const result = await getFullNotification()
       setData(result)
       // console.log()
     }
@@ -20,7 +24,8 @@ export const NotificationPage = () => {
 
   return (
     <div className='flex'>
-      <button onClick={notification}>getNotify</button>
+      {/* <button onClick={notiAdmin}>getNotify</button> */}
+      {/* <button onClick={noti2} className='p-3 bg-red-300'>getNotify2</button> */}
       <div className="max-w-md w-1/3 h-screen p-3 border-r-2 border-l-2 shadow-lg mr-10 space-y-2 ">
         <p className='font-semibold text-lg'>Bộ lọc</p>
         <hr />

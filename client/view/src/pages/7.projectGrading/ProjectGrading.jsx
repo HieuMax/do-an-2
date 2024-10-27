@@ -1,6 +1,6 @@
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react'
 import { X } from 'lucide-react'
-import React, { createContext, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import TableGrading from '../../third-party/components/Data Display/TableGrading'
 import ConfirmDialog from '../../components/dialog/ConfirmDialog';
 import NotificationBottomRight from '../../third-party/components/Notification/NotificationBottomRight';
@@ -37,8 +37,12 @@ export const ProjectGrading = ({ open, close, userToken, detaiid, data, form }) 
       setGradingForm(gradingRecomForm(data));
       setTypeForm("DeXuat")
     }
+    // console.log(form)
   }, [form])
 
+  //////////////////////////////////////////////////////////////
+  // Handle user mark project //////////////////////////////////
+  //////////////////////////////////////////////////////////////
   const handleIsConfirm = async () => {
     const total = handleTotalMark(resTotal)
     if(!total) {
@@ -47,7 +51,7 @@ export const ProjectGrading = ({ open, close, userToken, detaiid, data, form }) 
     }
     if(!total) return
     setTotal(total)
-
+    
     const data = {
       nguoichamdiem: userToken.id,
       mark: total,
@@ -63,7 +67,7 @@ export const ProjectGrading = ({ open, close, userToken, detaiid, data, form }) 
       diemtc7: resTotal.info[6]["mark"],
       diemtc8: resTotal.info[7]["mark"],
     }
-    
+    // console.log(data)
     try {
       const response = await markProject(data)
       if(response.error) {
@@ -125,34 +129,34 @@ export const ProjectGrading = ({ open, close, userToken, detaiid, data, form }) 
                       <TableGrading props={gradingForm} close={open} data={data}/>
                       {/* comment */}
                       <div className="w-full flex justify-between gap-4 mt-8 items-end">
-                          <div className="my-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-10/12">
-                            <SwitchCom label={"Nhận xét"} toggle={false} data={data}/>
-                          </div>
-                          {
-                            !(data && !data.data.length > 0)
-                             ? (<div className={`bg-system text-center px-3 py-2 rounded-xl shadow-xl text-lg 
-                              font-semibold text-white cursor-pointer w-fit h-fit my-3 mr-9
-                              ${data? "hidden": "block"}
-                              ${isConfirm? "hidden" : "block"}
-                                              `}
-                                                  onClick={() => setIsConfirmForm(true)}
-                              >
-                                          Xác nhận
-                              </div>)
-                             : ""
-                          }
-                          {
-                            data && data.data.length > 0
-                              ? (<Tag color={`${data.data[0]["diemtailieu"] >= 60? "green" : "red" }`} key={'grading-tag'} className='font-semibold flex justify-center items-center text-lg my-3 px-3 py-2 mr-9'>
-                                {data.data[0]["diemtailieu"]} / 100
+                        <div className="my-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-10/12">
+                          <SwitchCom label={"Nhận xét"} toggle={false} data={data}/>
+                        </div>
+                        {
+                          !(data && !data.data.length > 0)
+                            ? (<div className={`bg-system text-center px-3 py-2 rounded-xl shadow-xl text-lg 
+                            font-semibold text-white cursor-pointer w-fit h-fit my-3 mr-9
+                            ${data? "hidden": "block"}
+                            ${isConfirm? "hidden" : "block"}
+                                            `}
+                                                onClick={() => setIsConfirmForm(true)}
+                            >
+                                        Xác nhận
+                            </div>)
+                            : ""
+                        }
+                        {
+                          data && data.data.length > 0
+                            ? (<Tag color={`${data.data[0]["diemtailieu"] >= 60? "green" : "red" }`} key={'grading-tag'} className='font-semibold flex justify-center items-center text-lg my-3 px-3 py-2 mr-9'>
+                              {data.data[0]["diemtailieu"]} / 100
+                            </Tag>)
+                            : 
+                            isConfirm && total 
+                              ? (<Tag color={`${total >= 60? "green" : "red" }`} key={'grading-tag'} className='font-semibold flex justify-center items-center text-lg my-3 px-3 py-2 mr-9'>
+                                {total} / 100
                               </Tag>)
-                              : 
-                              isConfirm && total 
-                                ? (<Tag color={`${total >= 60? "green" : "red" }`} key={'grading-tag'} className='font-semibold flex justify-center items-center text-lg my-3 px-3 py-2 mr-9'>
-                                  {total} / 100
-                                </Tag>)
-                                : ""
-                          }
+                              : ""
+                        }
                     </div>
                   </div>
                 </MarkContext.Provider>

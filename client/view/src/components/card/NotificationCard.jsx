@@ -1,9 +1,14 @@
 import React from 'react'
 import { calcSentTime } from '../../utils/CalcSentTime'
+import { updateSeenMsg } from '../../controller/7.notify/notify'
 
 export const NotificationCard = ({ item }) => {
+  const handleClick = (item) => {
+    // Update mark read notify
+    updateSeenMsg(item.messagesid)
+  }
   return (
-    <div>
+    <a href={`/project-list/${item.detaiid}`} onClick={() => handleClick(item)}>
         <div className="rounded-lg p-3 flex space-y-2 hover:bg-gray-100  cursor-pointer">
             <div className="mr-3">
                 <img 
@@ -25,6 +30,6 @@ export const NotificationCard = ({ item }) => {
             </div>
         </div>
         <hr />
-    </div>
+    </a>
   )
 }

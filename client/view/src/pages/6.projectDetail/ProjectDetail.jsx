@@ -202,7 +202,7 @@ export const ProjectDetail = ({props}) => {
                 navigate(`/project-list`)
             }, 700)
             clearTimeout()
-            await getNotify(data.giangVienChuNhiemID, "Regist new project")
+            await getNotify(data.giangVienChuNhiemID, "Regist new project", "giangvien")
             // console.log(data.giangVienChuNhiemID)
 
         } else {

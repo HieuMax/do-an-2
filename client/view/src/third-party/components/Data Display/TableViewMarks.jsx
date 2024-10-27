@@ -85,15 +85,18 @@ const TableViewMarks = ({ open, close, userToken, detaiid, data, form }) => {
   const [ dataSource, setDataSource ] = useState([])
   const [ mark, setMark ] = useState()
   useEffect(() => {
+    
     const fetchMark = async () => {
         const datajson = {
-          userid: userToken.id,
+          userid: JSON.parse(window.localStorage.getItem('userInfo')).userId,
           detaiid: detaiid,
-          role: userToken.role == "giangvien"? "nguoichamdiem" : "sinhvien",
+          role: JSON.parse(window.localStorage.getItem('userInfo')).vaitro == "Teacher"? "nguoichamdiem" : "sinhvien",
           type: "dexuat"
         }
+        // console.log(datajson)
         if(!datajson.type) return
         const response = await getMarkOfProject(datajson);
+        // console.log(response)
         if(response.data.length < 1) {
           setMark()
         } else {
@@ -104,6 +107,7 @@ const TableViewMarks = ({ open, close, userToken, detaiid, data, form }) => {
   }, [])
 
   useEffect(() => {
+    // console.log(mark)
     if(!mark) return
     setDataSource(Array.from(mark.data).map((_,item) => ({
       key: item,
@@ -122,7 +126,7 @@ const TableViewMarks = ({ open, close, userToken, detaiid, data, form }) => {
   }, [mark])
 
   useEffect(() => {
-    
+
     if(!mark) return
     const checkPass = () => {
       let count = 0;
@@ -136,6 +140,10 @@ const TableViewMarks = ({ open, close, userToken, detaiid, data, form }) => {
     }
     checkPass()
   }, [dataSource])
+
+  // useEffect(() => {
+  //   console.log(dataSource)
+  // }, [dataSource])
 
   return (
     <div className="">

@@ -17,6 +17,7 @@ export const registToServer = (userId) => {
         socket.send(JSON.stringify({ type: 'register', userId }));
         // return { connect: true }
     };
+    
 }
 
 export default socket;

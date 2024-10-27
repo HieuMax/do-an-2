@@ -1,28 +1,23 @@
 export const calcSentTime = (time_stamp) => {
-    let time = '';
-    const day = new Date(Date.now())
-    const sentTime = new Date (day - (day - time_stamp));
-    if (day.getUTCFullYear() >= sentTime.getUTCFullYear()) {
-        if (day.getUTCMonth() >= sentTime.getUTCMonth()) {
-            if (day.getUTCDate() == sentTime.getUTCDate()) {
-                if (day.getHours() == sentTime.getHours()) {
-                    if (day.getMinutes() == sentTime.getMinutes()) {
-                        return time=+ (day.getSeconds() - sentTime.getSeconds()) + " giây trước"
-                    } else {
-                        return time=+ (day.getMinutes() - sentTime.getMinutes()) + " phút trước"
-                    }
-                } else {
-                    return time=+ (day.getHours() - sentTime.getHours()) + " giờ trước"
-                }
-            } else {
-                return time=+ (day.getUTCDate() - sentTime.getUTCDate()) + " ngày trước"
-            }
-        } else {
-            return time=+ (day.getUTCMonth() - sentTime.getUTCMonth()) + " tháng trước"
-        }
+    const sentTime = time_stamp;
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - sentTime) / 1000);
+    if (diffInSeconds < 60) {
+        return `${diffInSeconds} giây trước`;
+    } else if (diffInSeconds < 3600) {
+        const minutes = Math.floor(diffInSeconds / 60);
+        return `${minutes} phút trước`;
+    } else if (diffInSeconds < 86400) {
+        const hours = Math.floor(diffInSeconds / 3600);
+        return `${hours} giờ trước`;
+    } else if (diffInSeconds < 2592000) { // less than 30 days
+        const days = Math.floor(diffInSeconds / 86400);
+        return `${days} ngày trước`;
+    } else if (diffInSeconds < 31536000) { // less than 1 year
+        const months = Math.floor(diffInSeconds / 2592000);
+        return `${months} tháng trước`;
     } else {
-        return time=+ (day.getUTCFullYear() - sentTime.getUTCFullYear()) + " năm trước"
+        const years = Math.floor(diffInSeconds / 31536000);
+        return `${years} năm trước`;
     }
-    // console.log(`Calc sent time: ${calcSentTime.toTimeString()} - ${calcSentTime.toDateString() > new Date().toDateString()} - ${new Date().toDateString()}`)
-
-}
+};

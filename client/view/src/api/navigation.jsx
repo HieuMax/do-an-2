@@ -12,6 +12,7 @@ import { RegisteredProject } from '../pages/6.projectDetail/RegisteredProject';
 import { NotificationPage } from '../pages/8.Notification/NotificationPage';
 import { useAuthStore } from './authStore';
 import ErrorPage from '../pages/3.errorPage/ErrorPage';
+import { ReportPage } from '../pages/9.reportPage/ReportPage';
 
 let navigate = null;
 
@@ -26,6 +27,7 @@ export const getNavigate = () => {
 
 const AccessRoute = ({ children }) => {
   const { user } = useAuthStore();
+  if (!user) throw new Error("Dangerous! You changed localstorage. You must logout and login again to keep using application")
   if (user.vaitro != "Admin") {
     return <ErrorPage /> 
   }
@@ -35,6 +37,7 @@ const AccessRoute = ({ children }) => {
 
 const StudentAccess = ({ children }) => {
   const { user } = useAuthStore();
+  if (!user) throw new Error("Dangerous! You changed localstorage. You must logout and login again to keep using application")
   if (user.vaitro != "Student") {
     return <ErrorPage /> 
   }
@@ -44,6 +47,7 @@ const StudentAccess = ({ children }) => {
 
 const StuAndTeaAccess = ({ children }) => {
   const { user } = useAuthStore();
+  if (!user) throw new Error("Dangerous! You changed localstorage. You must logout and login again to keep using application")
   if (user.vaitro != "Student" && user.vaitro != "Teacher") {
     return <ErrorPage /> 
   }
@@ -69,6 +73,12 @@ export const children = [
     element: 
       <StuAndTeaAccess>
         <RegisteredProject /> 
+      </StuAndTeaAccess> 
+  },
+  { path: "/report", 
+    element: 
+      <StuAndTeaAccess>
+        <ReportPage /> 
       </StuAndTeaAccess> 
   },
 

@@ -211,6 +211,26 @@ const getAll = (name) => {
             return
     }
 }
+const getAccessProject = async (uid, typeOfUser) => {
+    // const user = 
+    let query = '';
+    if (typeOfUser == 'Student') {
+        query = `SELECT * FROM detai WHERE sinhvienid = $1`
+        const results = await pool.query(query, [uid]);
+        return {"data": results.rows};
+    } 
+    // else if (typeOfUser == 'Teacher') {
+        query = `SELECT DISTINCT * 
+        FROM detai 
+        INNER JOIN hoidong ON hoidong.hoidongid = detai.hoidongphancong
+        WHERE giangvienchunhiemid = $1 OR detai.hoidongphancong IN (SELECT DISTINCT hoidongid FROM thanhvienhd WHERE giangvienid = $2)
+        GROUP BY detai.detaiid, hoidong.hoidongid`
+    // }
+    const results = await pool.query(query, [uid, uid]);
+    // console.log(results)
+    return {"data": results.rows};
+
+}
 
 const getAllFromDb = async (name) => {
     // prevent SQL injection
@@ -241,10 +261,49 @@ const getById = (obj, id) => {
             return getDepartmentById(id);
         case 'classes':
             return getClassById(id);
+        case 'student-Byaccount':
+            return getStudentIdByAccountId(id);
+        case 'mentor-Byaccount':
+            return getMentorIdByAccountId(id);
+        case 'admin-Byaccount':
+            return getAdminIdByAccountId(id);
         default: 
             return
     }
 }
+
+// Get userId
+const getStudentIdByAccountId = async (id) => {
+    const query = "SELECT * FROM sinhvien WHERE taikhoanid = $1"
+    try {
+        const results = await pool.query(query, [id]);
+        return {"data": results.rows[0]};
+    } catch (err) {
+        return {"error": err.message};
+    }
+}
+
+const getMentorIdByAccountId = async (id) => {
+    const query = "SELECT * FROM giangvien WHERE taikhoanid = $1"
+    try {
+        const results = await pool.query(query, [id]);
+        return {"data": results.rows[0]};
+    } catch (err) {
+        return {"error": err.message};
+    }
+}
+
+const getAdminIdByAccountId = async (id) => {
+    const query = "SELECT * FROM bophanql WHERE taikhoanid = $1"
+    try {
+        const results = await pool.query(query, [id]);
+        return {"data": results.rows[0]};
+    } catch (err) {
+        return {"error": err.message};
+    }
+}
+
+
 
 const getByKeyObject = (table, key, obj) => {
     switch (table) {
@@ -265,7 +324,12 @@ const getStudentById = async(id) => {
     }
 }
 const getProjectById = async(id) => {
-    const query = "SELECT * FROM detai WHERE detaiid = $1"
+    // const query = "SELECT * FROM detai WHERE detaiid = $1"
+    const query = `
+    SELECT *
+    FROM detai 
+    INNER JOIN sinhvien ON sinhvien.sinhvienid = detai.sinhvienid
+    WHERE detaiid = $1`
     const member = await getMemberOfProject(id);
     try {
         const results = await pool.query(query, [id]);
@@ -343,6 +407,11 @@ const getLastIdProject = async () => {
 const getMarkOfProject = async(detaiid, role, userid, type) => {
     if(type == "dexuat") {
         if (role == "nguoichamdiem") {
+            const queryMark_pending = `SELECT * FROM diemtailieudexuat WHERE detaiid = $1`
+            const resultMark_pending = await pool.query(queryMark_pending, [detaiid])
+            if (resultMark_pending.rowCount > 1) {
+                return { "data": resultMark_pending.rows }
+            }
             const query = `SELECT * FROM diemtailieudexuat WHERE detaiid = $1 AND nguoichamdiem = $2`
             const result = await pool.query(query, [detaiid, userid])
             // console.log(result)
@@ -376,16 +445,48 @@ const getProposalFile = async(detaiid) => {
     return { data: result.rows[0] }
 }
 
-// Update
-const updateStatus = async (status, id) => {
+const getTopicById = async(id) => {
+    const query = 'SELECT id FROM topics WHERE detaiid = $1'
+    const result = await pool.query(query, [id])
+    return { data: result.rows[0] }
+}
+
+// ---------------------------------------------------------------------------
+// PUT ----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+
+
+const updateStatus = async (status, id, uid) => {
     const query = `UPDATE detai SET trangthai = $1 WHERE detaiid = $2`
     try {
         await pool.query(query, [status, id]);
+        // console.log(status)
+        if (status == 1) {
+            const msg = `Đề tài ${id} đã được giảng viên hướng dẫn phê duyệt`
+            const topicId = await getTopicById(id)
+            // console.log(uid)
+            // console.log(topicId.data.id)
+            await createMsg(uid, topicId.data.id, msg, Date.now(), "giangvien") // Mentor sent - so get type of mentor
+            // console.log('ok')
+
+            // const groupid = await createGroupConsumer(`PCHD${String(id).substring(2)}`, `Phân công hội đồng cho đề tài ${id}`)
+            const sendMessToAdmin = async () => {
+                const groupid = 'BQL';
+                const topicId = await createTopic("Phân công hội đồng", groupid, id) // Create topic for groupConsumer subcribe
+
+                const msg = `Đề tài ${id} đã được giảng viên hướng dẫn phê duyệt, yêu cầu phân công hội đồng phụ trách đề tài.`
+
+                await createMsg(uid, topicId.id, msg, Date.now(), "giangvien") // Student sent - so get type of student
+            }
+            sendMessToAdmin();
+        }
+
         return {"status": 200, message: "Updated successfully"};
     } catch (err) {
         return {"error": err.message}        
     }
 }
+
 const updateFile = async (type, id, file) => {
     const allowedTypes = ['tailieudexuat']
     if (!allowedTypes.includes(type)) {
@@ -405,9 +506,9 @@ const updateFile = async (type, id, file) => {
     }
 }
 
-//
-// POST -------------------------
-//
+// ---------------------------------------------------------------------------
+// POST ----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 
 const registNewProject = async (data) => {
     const columns = Object.keys(data)
@@ -421,7 +522,6 @@ const registNewProject = async (data) => {
         text: text,
         values: valuesArray
     }
-
     // try {
         const result = await pool.query(query)
         if(result.error) {
@@ -435,12 +535,15 @@ const registNewProject = async (data) => {
                 throw result_memList.error
             }
         }
+        // console.log('here')
+
         // Ham create thong bao
         const groupid = await createGroupConsumer(`HD${String(detaiId).substring(2)}`, `Giảng viên hướng dẫn đề tài ${detaiId}`)
-        
+        // console.log(groupid)
         if(groupid) {
             const topicId = await createTopic("Phê duyệt đề tài", groupid, detaiId) // Create topic for groupConsumer subcribe
-            await checkExistConsumer(valuesArray[4], groupid) // Assign mentor to groupConsumer
+            await checkExistConsumer(valuesArray[4], groupid, "giangvien") // Assign mentor to groupConsumer
+            await checkExistConsumer(valuesArray[5], groupid, "sinhvien") // Assign student to groupConsumer
             const student = await getById('students', valuesArray[5])
             const msg = "Sinh viên " + student.data.hoten + " đã đăng ký đề tài " + valuesArray[0] + ", yêu cầu phê duyệt đề tài."
             await createMsg(valuesArray[5], topicId.id, msg, Date.now(), "sinhvien") // Student sent - so get type of student
@@ -482,9 +585,6 @@ const markProject = async(type, data) => {
         return json({ status: 500, message: "Invalid server" })
     }
     const permis = await permission(data.nguoichamdiem, data.detaiid)
-    // console.log(permis)
-    // console.log(data.nguoichamdiem)
-    // console.log(data.detaiid)
     if(!permis) {
         return { "Error": "Not permission" }
     } else {
@@ -547,5 +647,6 @@ module.exports = {
     markType,
     getMarkOfProject,
     uploadProposal,
-    getProposalFile
+    getProposalFile,
+    getAccessProject
 }
