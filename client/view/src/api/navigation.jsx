@@ -82,20 +82,29 @@ export const children = [
   },
 
   // Admin
-  { path: "/dsda", 
+  { path: "/council-management", 
     element: <AccessRoute><CouncilListProvider /></AccessRoute> 
   },
-  { path: "/phanCong", 
+  { path: "/council-assignment", 
     element: <AccessRoute><CouncilAssignmentProvider /></AccessRoute> 
   },
-  { path: "/dsgv", 
+  { path: "/teacher-management", 
     element: <AccessRoute><TeacherListProvider /></AccessRoute>  
   },
-  { path: "/addTeacher", 
+  { path: "/adding-teacher", 
     element: <AccessRoute><AddTeacherProvider /> </AccessRoute> 
   },
-  { path: "/editTeacher/:id", 
+  { path: "/editing-teacher/:id", 
     element: <AccessRoute><AddTeacherProvider isEdit = {true}/> </AccessRoute> 
+  },
+  { path: "/detail-product/:id", 
+    element: <AccessRoute> <ProjectDetail isAssign = {true}/> </AccessRoute> 
+  },
+  { path: "/detail-project/:id", 
+    element: 
+      <AccessRoute>
+        <RegisteredProject /> 
+      </AccessRoute> 
   },
 ]
 

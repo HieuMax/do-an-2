@@ -1,5 +1,6 @@
 import { API_ENDPOINT } from "..";
 import { getMentorById, getNameMentorById } from "../2.mentors/mentors";
+import axios from "axios";
 
 const url = "/projects";
 
@@ -14,6 +15,28 @@ export const getAllProjects = async () => {
     return projects;
 }
 
+export const updateProjectStatusAndCouncil = async (detaiid, status, council) => {
+    const data = {
+        detaiid: detaiid,
+        status: status,
+        council: council
+    };
+
+    try {
+        const response = await axios.put(`${API_ENDPOINT}${url}/updateStatusAndCouncil`, data, {
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+
+        return response.data; // Trả về dữ liệu từ phản hồi nếu thành công
+    } catch (error) {
+        // Xử lý lỗi khi xảy ra
+        return { error: error.response?.data?.message || error.message || 'Unexpected error occurred' };
+    }
+};
+
+
 export const getProjectById = async(id) => {
     const response = await fetch(`${API_ENDPOINT}${url}/project/${id}`)
     const project = await response.json();
@@ -27,6 +50,7 @@ export const getProjectById = async(id) => {
         sdtGV: mentor.sdt,
         ...project.members
     }
+
     return filledProject;
     // }
 }
@@ -59,7 +83,16 @@ export const uploadFile = async (formData) => {
         return { error: error }
     }
 }
+export const getProjectsByStatus = async () => {
+    try {
+        const response = await axios.get(`${API_ENDPOINT}${url}/status`);
+        return response.data;
 
+    } catch (error) {
+        console.error('Error:', error);
+        return { success: false, message: 'Error' };
+    }
+}
 export const registNewProject = async (data) => {
     try {
         const response = await fetch(`${API_ENDPOINT}${url}/registNewProject`, {

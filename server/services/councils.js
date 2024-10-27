@@ -1,5 +1,5 @@
 const managementRouter = require('express').Router();
-const { getAll, addCouncilWithMembers, getCouncilMembers, deleteCouncil, updateCouncilMember } = require('../controller/controller')
+const { getAll, addCouncilWithMembers, getCouncilMembers, deleteCouncil, updateCouncilMember, getById } = require('../controller/controller')
 const { generateCouncilId } = require('../middleware/generateCouncilId');
 
 
@@ -53,6 +53,16 @@ managementRouter.post('/addCouncilWithMembers', generateCouncilId, async (req, r
     }
 
 });
+
+managementRouter.get('/:id', async (req, res) => {
+    const id = req.params.id;
+    const result = await getById(obj1, id)
+    if (result.error) {
+        res.status(500).json({"error": result.error});
+    } else {
+        res.json({hoidong: result.data})
+    }
+})
 
 managementRouter.get('/getCouncilMembers/:hoidongid', getCouncilMembers);
 

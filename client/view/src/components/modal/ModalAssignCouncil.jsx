@@ -1,34 +1,112 @@
-import React from 'react'
-import { useState, useEffect, useContext, useRef } from 'react';
-import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react'
-import { ExclamationTriangleIcon } from '@heroicons/react/24/outline'
+import React, { useState, useEffect } from 'react';
+import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react';
+import { getCouncilById } from '../../controller/5.councils/councils';
+import { updateProjectStatusAndCouncil } from '../../controller/1.projects/project';
+import { getCouncilMembers } from '../../controller/5.councils/councils';
 import { toast } from 'react-toastify';
-import { ManagementContext } from '../../context/ManagementContext';
-import { PaperClipIcon } from '@heroicons/react/20/solid'
 
 
-const ModalAssignCouncil = ({ isOpen, toggleModal, data }) => {
+const ModalAssignCouncil = ({ isOpen, toggleModal, data, toggleAssigned }) => {
+  const [member, setMember] = useState({});
+  const [input, setInput] = useState(false);
+  const [valid, setValid] = useState(true);
+  const [exist, setExist] = useState(false);
+  const [value, setValue] = useState();
+  const [oldMembers, setOldMembers] = useState({});
 
+  const handleChange = (item) => {
+    setValue(item);
+  };
 
-    const { teachers, students, councils } = useContext(ManagementContext);
+  const handleSearch = async () => {
+    if (!value) return;
+    
+    const mem = await fetchData();
+    if(!mem) {
+      setValid(false);
+      return;
+    }
 
+    const councilMem = await getCouncilMembersData();
+    if(!councilMem) {
+      setValid(false);
+      return;
+    }
 
-      // Tìm tên sinh viên dựa trên ID
-    const student = students.find((s) => s.sinhvienid === data.sinhvienid);
-    const studentName = student ? student.hoten : 'Không tìm thấy sinh viên';
+    if (mem.hoidongid) {
+      setValid(true);
+      setInput(true);
+      setMember(mem);
+      setOldMembers({
+        chuTich: councilMem.chuTich,
+        chuTichID: councilMem.chuTichID,
 
-    // Tìm tên giảng viên hướng dẫn dựa trên ID
-    const teacher = teachers.find((t) => t.giangvienid === data.giangvienchunhiemid);
-    const teacherName = teacher ? teacher.hoten : 'Không tìm thấy giảng viên';
+        phanBien1: councilMem.phanBien1,
+        phanBien1ID: councilMem.phanBien1ID,
 
-    const handleModalClose = () => {
-        toggleModal();
-      };
+        phanBien2: councilMem.phanBien2,
+        phanBien2ID: councilMem.phanBien2ID,
+
+        thuKy: councilMem.thuKy,
+        thuKyID: councilMem.thuKyID,
+
+        uyVien: councilMem.uyVien,
+        uyVienID: councilMem.uyVienID,
+
+      });
+    } else {
+      setInput(true);
+      setValid(false);
+    }
+  };
+
+  const fetchData = async() => {
+    if (!value) return;
+    try {
+      const validValue = await getCouncilById(value);
+      return validValue;
+      
+    } catch (error) {
+      return false
+    }
+  };
+  const getCouncilMembersData = async () => {
+    if (!value) return;
+    try {
+      const response = await getCouncilMembers(value);
+      return response;
+    } catch (error) {
+      return false;
+    }
+
+};
+  const handleAssign = async () => {
+    if(!member.hoidongid) return
+
+    const response = await updateProjectStatusAndCouncil(data, '2', member.hoidongid)
+    if(response.data){
+      handleModalClose();
+      toast.success('Phân công hội đồng thành công')
+      toggleAssigned();
+      return
+    } else {
+      return
+    }
+  };
+
+  const handleModalClose = () => {
+    toggleModal();
+    setValid(true);
+    setInput(false);
+    setExist(false);
+    setValue('');
+    setMember({});
+  };
+
 
   return (
-        <>
+    <>
       <Dialog open={isOpen} onClose={handleModalClose} className="relative z-50">
-        {/* Modal Overlay */}
         <DialogBackdrop
           transition
           className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity data-[closed]:opacity-0 data-[enter]:duration-300 data-[leave]:duration-200 data-[enter]:ease-out data-[leave]:ease-in"
@@ -40,129 +118,133 @@ const ModalAssignCouncil = ({ isOpen, toggleModal, data }) => {
               transition
               className="relative w-full transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all data-[closed]:translate-y-4 data-[closed]:opacity-0 data-[enter]:duration-300 data-[leave]:duration-200 data-[enter]:ease-out data-[leave]:ease-in sm:my-8 sm:w-full sm:max-w-lg data-[closed]:sm:translate-y-0 data-[closed]:sm:scale-95"
             >
-              <div className="bg-white ">
-            {/* Modal header */}
-            <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Phân công hội đồng cho: {data.tendetai}
-              </h3>
-              <button
-                type="button"
-                onClick={handleModalClose}
-                className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
-              >
-                <svg
-                  className="w-3 h-3"
-                  aria-hidden="true"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 14 14"
-                >
-                  <path
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M1 1l6 6m0 0l6 6M7 7l6-6M7 7L1 13"
-                  />
-                </svg>
-                <span className="sr-only">Close modal</span>
-              </button>
-            </div>
-            {/* Modal body */}
-            <form className="">
-                
-
-            <div className='px-10 py-5'> 
-                <div className="flex px-4 sm:px-0 justify-center">
-                    <h3 className="text-lg font-semibold leading-7 text-gray-900">Thông tin đề tài</h3>
-                </div>
-                <div className="mt-6 border-t border-gray-100">
-                    <dl className="divide-y divide-gray-100">
-                        <div className="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                            <dt className="text-base font-medium leading-6 text-gray-900">Tên đề tài</dt>
-                            <dd className="mt-1 text-base leading-6 text-gray-700 sm:col-span-2 sm:mt-0">{data.tendetai}</dd>
-                        </div>
-                        <div className="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                            <dt className="text-base font-medium leading-6 text-gray-900">SV thực hiện</dt>
-                            <dd className="mt-1 text-base leading-6 text-gray-700 sm:col-span-2 sm:mt-0">{studentName}</dd>
-                        </div>
-                        <div className="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                            <dt className="text-base font-medium leading-6 text-gray-900">Lĩnh vực</dt>
-                            <dd className="mt-1 text-base leading-6 text-gray-700 sm:col-span-2 sm:mt-0">{data.linhvuc}</dd>
-                        </div>
-                        <div className="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                            <dt className="text-base font-medium leading-6 text-gray-900">GV hướng dẫn</dt>
-                            <dd className="mt-1 text-base leading-6 text-gray-700 sm:col-span-2 sm:mt-0">{teacherName}</dd>
-                        </div>
-                    </dl>
-                </div>
-                <div className="flex mt-6 px-4 sm:px-0 justify-center">
-                    <h3 className="text-lg font-semibold leading-7 text-gray-900">Phân công hội đồng</h3>
-                </div>
-                <div className="col-span-2 mt-2">
-                    <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                    Chọn hội đồng
-                    </label>
-                    <select
-                    id="department"
-                    // value={}
-                    // ref={}
-                    // onChange={handleDepartmentChange}
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                    >
-                    <option value="">Chọn hội đồng</option>
-                    {councils.map((council) => (
-                        <option key={council.hoidongid} value={council.hoidongid}>
-                        {council.tenhoidong}
-                        </option>
-                    ))}
-                    </select>
-                    {/* {errors.selectedDepartment && (
-                    <p className="mt-1 text-sm text-red-600">{errors.selectedDepartment}</p>
-                    )} */}
-                </div>
-            </div>
-
-                     
-
-                <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
-                    <button
-                    type="submit"
-                
-
-                    className="inline-flex w-full justify-center rounded-md bg-system px-3 py-2 text-sm font-semibold text-white shadow-sm sm:ml-3 sm:w-auto"
-                    >
-                        {/* {loadingButtonCC 
-                        ?  
-                        <svg className="mr-3 h-5 w-5 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg> 
-                        : ''} */}
-                    
-                        <span className="font-medium">Phân công</span>
-                    </button>
-
-                    <button
+              <div className="bg-white">
+                {/* Modal header */}
+                <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    Phân công hội đồng cho: {data}
+                  </h3>
+                  <button
                     type="button"
-                    data-autofocus
                     onClick={handleModalClose}
-
-                    className="min-w-16 mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
+                    className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                  >
+                    <svg
+                      className="w-3 h-3"
+                      aria-hidden="true"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 14 14"
                     >
-                    Hủy
-                    </button>
+                      <path
+                        stroke="currentColor"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M1 1l6 6m0 0l6 6M7 7l6-6M7 7L1 13"
+                      />
+                    </svg>
+                    <span className="sr-only">Close modal</span>
+                  </button>
                 </div>
-              </form>
-              </div>
-             
-            </DialogPanel>
-        </div>
-      </div>
-    </Dialog>
-    </>
-  )
-}
+                {/* Modal body */}
+                <div className="p-4">
+                  <div className="my-2 w-full px-7">
+                    <div className="mt-3">
+                      <label htmlFor="idCouncil" className="block text-base font-medium leading-6 text-gray-900">
+                        Mã số hội đồng
+                      </label>
+                      <div className="flex items-center w-full justify-between flex-wrap">
+                        <input
+                          id='idCouncil'
+                          placeholder='Nhập mã số hội đồng'
+                          onChange={(e) => handleChange(e.target.value)}
+                          className={`
+                            ${(input && valid) && "bg-green-200 ring-green-500 "} sm:w-2/3 block px-3 w-full rounded-md py-2 mt-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-400 sm:text-sm sm:leading-6
+                            `}
+                        />
+                        
+                        <div onClick={handleSearch} className=
+                          "mt-3 cursor-pointer min-w-16 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-2 sm:w-auto">
+                          Tìm
+                        </div>
+                        <span className={
+                          `${valid
+                              ? "hidden"
+                              : "sm:block"
+                          }
+                          text-red-500
+                          `
+                        }>Không tìm thấy, vui lòng thử lại.</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className={`
+                    ${(valid && input) ? "block" : "hidden"}
+                    w-full text-base mt-6  
+                    `}>
+                    <hr className='my-3'/>
+                    <div className="flex px-4 sm:px-0 justify-center mt-4">
+                        <h3 className="text-lg font-semibold leading-7 text-gray-900">Thông tin hội đồng</h3>
+                    </div>
+                    <div className="mt-6 px-7 border-gray-100">
+                        <dl className="divide-y divide-gray-100">
+                          <div className="px-4 py-4 sm:grid sm:grid-cols-2 sm:gap-4 sm:px-0">
+                                <dt className="text-base font-medium leading-6 text-gray-900">Tên hội đồng</dt>
+                                <dd className="text-base leading-6 text-gray-700 ">{member.tenhoidong}</dd>
+                            </div>
 
-export default ModalAssignCouncil
+
+                            <div className="px-4 py-5 sm:grid sm:grid-cols-2 sm:gap-4 sm:px-0">
+                                <dt className="text-base font-medium leading-6 text-gray-900">Chủ tịch</dt>
+                                <dd className="text-base leading-6 text-gray-700 ">{oldMembers.chuTich}</dd>
+                            </div>
+                            <div className="px-4 py-5 sm:grid sm:grid-cols-2 sm:gap-4 sm:px-0">
+                                <dt className="text-base font-medium leading-6 text-gray-900">Thư ký</dt>
+                                <dd className="text-base leading-6 text-gray-700 ">{oldMembers.thuKy}</dd>
+                            </div>
+                            <div className="px-4 py-5 sm:grid sm:grid-cols-2 sm:gap-4 sm:px-0">
+                                <dt className="text-base font-medium leading-6 text-gray-900">Ủy viên</dt>
+                                <dd className="text-base leading-6 text-gray-700 ">{oldMembers.uyVien}</dd>
+                            </div>
+                            <div className="px-4 py-5 sm:grid sm:grid-cols-2 sm:gap-4 sm:px-0">
+                                <dt className="text-base font-medium leading-6 text-gray-900">Giảng viên phản biện 1</dt>
+                                <dd className="text-base leading-6 text-gray-700 ">{oldMembers.phanBien1}</dd>
+                            </div>
+                            <div className="px-4 py-5 sm:grid sm:grid-cols-2 sm:gap-4 sm:px-0">
+                                <dt className="text-base font-medium leading-6 text-gray-900">Giảng viên phản biện 2</dt>
+                                <dd className="text-base leading-6 text-gray-700 ">{oldMembers.phanBien2}</dd>
+                            </div>
+                        </dl>
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 mt-4">
+                  <button
+                    type="button"
+                    onClick={handleAssign}
+                    className="inline-flex min-w-16 w-full justify-center rounded-md bg-system px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-system-500 sm:ml-3 sm:w-auto"
+                  >
+                    Phân công
+                  </button>
+                  <div className="hidden">
+                    {/* <ConfirmDialog open={openModal} close={closeModal} isConfirm={isConfirm} props={searchedMember}/> */}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleModalClose}
+                    className="mt-3 inline-flex min-w-16 w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
+                  >
+                    Hủy
+                  </button>
+                </div>
+              </div>
+            </DialogPanel>
+          </div>
+        </div>
+      </Dialog>
+    </>
+  );
+};
+
+export default ModalAssignCouncil;

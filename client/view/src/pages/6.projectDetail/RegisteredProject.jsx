@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { downloadFile, getMarkOfProject, getProjectById, getProposalFile, updateStatusProject } from '../../controller/1.projects/project';
 import { Loading } from '../../utils/Loading';
 import ConfirmDialog from '../../components/dialog/ConfirmDialog';
@@ -10,6 +10,7 @@ import { UploadCom } from '../../components/fileupload/UploadCom';
 import TableViewMarks from '../../third-party/components/Data Display/TableViewMarks';
 import { DisplayProjectDetail } from '../../components/project_detail/DisplayProjectDetail';
 import { DisplayFileUploaded } from '../../components/project_detail/DisplayFileUploaded';
+import ModalAssignCouncil from '../../components/modal/ModalAssignCouncil';
 
 const user = {id: "227480100000", name: "Hieu Max"}
 
@@ -17,8 +18,15 @@ const accesstoken = { id: "GV001", role: "giangvien" }
 
 
 export const RegisteredProject = ({props}) => {
+  const navigate = useNavigate();
   const location = useLocation();
-  const { detaiId } = location.state; 
+  const { detaiId, isAssign } = location.state || {}; // Đặt giá trị mặc định là một object rỗng
+
+  useEffect(() => {
+    if(!location.state){
+        navigate(-1)
+    }
+  },[location.state, navigate])
   // data
   const [ data, setData ] = useState()
   const [ project, setProject ] = useState({})
@@ -100,15 +108,15 @@ export const RegisteredProject = ({props}) => {
     setLoading(true)
   }
 
-  const isReject = () => {
-    
-  }
+
 
   useEffect(() => {
     if(!openModalConfirm && !openModalReject) return
     document.body.style.overflowY = "hidden"
   }, [openModalConfirm, openModalReject])
 
+
+  const [councilAssigned, setCouncilAssigned] = useState(false)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -138,9 +146,7 @@ export const RegisteredProject = ({props}) => {
       }
       fetchProposal();
 
-  }, [detaiId])
-
-
+  }, [detaiId, councilAssigned])
 
   useEffect(() => {
     if(logicStatus == 1) {
@@ -189,6 +195,35 @@ export const RegisteredProject = ({props}) => {
   const [ isLoaded, setIsLoaded ] = useState(false)
   const projectLoading = () => setIsLoaded(true)
   
+
+
+  const [isModalAssignOpen, setIsModalAssignOpen] = useState(false);
+
+  const handleAssignClick = () => {
+    toggleModalAssign();
+  };
+  const toggleModalAssign = () => {
+    setIsModalAssignOpen(!isModalAssignOpen);
+  };
+  const toggleCouncilAssigned = () => {
+    setCouncilAssigned(!councilAssigned)
+  }
+  if(isAssign && logicStatus >= 2){
+    return (
+        <div className='h-screen flex flex-col items-center justify-center'>
+            <p className='text-4xl w-full text-center mb-10'>Hội đồng này đã được phân công</p>
+            <div className="inline-flex justify-center rounded-md min-w-16 max-w-fit bg-gray-600 px-3 py-2 cursor-pointer
+            text-2xl font-semibold text-white shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-500
+            sm:w-auto" 
+                onClick={() => navigate(-1)}
+            >
+                Trở về
+            </div>
+        </div>
+    )
+
+  }
+ else
   return (
 
     <div className="py-3 px-3 h-full scroll-smooth">
@@ -255,6 +290,20 @@ export const RegisteredProject = ({props}) => {
 
                             {/* Grading */}
                             {
+                                isAssign && logicStatus <= 1
+                                ?
+                                    <div 
+                                        className={`w-full flex justify-end gap-4 mt-8`}
+                                        onClick={handleAssignClick}    
+                                    >
+                                        <div className="bg-system text-center px-3 py-2 rounded-xl shadow-xl text-lg font-semibold text-white cursor-pointer w-fit " onClick={() => setOpenModalGrading(true)}>
+                                            Phân công
+                                          
+                                        </div>
+                                        <ModalAssignCouncil isOpen={isModalAssignOpen} toggleModal={toggleModalAssign} data={detaiId} toggleAssigned={toggleCouncilAssigned}/>
+
+                                    </div>
+                                : 
                                 accesstoken.role == "giangvien" && logicStatus >= 1
                                 ? (<div className={`w-full flex justify-end gap-4 mt-8`}>
                                         <div className="bg-system text-center px-3 py-2 rounded-xl shadow-xl text-lg font-semibold text-white cursor-pointer w-fit " onClick={() => setOpenModalGrading(true)}>
@@ -271,6 +320,8 @@ export const RegisteredProject = ({props}) => {
                                     </div>)
                                 : ""
                             }
+
+                           
                             
                             {/* Confirm change */}
                             {

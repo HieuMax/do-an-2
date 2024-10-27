@@ -110,7 +110,7 @@ const App = () => {
 
   return (
     <>
-    <ToastContainer />
+    <ToastContainer position="bottom-right" />
       <RouterProvider router={router} />
 
     </>

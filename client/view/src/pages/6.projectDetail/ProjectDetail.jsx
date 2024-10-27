@@ -11,9 +11,11 @@ import { message } from 'antd';
 import { registNewProject, uploadFile } from '../../controller/1.projects/project';
 import ConfirmDialog from '../../components/dialog/ConfirmDialog';
 import { Loading } from '../../utils/Loading';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import NotificationBottomRight from '../../third-party/components/Notification/NotificationBottomRight';
 import { getNotify } from '../../controller/7.notify/notify';
+import { getProjectById } from '../../controller/1.projects/project';
+import ModalAssignCouncil from '../../components/modal/ModalAssignCouncil';
 
 const staticLinhVuc = [
     {id: 0 ,name: "CNTT"},
@@ -25,8 +27,9 @@ const staticLinhVuc = [
 
 const user = {id: "SV001", name: "Hieu Max"}
 
-export const ProjectDetail = ({props}) => {
+export const ProjectDetail = ({ isAssign }) => {
   const navigate = useNavigate();
+  const { id } = useParams(); // lấy id giảng viên khi chỉnh sửa
 
   const [khoa, setKhoa] = useState();
   const [giangVien, setGiangVien] = useState();
@@ -43,7 +46,57 @@ export const ProjectDetail = ({props}) => {
     DepartmentInitialState
   )
   FileContext
+
+//   const [ assignedData, setAssignedData ] = useState(false)
+
+//   const [tenDeTaiA, setTenDeTaiA ] = useState('')
+//   const [linhVucA, setLinhVucA ] = useState('')
+//   const [kinhPhiA, setKinhPhiA ] = useState('')
+//   const [thoiGianThucHienA, setThoiGianThucHienA ] = useState('')
+//   const [khoaA, setKhoaA ] = useState('')
+//   const [giangVienA, setGiangVienA ] = useState('')
+//   const [maSoSVA, setMaSoSVA ] = useState('')
+//   const [hoTenSVA, setHoTenSVA ] = useState('')
+  const [isModalAssignOpen, setIsModalAssignOpen] = useState(false);
+
+  const handleAssignClick = () => {
+    toggleModalAssign();
+  };
+  const toggleModalAssign = () => {
+    setIsModalAssignOpen(!isModalAssignOpen);
+  };
+
+  const handleBackClick = () => {
+    navigate('/council-assignment'); 
+  } 
+
   useEffect(() => {
+    // if(isAssign && id){
+    //     async function fetchProjectData() {
+    //         try {
+    //             const response = await getProjectById(id);
+    //             if(response) {
+    //                 setAssignedData(response)
+    //                 setTenDeTaiA(response.tendetai)
+    //                 setLinhVucA(response.linhvuc)
+    //                 setKinhPhiA(response.kinhphi)
+    //                 setThoiGianThucHienA(response.thoigianthuchien)
+    //                 setMaSoSVA(response.sinhvienid)
+    //                 setHoTenSVA(response.sinhvienid)
+    //             } else {
+    //                 console.log("error")
+    //             }
+    //         } catch (error) {
+    //             console.log(error)
+                
+    //         }
+    //     }
+    //     fetchProjectData()
+    //     return;
+    // }
+  
+
+
     const fetchData = async () => {
         const khoa = await getAllDepartments()
         const idDe = Object.values(khoa[0])[0]
@@ -250,7 +303,7 @@ export const ProjectDetail = ({props}) => {
                             Tên đề tài
                         </label>
                         <div className="mt-2">
-                            <input id="tenDeTai" name="tenDeTai" type="text" required placeholder="Thiết kế hệ thống" className="block px-3 w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
+                            <input  disabled={true} id="tenDeTai" name="tenDeTai" type="text" required placeholder="Thiết kế hệ thống" className="block px-3 w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
                         </div>
                     </div>
                 </div>
@@ -262,7 +315,13 @@ export const ProjectDetail = ({props}) => {
                         </label>
                         <div className="mt-2 w-3/4 max-xl:w-3/4">
                             <div className="w-full py-1.5">
+                                {isAssign 
+                                ? 
+                                <input disabled={true} type="text" required placeholder="Thiết kế hệ thống" className="block px-3 w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
+                                : 
                                 <ComboboxCom props={staticLinhVuc} handleLinhVuc={handleLinhVuc}/>
+                                }
+
                             </div>
                         </div>
                     </div>
@@ -462,7 +521,6 @@ export const ProjectDetail = ({props}) => {
                                     </label>
                                     <input
                                         disabled
-                                        value={user.id}
                                         className='block px-3 w-full rounded-md border-0 py-2 mt-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6`'
                                     />
                                 </div>
@@ -577,13 +635,49 @@ export const ProjectDetail = ({props}) => {
             </FileContext.Provider>
 
             <div className="" >
-                <div className="mt-10 mb-3 float-end" onClick={() => setIsRegist(true)}>
-                    <div className="bg-system text-center px-3 py-2 rounded-xl shadow-xl text-lg 
-                        font-semibold text-white cursor-pointer w-fit m-auto">
-                        Đăng ký
+                {
+                    isAssign
+                    ? 
+                    (
+                    <div className="mt-10 mb-3 float-end"                    
+                        onClick={() => handleAssignClick()}
+                    >
+                        <div className="bg-system text-center px-3 py-2 rounded-xl shadow-xl text-lg 
+                            font-semibold text-white cursor-pointer w-fit m-auto">
+                            Phân công
+                        </div>             
                     </div>
-                </div>
+                    )
+                    : 
+                    (
+                    <div className="mt-10 mb-3 float-end" onClick={() => setIsRegist(true)}>
+                        <div className="bg-system text-center px-3 py-2 rounded-xl shadow-xl text-lg 
+                            font-semibold text-white cursor-pointer w-fit m-auto">
+                            Đăng ký
+                        </div>             
+                    </div>
+                    )
+                }
+
+                {
+                    isAssign 
+                    ? 
+                    (
+                    <div className="mt-10 mb-3 float-end mr-5" onClick={handleBackClick}>
+                        <div className="text-center px-3 py-2 rounded-xl shadow-xl text-lg 
+                            font-semibold text-white cursor-pointer w-fit m-auto bg-gray-500 ">
+                            Trở về
+                        </div>
+                    </div>
+                    )
+                    : ''
+                }
+
+              
+                <ModalAssignCouncil isOpen={isModalAssignOpen} toggleModal={toggleModalAssign} data={id} />
+
                 <ConfirmDialog open={isRegist} props={""} parent={"Normal"} close={cancelRegist} isConfirm={registProject} titlehead="Đăng ký đề tài mới"/>
+
             </div>
         </div>
     </div>

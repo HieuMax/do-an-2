@@ -2,16 +2,25 @@ import React, { useEffect, useState, useContext } from 'react';
 import ModalEditCouncil from '../modal/ModalEditCouncil';
 import ModalAddCouncil from '../modal/ModalAddCouncil';
 import ModalDelete from '../modal/ModalDelete';
-import { toast } from 'react-toastify';
 import { ManagementContext } from '../../context/ManagementContext';
+import { Skeleton } from 'antd';
 
 const CouncilListCard = ({ props }) => {
   const [isModalAddOpen, setIsModalAddOpen] = useState(false);
   const [isModalEditOpen, setIsModalEditOpen] = useState(false);
   const [isModalDeleteOpen, setIsModalDeleteOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [selectedData, setSelectedData] = useState('HD000');
-  const { loadingCC } = useContext(ManagementContext);
+  const { loadingCC, getCouncilsData } = useContext(ManagementContext);
+  const [sortOrder, setSortOrder] = useState('desc'); // Thêm trạng thái sắp xếp
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 800);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Add Council
   const toggleModalAdd = () => {
@@ -45,27 +54,16 @@ const CouncilListCard = ({ props }) => {
   const handleDeleteCouncil = () => {
     console.log('hi');
   };
-
+  const handleSort = async () => {
+    const newSortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
+    setSortOrder(newSortOrder);
+    
+    await getCouncilsData(newSortOrder)
+  };
   return (
     <>
 
-      <div className="flex sm:flex-row sm:w-full flex-col justify-between mb-4">
-        <button 
-          onClick={handleAddClick} 
-          className="bg-system mt-2 font-semibold text-white px-4 sm:w-fit w-3/4 py-2 rounded"
-          disabled={loadingCC}
-        >
-          Thêm hội đồng
-        </button>
-        <div className="flex sm:flex-row flex-col items-start sm:items-center">
-          <label className="block font-bold mr-4">Tìm kiếm hội đồng:</label>
-          <input
-            type="text"
-            placeholder="Nhập ID hoặc tên hội đồng..."
-            className="border border-gray-300 p-2 rounded flex-1 min-w-32"
-          />
-        </div>
-      </div>
+      
 
       <div className="mt-8 flow-root">
         <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
@@ -76,9 +74,13 @@ const CouncilListCard = ({ props }) => {
                   <tr>
                     <th 
                       scope="col" 
-                      className="w-1/6 px-3 py-3.5 pl-4 pr-3 text-left sm:text-xl text-sm font-semibold text-gray-900 sm:pl-6"
+                      className="cursor-pointer w-1/4 px-3 py-3.5 pl-4 pr-3 text-left sm:text-xl text-sm font-semibold text-gray-900 sm:pl-6"
+                      onClick={handleSort} // Thêm sự kiện nhấp chuột
+
                     >
                       Mã hội đồng
+                      <span className='text-xs'>{sortOrder === 'desc' ? ' ▲' : ' ▼'} {/* Dấu mũi tên */}</span>
+
                     </th>
                     <th 
                       scope="col" 
@@ -106,7 +108,7 @@ const CouncilListCard = ({ props }) => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 bg-white">
-                  {!loadingCC ? (
+                  {!isLoading ? (
                     props.map((board) => (
                       <tr key={board.hoidongid}>
                         <td className="whitespace-nowrap py-4 pl-4 pr-3 sm:text-base text-sm font-medium text-gray-900 sm:pl-6">
@@ -131,25 +133,25 @@ const CouncilListCard = ({ props }) => {
                       </tr>
                     ))
                   ) : (
-                    <tr>
-                        <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6 min-w-[100px]">
-                          <span className="block w-full h-4 bg-gray-200">
-                            
-                          </span>
+                    Array.from({ length: 6 }).map((_, index) => (
+                      <tr key={index}>
+                        <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
+                          <Skeleton.Input active size="small" style={{ width: 226 }} />
                         </td>
-                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 min-w-[200px]">
-                          <span className="block w-full h-4 bg-gray-200"></span>
+                        <td className="whitespace-nowrap px-3 py-6 text-sm text-gray-500">
+                          <Skeleton.Input active size="small" style={{ width: 250 }} />
                         </td>
-                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 min-w-[200px]">
-                          <span className="block w-full h-4 bg-gray-200"></span>
+                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                          <Skeleton.Input active size="small" style={{ width: 400 }} />
                         </td>
-                        <td className="whitespace-nowrap px-3 py-4 text-sm text-center min-w-[100px]">
-                          <span className="block w-full h-4 bg-gray-200"></span>
+                        <td className="whitespace-nowrap px-3 py-4 text-sm text-center">
+                          <Skeleton.Input active size="small" style={{ width: 150 }} />
                         </td>
-                        <td className="whitespace-nowrap px-3 py-4 text-sm text-center min-w-[100px]">
-                          <span className="block w-full h-4 bg-gray-200"></span>
+                        <td className="whitespace-nowrap px-3 py-4 text-sm text-center">
+                          <Skeleton.Input active size="small" style={{ width: 150 }} />
                         </td>
                       </tr>
+                    ))
                   )}
                 </tbody>
               </table>

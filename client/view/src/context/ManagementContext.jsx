@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom"
 import axios from 'axios'
 import { getAllCouncils, getAllTeachers, getAllDepartments, getCouncilMembers } from '../controller/5.councils/councils';
-import { getAllProjects } from "../controller/1.projects/project";
+import { getAllProjects, getProjectById, getProjectsByStatus } from "../controller/1.projects/project";
 import { getAllStudents } from "../controller/6.students/students";
 
 export const ManagementContext = createContext();
@@ -29,12 +29,20 @@ const ManagementContextProvider = (prop) => {
 
 
     // Các controller của CouncilManagement
-    const getCouncilsData = async () => {
+    const getCouncilsData = async (sort) => {
         try {
             const response = await getAllCouncils();
             setLoadingButtonCC(true)
             if(response) {
-                setCouncils(response)
+                const sortedCouncils = response.sort((a, b) => {
+                    const numA = parseInt(a.hoidongid.replace('HD', '')); 
+                    const numB = parseInt(b.hoidongid.replace('HD', '')); 
+                    if(sort == 'asc'){
+                        return numA - numB; // Sắp xếp tăng dần
+                    }
+                    return numB - numA; // Sắp xếp giảm dần
+                });
+                setCouncils(sortedCouncils)
             } else {
                 console.log("error")
             }
@@ -51,11 +59,40 @@ const ManagementContextProvider = (prop) => {
         }
     }
 
-    const getTeachersData = async () => {
+
+    const getProjectId = async () => {
         try {
-            const response = await getAllTeachers();
+            const response = await getProjectById("DT001");
+            setLoadingButtonCC(true)
             if(response) {
-                setTeachers(response)
+              console.log(response)
+                
+            } else {
+                console.log("error")
+            }
+            
+        } catch (error) {
+            console.log(error)
+   
+        } 
+    }
+
+    const getTeachersData = async (sort) => {
+        try {
+            const response = await getAllTeachers(sort);
+
+            
+            if(response) {
+                
+                const sortedTeachers = response.sort((a, b) => {
+                    const numA = parseInt(a.giangvienid.replace('GV', '')); 
+                    const numB = parseInt(b.giangvienid.replace('GV', '')); 
+                    if(sort === 'asc'){
+                        return numA - numB; // Sắp xếp tăng dần
+                    }
+                    return numB - numA; // Sắp xếp giảm dần
+                });
+                setTeachers(sortedTeachers)
                 
             } else {
                 console.log("error")
@@ -100,17 +137,26 @@ const ManagementContextProvider = (prop) => {
         getTeachersData();
         getDepartmentsData();
         getStudentsData();
+        getProjectId();
     },[])
 
     // Các controller của CouncilAssignment
 
 
-    const getProjectsData = async () => {
+    const getProjectsData = async (sort) => {
         try {
-            const response = await getAllProjects();
+            const response = await getProjectsByStatus();
             setLoadingButtonCA(true)
             if(response) {
-                setProjects(response.detai)
+                const sortedProjects = response.sort((a, b) => {
+                    const numA = parseInt(a.detaiid.replace('DT', '')); 
+                    const numB = parseInt(b.detaiid.replace('DT', '')); 
+                    if(sort === 'asc'){
+                        return numA - numB; // Sắp xếp tăng dần
+                    }
+                    return numB - numA; // Sắp xếp giảm dần
+                });
+                setProjects(sortedProjects)
             } else {
                 console.log("error")
             }
@@ -140,7 +186,8 @@ const ManagementContextProvider = (prop) => {
         loadingCC, getCouncilsData, loadingButtonCC,
 
         projects, getProjectsData, students,
-        loadingCA, loadingButtonCA
+        loadingCA, loadingButtonCA,
+        getTeachersData
     }
 
     return(

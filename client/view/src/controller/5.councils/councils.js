@@ -13,15 +13,19 @@ const getAllCouncils = async () => {
     }
 }
 
-const getAllTeachers = async () => {
+const getAllTeachers = async (sort) => {
     try {
         const response = await axios.get(`${API_ENDPOINT}${url}/getAllTeachers`);
-        return response.data.giangvien;
+        const teachers = response.data.giangvien;
+
+       
+        return teachers;
     } catch (error) {
         console.error('Error fetching all teachers:', error);
         throw error;
     }
 }
+
 
 const getAllDepartments = async () => {
     try {
@@ -66,10 +70,25 @@ const updateCouncilMember = async (payload) => {
 const deleteCouncil = async (hoidongid) => {
     try {
         const response = await axios.delete(`${API_ENDPOINT}${url}/deleteCouncil/${hoidongid}`);
-        return response.data;
+        if(response.data.success){
+            return response;
+        } else {
+            return response;
+        }
     } catch (error) {
         console.error('Error deleting council:', error);
         throw error;
+    }
+}
+
+
+const getCouncilById = async (hoidongid) => {
+    try {
+        const response = await axios.get(`${API_ENDPOINT}${url}/${hoidongid}`);
+        return response.data.hoidong;
+    } catch (error) {
+        console.error('Error fetching council members:', error);
+        return null;
     }
 }
 
@@ -80,5 +99,6 @@ export {
     addCouncilWithMembers,
     getCouncilMembers,
     updateCouncilMember,
-    deleteCouncil
+    deleteCouncil,
+    getCouncilById
 };
