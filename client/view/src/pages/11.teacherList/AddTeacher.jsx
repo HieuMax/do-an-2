@@ -27,7 +27,7 @@ const AddTeacher = ({ isEdit }) => {
   const navigate = useNavigate();
 
 
-  const {departmentsContext} = useContext(ManagementContext)
+  const {departmentsContext, addTeacherContext, updateTeacherContext, loadingButtonAddTeacher, loadingButtonEditTeacher} = useContext(ManagementContext)
   const [selectedDepartment, setSelectedDepartment] = useState(''); // Lưu trữ Khoa được lựa chọn
   const [errors, setErrors] = useState({});
 
@@ -41,7 +41,6 @@ const AddTeacher = ({ isEdit }) => {
   const sdtRef = useRef(null);
   const stknhRef = useRef(null);
 
-  const [loadingAdd, setLoadingAdd] = useState(false);
 
   const [initialTeacherData, setInitialTeacherData] = useState({});
 
@@ -286,16 +285,12 @@ const AddTeacher = ({ isEdit }) => {
 
     try {
       if (isEdit) {
-        await updateTeacher(id, formData); // Gọi hàm update thay vì thêm mới
+        await updateTeacherContext(id, formData); // Gọi hàm update thay vì thêm mới
         setChanged(!changed)
 
-        toast.success('Cập nhật giảng viên thành công');
       } else {
-        // Logic thêm mới giảng viên
-        await addNewTeacher(formData);
-        toast.success('Thêm giảng viên thành công');
+        await addTeacherContext(formData);
         resetForm()
-
       }
       
 
@@ -549,20 +544,44 @@ const AddTeacher = ({ isEdit }) => {
             ? "" 
             : (
               <>
-              <button
-                className="bg-red-500 text-white px-4 py-2 rounded-lg flex items-center"
-                onClick={handleAddTeacher}
-                disabled={loadingAdd}
-              >
-                {loadingAdd 
-                        ?  
-                        <svg className="mr-3 h-5 w-5 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg> 
-                        : ''}
-                <span className="font-medium">{loadingAdd ? ' Processing... ' : isEdit ? 'Cập nhật giảng viên' : 'Thêm giảng viên'}</span>
-              </button>
+              {
+                isEdit
+                ? 
+                (
+                  <button
+                  className="bg-red-500 text-white px-4 py-2 rounded-lg flex items-center"
+                  onClick={handleAddTeacher}
+                  disabled={loadingButtonEditTeacher}
+                >
+                  {loadingButtonEditTeacher 
+                          ?  
+                          <svg className="mr-3 h-5 w-5 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg> 
+                          : ''}
+                  <span className="font-medium">{loadingButtonEditTeacher ? ' Processing... ' : 'Cập nhật giảng viên' }</span>
+                </button>
+                )
+                : 
+                (
+                  <button
+                  className="bg-red-500 text-white px-4 py-2 rounded-lg flex items-center"
+                  onClick={handleAddTeacher}
+                  disabled={loadingButtonAddTeacher}
+                >
+                  {loadingButtonAddTeacher 
+                          ?  
+                          <svg className="mr-3 h-5 w-5 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg> 
+                          : ''}
+                  <span className="font-medium">{loadingButtonAddTeacher ? ' Processing... ' : 'Thêm giảng viên' }</span>
+                </button>
+                )
+              }
+
               <button
                 className="bg-gray-500 text-white px-4 py-2 rounded-lg"
                 onClick={handleBackClick}

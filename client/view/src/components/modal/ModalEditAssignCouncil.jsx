@@ -57,12 +57,13 @@ const ModalEditAssignCouncil = ({ isOpen, toggleModal, data }) => {
       }
 
       const response = await updateProjectStatusAndCouncil(data.detaiid, '2', selectedDepartment)
-      if(response.data){
+      if(response.success){
         setCouncilnameOfficial(councilNamea)
         setDataEdited(!dataEdited)
         toast.success('Chỉnh sửa hội đồng thành công')
         return
       } else {
+        toast.warning('Không thể sửa đề tài đang được thực hiện')
         return
       }
     }

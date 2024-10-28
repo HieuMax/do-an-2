@@ -84,10 +84,12 @@ const ModalAssignCouncil = ({ isOpen, toggleModal, data, toggleAssigned }) => {
     if(!member.hoidongid) return
 
     const response = await updateProjectStatusAndCouncil(data, '2', member.hoidongid)
-    if(response.data){
-      handleModalClose();
-      toast.success('Phân công hội đồng thành công')
+    if(response.success){
+    
       toggleAssigned();
+      toast.success('Phân công hội đồng thành công')
+
+      handleModalClose();
       return
     } else {
       return

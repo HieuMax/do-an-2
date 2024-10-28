@@ -28,8 +28,7 @@ export const updateProjectStatusAndCouncil = async (detaiid, status, council) =>
                 'Content-Type': 'application/json',
             }
         });
-
-        return response.data; // Trả về dữ liệu từ phản hồi nếu thành công
+        return response.data
     } catch (error) {
         // Xử lý lỗi khi xảy ra
         return { error: error.response?.data?.message || error.message || 'Unexpected error occurred' };

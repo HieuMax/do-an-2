@@ -6,6 +6,7 @@ import axios from 'axios'
 import { getAllCouncils, getAllTeachers, getAllDepartments, getCouncilMembers } from '../controller/5.councils/councils';
 import { getAllProjects, getProjectById, getProjectsByStatus } from "../controller/1.projects/project";
 import { getAllStudents } from "../controller/6.students/students";
+import { updateTeacher, addNewTeacher } from "../controller/2.mentors/mentors";
 
 export const ManagementContext = createContext();
 
@@ -27,6 +28,9 @@ const ManagementContextProvider = (prop) => {
 
     const [students, setStudents] = useState([])
 
+    // Khai báo useState của add,edit teacher
+    const [loadingButtonAddTeacher, setLoadingButtonAddTeacher] = useState(false);
+    const [loadingButtonEditTeacher, setLoadingButtonEditTeacher] = useState(false);
 
     // Các controller của CouncilManagement
     const getCouncilsData = async (sort) => {
@@ -59,22 +63,38 @@ const ManagementContextProvider = (prop) => {
         }
     }
 
-
-    const getProjectId = async () => {
+    const addTeacherContext = async (formData) => {
         try {
-            const response = await getProjectById("DT001");
-            setLoadingButtonCC(true)
-            if(response) {
-              console.log(response)
-                
-            } else {
-                console.log("error")
-            }
+            await addNewTeacher(formData);
+            setLoadingButtonAddTeacher(true)     
             
         } catch (error) {
             console.log(error)
    
-        } 
+        } finally {
+            setTimeout(() => {
+                setLoadingButtonAddTeacher(false)
+                toast.success('Thêm giảng viên thành công');
+
+            }, 1200);
+        }
+    }
+
+    const updateTeacherContext = async (id, formData) => {
+        try {
+            await updateTeacher(id, formData);
+            setLoadingButtonEditTeacher(true)
+            
+        } catch (error) {
+            console.log(error)
+   
+        } finally {
+            setTimeout(() => {
+                setLoadingButtonEditTeacher(false)
+                toast.success('Cập nhật giảng viên thành công');
+
+            }, 1200);
+        }
     }
 
     const getTeachersData = async (sort) => {
@@ -137,7 +157,6 @@ const ManagementContextProvider = (prop) => {
         getTeachersData();
         getDepartmentsData();
         getStudentsData();
-        getProjectId();
     },[])
 
     // Các controller của CouncilAssignment
@@ -187,7 +206,10 @@ const ManagementContextProvider = (prop) => {
 
         projects, getProjectsData, students,
         loadingCA, loadingButtonCA,
-        getTeachersData
+        getTeachersData,
+        loadingButtonAddTeacher,
+        loadingButtonEditTeacher,
+        addTeacherContext, updateTeacherContext
     }
 
     return(
