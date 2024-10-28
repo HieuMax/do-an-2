@@ -1,5 +1,5 @@
 const projectRouter = require('express').Router();
-const { getAll, getById, updateStatus, getLastIdProject, registNewProject, updateFile, downloadFile, markType, getMarkOfProject, uploadProposal, getProposalFile, getAccessProject } = require('../controller/controller');
+const { getAll, updateProjectStatusAndCouncil, getById, updateStatus, getLastIdProject, registNewProject, updateFile, downloadFile, markType, getMarkOfProject, uploadProposal, getProposalFile, getProjectsByStatus, getAccessProject } = require('../controller/controller');
 const upload = require('../middleware/multer');
 const { generateid } = require('../utils/generateid');
 
@@ -27,6 +27,10 @@ projectRouter.get('/accessProject/:uid', async(req, res) => {
     }
 })
 
+
+projectRouter.get('/status', getProjectsByStatus)
+
+
 projectRouter.get('/project/:id', async (req, res, next) => {
     const id = req.params.id;
     const result = await getById(obj, id)
@@ -37,6 +41,16 @@ projectRouter.get('/project/:id', async (req, res, next) => {
     }
     next()
 
+})
+
+projectRouter.get('/:id', async (req, res) => {
+    const id = req.params.id;
+    const result = await getById(obj, id)
+    if (result.error) {
+        res.status(500).json({"error": result.error});
+    } else {
+        res.json({detai: result.data})
+    }
 })
 
 projectRouter.get('/download/:filename', async(req, res) => {
@@ -94,6 +108,27 @@ projectRouter.get('/proposalFile/:id', async(req, res) => {
 // ------------------------------------------------------------------------------------------------------------------------------
 // PUT --------------------------------------------------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------------------------------------------------------
+projectRouter.put('/updateStatusAndCouncil', async (req, res) => {
+    const { detaiid, status, council } = req.body;
+
+    if (!detaiid || !status || !council) {
+        return res.status(400).send({ error: "Missing required fields" });
+    }
+
+    try {
+        const result = await updateProjectStatusAndCouncil(detaiid, status, council);
+        
+        if (!result.success) {
+            return res.status(500).json({ message: result.message, success: result.success });
+        }
+
+        return res.status(200).json({ message: result.message, success: result.success });
+
+    } catch (error) {
+        res.status(500).json({ "error": error.message });
+    }
+});
+
 
 projectRouter.put('/updateStatus', async (req, res, next) => {
     const body = req.body

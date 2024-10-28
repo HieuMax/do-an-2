@@ -5,6 +5,8 @@ import AddTeacherProvider from '../pages/11.teacherList/AddTeacherProvider';
 import TeacherListProvider from '../pages/11.teacherList/TeacherListProvider';
 import CouncilAssignmentProvider from '../pages/12.councilAssignment/CouncilAssignmentProvider';
 import Home from '../pages/2.home/Home';
+import ResetPasswordPage from '../pages/9.resetForgotPassword/ResetPasswordPage';
+import ForgotPasswordPage from '../pages/9.resetForgotPassword/ForgotPasswordPage';
 import { Profile } from '../pages/4.profile/Profile';
 import { ProjectListProvider } from '../pages/5.projectList/ProjectListProvider';
 import { ProjectDetail } from '../pages/6.projectDetail/ProjectDetail';
@@ -61,6 +63,8 @@ export const children = [
   { path: "/", element: <Home /> },
   { path: "/profile", element: <Profile /> },
   { path: "/notification", element: <NotificationPage /> },
+  // { path: "/reset-password/:token", element: <ResetPasswordPage /> },
+  // { path: "/forgot-password", element: <ForgotPasswordPage /> },
 
   // Teacher - Student
   { path: "/project-list", 
@@ -92,20 +96,29 @@ export const children = [
   },
 
   // Admin
-  { path: "/dsda", 
+  { path: "/council-management", 
     element: <AccessRoute><CouncilListProvider /></AccessRoute> 
   },
-  { path: "/phanCong", 
+  { path: "/council-assignment", 
     element: <AccessRoute><CouncilAssignmentProvider /></AccessRoute> 
   },
-  { path: "/dsgv", 
+  { path: "/teacher-management", 
     element: <AccessRoute><TeacherListProvider /></AccessRoute>  
   },
-  { path: "/addTeacher", 
+  { path: "/adding-teacher", 
     element: <AccessRoute><AddTeacherProvider /> </AccessRoute> 
   },
-  { path: "/editTeacher/:id", 
+  { path: "/editing-teacher/:id", 
     element: <AccessRoute><AddTeacherProvider isEdit = {true}/> </AccessRoute> 
+  },
+  { path: "/detail-product/:id", 
+    element: <AccessRoute> <ProjectDetail isAssign = {true}/> </AccessRoute> 
+  },
+  { path: "/detail-project/:id", 
+    element: 
+      <AccessRoute>
+        <RegisteredProject /> 
+      </AccessRoute> 
   },
 ]
 

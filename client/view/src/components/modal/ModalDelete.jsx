@@ -1,24 +1,54 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useContext } from 'react';
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import { deleteCouncil } from '../../controller/5.councils/councils';
 import { ManagementContext } from '../../context/ManagementContext';
+import { deleteTeacher } from '../../controller/2.mentors/mentors';
+import { toast } from 'react-toastify';
 
 const ModalDelete = ({ isOpen, toggleModal, data, onDelete }) => {
   
 
-  const {getCouncilsData} = useContext(ManagementContext)
+  const {getCouncilsData, getTeachersData} = useContext(ManagementContext)
+  const [nameSelected, setNameSelected] = useState('')
 
-
+  useEffect(() => {
+    if(data.hoidongid){
+      setNameSelected(data.tenhoidong)
+    }
+    if(data.giangvienid){
+      setNameSelected(data.hoten)
+    }
+  },[data])
   const handleDelete = async () => {
     try {
-      await deleteCouncil(data.hoidongid); // Gọi hàm xóa hội đồng
-      await getCouncilsData()
-      toggleModal(); // Đóng modal
+      if(data.hoidongid){
+        const response = await deleteCouncil(data.hoidongid); // Gọi hàm xóa hội đồng
+        if(response.data.success){
+          await getCouncilsData()
+          toast.success('Xóa hội đồng thành công!')
+        } else {
+          toast.error(`Không thể xóa ${nameSelected} !!`);
+        }
+        toggleModal(); // Đóng modal
+      }
+      if(data.giangvienid){
+       
+        const response = await deleteTeacher(data.giangvienid); // Gọi hàm xóa hội đồng
+        if(response.data.success){
+          await getTeachersData()
+          toast.success('Xóa giảng viên thành công!')
+        } else {
+          toast.error(`Không thể xóa ${nameSelected} !!`);
+        }
+        toggleModal()
+        
+      }
+   
     } catch (error) {
-      console.error("Error deleting council:", error);
-      // Có thể thêm thông báo lỗi cho người dùng
+      toast.error(`Khôngaaaa ${nameSelected} !!`);
+ 
     }
   };
 
@@ -42,11 +72,15 @@ const ModalDelete = ({ isOpen, toggleModal, data, onDelete }) => {
                 </div>
                 <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
                   <DialogTitle as="h3" className="text-base font-semibold leading-6 text-gray-900">
-                    Xóa {data.tenhoidong}
+                    Xóa {nameSelected}
                   </DialogTitle>
                   <div className="mt-2">
                     <p className="text-sm text-gray-500">
-                      Bạn có chắc chắn muốn xóa hội đồng này không !!?
+                      {data.hoidongid 
+                      ? 'Bạn có chắc chắn muốn xóa hội đồng này không !!?'
+                      : 'Bạn có chắc chắn muốn xóa giảng viên này không !!?'
+                      
+                      }
                     </p>
                   </div>
                 </div>

@@ -4,12 +4,14 @@ import { addNewTeacher } from '../../controller/2.mentors/mentors';
 import { ManagementContext } from '../../context/ManagementContext';
 import { assets } from '../../assets/assets';
 import { toast } from 'react-toastify';
-import { getMentorById } from '../../controller/2.mentors/mentors';
-import * as XLSX from 'xlsx'
+import { getMentorById, updateTeacher } from '../../controller/2.mentors/mentors';
+import { Skeleton } from 'antd';
 
 const AddTeacher = ({ isEdit }) => {
   const { id } = useParams(); // lấy id giảng viên khi chỉnh sửa
   const [avtImage, setAvtImage] = useState(false);
+  const [avtImageShow, setAvtImageShow] = useState(false);
+
   const [hoten, setHoten] = useState('');
   const [hocham, setHocham] = useState('');
   const [hocvi, setHocvi] = useState('');
@@ -25,7 +27,7 @@ const AddTeacher = ({ isEdit }) => {
   const navigate = useNavigate();
 
 
-  const {departmentsContext} = useContext(ManagementContext)
+  const {departmentsContext, addTeacherContext, updateTeacherContext, loadingButtonAddTeacher, loadingButtonEditTeacher} = useContext(ManagementContext)
   const [selectedDepartment, setSelectedDepartment] = useState(''); // Lưu trữ Khoa được lựa chọn
   const [errors, setErrors] = useState({});
 
@@ -39,23 +41,21 @@ const AddTeacher = ({ isEdit }) => {
   const sdtRef = useRef(null);
   const stknhRef = useRef(null);
 
-  const [loadingAdd, setLoadingAdd] = useState(false);
 
-  const [excelData, setExcelData] = useState([])
+  const [initialTeacherData, setInitialTeacherData] = useState({});
 
-  const handleFileUpload = (e) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const data = e.target.result;
-      const workbook = XLSX.read(data, {type: "binary"});
-      const sheetName = workbook.SheetNames[0];
-      const sheet = workbook.Sheets[sheetName];
-      const parsedData= XLSX.utils.sheet_to_json(sheet);
-      setExcelData(parsedData)
-      console.log(parsedData)
-    }
+  const [isLoading, setIsLoading] = useState(true);
 
-  }
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 800);
+    return () => clearTimeout(timer);
+  }, []);
+
+
+  const [changed, setChanged] = useState(true);
+
 
   useEffect(() => {
     if (isEdit && id) {
@@ -73,12 +73,28 @@ const AddTeacher = ({ isEdit }) => {
           setNgaysinh(formattedDate);
           setGioitinh(teacherData.gioitinh);
           setSelectedDepartment(teacherData.khoaid);
+          setKhoaid(teacherData.khoaid)
           setTennh(teacherData.tennh);
           setMail(teacherData.mail);
           setSDT(teacherData.sdt);
           setStknh(teacherData.stknh);
           setCccd(teacherData.cccd);
           setAvtImage(teacherData.avtimg);
+          
+          setInitialTeacherData({
+            hoten: teacherData.hoten,
+            hocham: teacherData.hocham,
+            hocvi: teacherData.hocvi,
+            ngaysinh: formattedDate,
+            gioitinh: teacherData.gioitinh,
+            khoaid: teacherData.khoaid,
+            tennh: teacherData.tennh,
+            mail: teacherData.mail,
+            sdt: teacherData.sdt,
+            stknh: teacherData.stknh,
+            cccd: teacherData.cccd,
+            avtimg: teacherData.avtimg,
+          });
         } catch (error) {
           console.error('Lỗi khi lấy dữ liệu giảng viên:', error);
         }
@@ -86,7 +102,7 @@ const AddTeacher = ({ isEdit }) => {
 
       fetchTeacherData();
     }
-  }, [isEdit, id]);
+  }, [isEdit, id, changed]);
 
 
 
@@ -97,14 +113,13 @@ const AddTeacher = ({ isEdit }) => {
     const departmentId = e.target.value;
     setSelectedDepartment(departmentId);
     setKhoaid(departmentId)
-
-  
     if (errors.selectedDepartment) {
       setErrors((prev) => ({ ...prev, selectedDepartment: '' }));
     }
   };
   
   /// ------------------------------------
+
 
 
   const handleInputChange = (setter, fieldName) => (e) => {
@@ -230,6 +245,27 @@ const AddTeacher = ({ isEdit }) => {
     }
 
     setErrors({});
+
+    const hasChanges = (
+      hoten !== initialTeacherData.hoten ||
+      hocham !== initialTeacherData.hocham ||
+      hocvi !== initialTeacherData.hocvi ||
+      ngaysinh !== initialTeacherData.ngaysinh ||
+      gioitinh !== initialTeacherData.gioitinh ||
+      khoaid !== initialTeacherData.khoaid ||
+      tennh !== initialTeacherData.tennh ||
+      mail !== initialTeacherData.mail ||
+      sdt !== initialTeacherData.sdt ||
+      stknh !== initialTeacherData.stknh ||
+      cccd !== initialTeacherData.cccd ||
+      avtImage !== initialTeacherData.avtimg
+    );
+  
+    if (!hasChanges) {
+      toast.info('Không có thay đổi nào được cập nhật.');
+      return;
+    }
+
     const formData = new FormData()
 
     formData.append("hoten",hoten)
@@ -245,20 +281,16 @@ const AddTeacher = ({ isEdit }) => {
     formData.append("sdt",sdt)
 
     avtImage && formData.append("avtImage",avtImage)
-    setLoadingAdd(true)
+    // setLoadingAdd(true)
 
     try {
       if (isEdit) {
-        // Logic cập nhật giảng viên
-        await updateTeacher(id, formData); // Gọi hàm update thay vì thêm mới
-        toast.success('Cập nhật giảng viên thành công');
+        await updateTeacherContext(id, formData); // Gọi hàm update thay vì thêm mới
+        setChanged(!changed)
 
       } else {
-        // Logic thêm mới giảng viên
-        await addNewTeacher(formData);
-        toast.success('Thêm giảng viên thành công');
+        await addTeacherContext(formData);
         resetForm()
-
       }
       
 
@@ -266,16 +298,19 @@ const AddTeacher = ({ isEdit }) => {
       toast.error('Bị trùng Mail, CCCD hoặc SĐT')
       // console.error('Failed to add new teacher:', error);
     } finally{
-      setLoadingAdd(false)
+      // setLoadingAdd(false)
 
     }
   };
 
   const handleBackClick = () => {
-    navigate('/dsgv'); 
+    navigate('/teacher-management'); 
   };
 
-
+  const handleAvtImgChoose = (e) => {
+    setAvtImage(e.target.files[0])
+    setAvtImageShow(e.target.files[0])
+  }
 
   return (
     <div className="flex flex-col sm:flex-row w-full  ">
@@ -283,32 +318,59 @@ const AddTeacher = ({ isEdit }) => {
       <div className="sm:w-1/4 w-full p-8 flex flex-col items-center border-r-[1px] ">
         <div className="w-44 h-44 rounded-lg overflow-hidden mb-6">
 
-          {
-          !isEdit 
-          ? 
-          <img src={!avtImage ? assets.upload_area :  URL.createObjectURL(avtImage)} alt="avatar" className="w-full h-full object-cover" />
-          :           
-          <img src={!avtImage ? assets.upload_area : avtImage} alt="avatar" className="w-full h-full object-cover" />
-          }
+        {isLoading ? (
+          <Skeleton.Avatar active size={176} shape="square" />
+        ) : (
+          !isEdit ? (
+            <img src={!avtImage ? assets.upload_area : URL.createObjectURL(avtImage)} alt="avatar" className="w-full h-full object-cover" />
+          ) : avtImage && !avtImageShow ? (
+            <img src={avtImage} alt="avatar" className="w-full h-full object-cover" />
+          ) : (
+            <img src={!avtImageShow ? assets.upload_area : URL.createObjectURL(avtImageShow)} alt="avatar" className="w-full h-full object-cover" />
+          )
+        )}
               
          
      
         </div>
-        <label className="bg-blue-500 text-white px-4 py-2 rounded-lg cursor-pointer">
-          Chọn ảnh đại diện
-          <input
-            type="file"
-            className="hidden"
-            accept="image/*"
-            id="avtImage"
-            onChange={(e) => setAvtImage(e.target.files[0])}
-          />
-        </label>
+        {
+          isLoading
+          ? ""
+          : (
+            <label className="bg-blue-500 text-white px-4 py-2 rounded-lg cursor-pointer">
+            Chọn ảnh đại diện
+            <input
+              type="file"
+              className="hidden"
+              accept="image/*"
+              id="avtImage"
+              onChange={handleAvtImgChoose}
+              disabled={isLoading}
+            />
+          </label>
+          )
+        }
+       
       </div>
 
       {/* Right Column - Form Fields */}
       <div className="sm:w-2/3 w-full p-8 flex flex-col bg-gray-100">
-        <div className="grid grid-cols-2 gap-4">
+        { isLoading ? (
+          
+          <div className="grid grid-cols-1 gap-4">
+              <Skeleton.Input className='my-2 mt-2' active style={{ width: '100%', height: '40px' }} />
+              <Skeleton.Input className='my-2' active style={{ width: '100%', height: '40px' }} />
+              <Skeleton.Input className='my-2' active style={{ width: '100%', height: '40px' }} />
+              <Skeleton.Input className='my-2' active style={{ width: '100%', height: '40px' }} />
+              <Skeleton.Input className='my-2' active style={{ width: '100%', height: '40px' }} />
+              <Skeleton.Input className='my-2' active style={{ width: '100%', height: '40px' }} />
+              <Skeleton.Input className='my-2' active style={{ width: '100%', height: '40px' }} />
+              <Skeleton.Input className='my-2' active style={{ width: '100%', height: '40px' }} />
+              <Skeleton.Input className='my-5' active style={{ width: '100%', height: '40px' }} />
+
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-4">
           <div className="col-span-2 mb-4">
             <label className="font-bold">Họ tên</label>
             <input
@@ -470,29 +532,69 @@ const AddTeacher = ({ isEdit }) => {
           </div>
 
         </div>
+        )
+          
+        }
+
 
         {/* Buttons */}
         <div className="flex justify-end space-x-4 mt-4">
-          <button
-            className="bg-red-500 text-white px-4 py-2 rounded-lg flex items-center"
-            onClick={handleAddTeacher}
-            disabled={loadingAdd}
-          >
-            {loadingAdd 
-                    ?  
-                    <svg className="mr-3 h-5 w-5 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg> 
-                    : ''}
-            <span className="font-medium">{loadingAdd ? ' Processing... ' : isEdit ? 'Cập nhật giảng viên' : 'Thêm giảng viên'}</span>
-          </button>
-          <button
-            className="bg-gray-500 text-white px-4 py-2 rounded-lg"
-            onClick={handleBackClick}
-          >
-            Trở về
-          </button>
+          {
+            isLoading 
+            ? "" 
+            : (
+              <>
+              {
+                isEdit
+                ? 
+                (
+                  <button
+                  className="bg-red-500 text-white px-4 py-2 rounded-lg flex items-center"
+                  onClick={handleAddTeacher}
+                  disabled={loadingButtonEditTeacher}
+                >
+                  {loadingButtonEditTeacher 
+                          ?  
+                          <svg className="mr-3 h-5 w-5 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg> 
+                          : ''}
+                  <span className="font-medium">{loadingButtonEditTeacher ? ' Processing... ' : 'Cập nhật giảng viên' }</span>
+                </button>
+                )
+                : 
+                (
+                  <button
+                  className="bg-red-500 text-white px-4 py-2 rounded-lg flex items-center"
+                  onClick={handleAddTeacher}
+                  disabled={loadingButtonAddTeacher}
+                >
+                  {loadingButtonAddTeacher 
+                          ?  
+                          <svg className="mr-3 h-5 w-5 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg> 
+                          : ''}
+                  <span className="font-medium">{loadingButtonAddTeacher ? ' Processing... ' : 'Thêm giảng viên' }</span>
+                </button>
+                )
+              }
+
+              <button
+                className="bg-gray-500 text-white px-4 py-2 rounded-lg"
+                onClick={handleBackClick}
+
+              >
+                Trở về
+              </button>
+              </>
+              
+            )
+          }
+          
+
         </div>
       </div>
     </div>

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import authorizedAxiosInstance from "../../utils/authorizedAxios";
 import { API_ENDPOINT } from "../../controller";
 import axios from "axios";
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { useAuthStore } from "../../api/authStore";
 
 export default function InputForm() {
@@ -117,9 +117,9 @@ export default function InputForm() {
                 </button>
               </div>
               <div className="text-sm float-end">
-                <a href="/" className="font-semibold text-gray-600 hover:text-black">
+                <Link to='/forgot-password' className='text-sm hover:underline'>
                   Quên mật khẩu?
-                </a>
+						    </Link>
               </div>
             </form>
           </div>

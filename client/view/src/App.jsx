@@ -5,7 +5,7 @@ import Footer from './components/footer/Footer'
 import ErrorPage from './pages/3.errorPage/ErrorPage'
 import { SidebarFunc } from './components/sidebar/SidebarFunc'
 import Navbar from './components/header/Navbar'
-
+import ForgotPasswordPage from './pages/9.resetForgotPassword/ForgotPasswordPage'
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -100,6 +100,12 @@ const router = createBrowserRouter([
       </RedirectAuthenticatedUser>
     ),
   },
+  { 
+    path: '/forgot-password',
+    element: (
+        <ForgotPasswordPage />
+    ),
+  },
   {
     path: "*",
     element: <ErrorPage />
@@ -110,7 +116,7 @@ const App = () => {
 
   return (
     <>
-    <ToastContainer />
+    <ToastContainer position="bottom-right" />
       <RouterProvider router={router} />
 
     </>

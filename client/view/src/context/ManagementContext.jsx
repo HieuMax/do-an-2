@@ -4,8 +4,9 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom"
 import axios from 'axios'
 import { getAllCouncils, getAllTeachers, getAllDepartments, getCouncilMembers } from '../controller/5.councils/councils';
-import { getAllProjects } from "../controller/1.projects/project";
+import { getAllProjects, getProjectById, getProjectsByStatus } from "../controller/1.projects/project";
 import { getAllStudents } from "../controller/6.students/students";
+import { updateTeacher, addNewTeacher } from "../controller/2.mentors/mentors";
 
 export const ManagementContext = createContext();
 
@@ -27,14 +28,25 @@ const ManagementContextProvider = (prop) => {
 
     const [students, setStudents] = useState([])
 
+    // Khai báo useState của add,edit teacher
+    const [loadingButtonAddTeacher, setLoadingButtonAddTeacher] = useState(false);
+    const [loadingButtonEditTeacher, setLoadingButtonEditTeacher] = useState(false);
 
     // Các controller của CouncilManagement
-    const getCouncilsData = async () => {
+    const getCouncilsData = async (sort) => {
         try {
             const response = await getAllCouncils();
             setLoadingButtonCC(true)
             if(response) {
-                setCouncils(response)
+                const sortedCouncils = response.sort((a, b) => {
+                    const numA = parseInt(a.hoidongid.replace('HD', '')); 
+                    const numB = parseInt(b.hoidongid.replace('HD', '')); 
+                    if(sort == 'asc'){
+                        return numA - numB; // Sắp xếp tăng dần
+                    }
+                    return numB - numA; // Sắp xếp giảm dần
+                });
+                setCouncils(sortedCouncils)
             } else {
                 console.log("error")
             }
@@ -51,11 +63,56 @@ const ManagementContextProvider = (prop) => {
         }
     }
 
-    const getTeachersData = async () => {
+    const addTeacherContext = async (formData) => {
         try {
-            const response = await getAllTeachers();
+            await addNewTeacher(formData);
+            setLoadingButtonAddTeacher(true)     
+            
+        } catch (error) {
+            console.log(error)
+   
+        } finally {
+            setTimeout(() => {
+                setLoadingButtonAddTeacher(false)
+                toast.success('Thêm giảng viên thành công');
+
+            }, 1200);
+        }
+    }
+
+    const updateTeacherContext = async (id, formData) => {
+        try {
+            await updateTeacher(id, formData);
+            setLoadingButtonEditTeacher(true)
+            
+        } catch (error) {
+            console.log(error)
+   
+        } finally {
+            setTimeout(() => {
+                setLoadingButtonEditTeacher(false)
+                toast.success('Cập nhật giảng viên thành công');
+
+            }, 1200);
+        }
+    }
+
+    const getTeachersData = async (sort) => {
+        try {
+            const response = await getAllTeachers(sort);
+
+            
             if(response) {
-                setTeachers(response)
+                
+                const sortedTeachers = response.sort((a, b) => {
+                    const numA = parseInt(a.giangvienid.replace('GV', '')); 
+                    const numB = parseInt(b.giangvienid.replace('GV', '')); 
+                    if(sort === 'asc'){
+                        return numA - numB; // Sắp xếp tăng dần
+                    }
+                    return numB - numA; // Sắp xếp giảm dần
+                });
+                setTeachers(sortedTeachers)
                 
             } else {
                 console.log("error")
@@ -105,12 +162,20 @@ const ManagementContextProvider = (prop) => {
     // Các controller của CouncilAssignment
 
 
-    const getProjectsData = async () => {
+    const getProjectsData = async (sort) => {
         try {
-            const response = await getAllProjects();
+            const response = await getProjectsByStatus();
             setLoadingButtonCA(true)
             if(response) {
-                setProjects(response.detai)
+                const sortedProjects = response.sort((a, b) => {
+                    const numA = parseInt(a.detaiid.replace('DT', '')); 
+                    const numB = parseInt(b.detaiid.replace('DT', '')); 
+                    if(sort === 'asc'){
+                        return numA - numB; // Sắp xếp tăng dần
+                    }
+                    return numB - numA; // Sắp xếp giảm dần
+                });
+                setProjects(sortedProjects)
             } else {
                 console.log("error")
             }
@@ -140,7 +205,11 @@ const ManagementContextProvider = (prop) => {
         loadingCC, getCouncilsData, loadingButtonCC,
 
         projects, getProjectsData, students,
-        loadingCA, loadingButtonCA
+        loadingCA, loadingButtonCA,
+        getTeachersData,
+        loadingButtonAddTeacher,
+        loadingButtonEditTeacher,
+        addTeacherContext, updateTeacherContext
     }
 
     return(

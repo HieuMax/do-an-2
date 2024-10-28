@@ -1,8 +1,7 @@
 import React from 'react';
 import { useEffect, useState, useContext } from 'react';
-import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react'
-import { ExclamationTriangleIcon } from '@heroicons/react/24/outline'
-import { getAllTeachers, getAllDepartments, getCouncilMembers, updateCouncilMember } from '../../controller/5.councils/councils';
+import { Dialog, DialogBackdrop, DialogPanel } from '@headlessui/react'
+import { getCouncilMembers, updateCouncilMember } from '../../controller/5.councils/councils';
 import { ManagementContext } from '../../context/ManagementContext';
 import { toast } from 'react-toastify';
 
@@ -19,24 +18,6 @@ const modalEditCouncil = ({ isOpen, toggleModal, data }) => {
     const [oldMembers, setOldMembers] = useState({});
     const [selectedRole, setSelectedRole] = useState('');
     const [selectedLecturer, setSelectedLecturer] = useState('');
-
-    const [selectedLecturers, setSelectedLecturers] = useState({
-      chuTich: '',
-      chuTichID: '',
-
-      phanBien1: '',
-      phanBien1ID: '',
-
-      phanBien2: '',
-      phanBien2ID: '',
-
-      thuKy: '',
-      thuKyID: '',
-
-      uyVien: '',
-      uyVienID: ''
-
-    });
     
     const {teachers, departmentsContext, getCouncilsData} = useContext(ManagementContext)
     const [continueButton, setContinueButton] = useState(false)
@@ -106,8 +87,6 @@ const modalEditCouncil = ({ isOpen, toggleModal, data }) => {
       if(role === 'Thư ký'){
         rowIndex = 'thuKyID';
       }
-      // console.log(role)
-      // console.log(rowIndex)
 
       // Lấy giảng viên hiện tại của vai trò đã chọn
       const currentLecturerID = oldMembers[rowIndex];
@@ -192,6 +171,7 @@ const modalEditCouncil = ({ isOpen, toggleModal, data }) => {
         const response = await updateCouncilMember(updatedMember); // Gọi API cập nhật thành viên hội đồng
         if (response.success) {
           await getCouncilsData();
+          await getCouncilMembersData();
           toast.success("Chỉnh sửa thành viên hội đồng thành công")
           setContinueButton(true)
           setSelectedDepartment('')

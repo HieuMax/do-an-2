@@ -127,33 +127,30 @@ const getCouncilMembers = async (req, res) => {
   
 
   const deleteCouncil = async (req, res) => {
-    const { hoidongid } = req.params; // Lấy hoidongid từ URL params
+    const { hoidongid } = req.params; 
   
     try {
-      // Bắt đầu giao dịch
+
       await pool.query('BEGIN');
   
-      // Xóa tất cả thành viên trong hội đồng
       await pool.query('DELETE FROM thanhvienhd WHERE hoidongid = $1', [hoidongid]);
   
-      // Xóa hội đồng
       const result = await pool.query('DELETE FROM hoidong WHERE hoidongid = $1 RETURNING *', [hoidongid]);
   
-      // Kiểm tra xem hội đồng có được xóa không
       if (result.rowCount === 0) {
-        await pool.query('ROLLBACK'); // Nếu không có hội đồng nào bị xóa, rollback
-        return res.status(404).json({ message: 'Hội đồng không tồn tại' });
+        await pool.query('ROLLBACK'); 
+        res.json({ success: false, message: 'Hội đồng không tồn tại' });
+
       }
   
-      // Commit giao dịch
       await pool.query('COMMIT');
+      res.json({ success: true, message: 'Hội đồng và các thành viên đã được xóa thành công' });
   
-      // Trả về phản hồi thành công
-      res.status(200).json({ message: 'Hội đồng và các thành viên đã được xóa thành công' });
     } catch (error) {
       console.error('Lỗi khi xóa hội đồng:', error);
-      await pool.query('ROLLBACK'); // Rollback nếu có lỗi xảy ra
-      res.status(500).json({ message: 'Lỗi máy chủ' });
+      await pool.query('ROLLBACK'); 
+      res.json({ success: false, message: 'Lỗi hệ thống' });
+
     }
   };
 
@@ -164,18 +161,6 @@ const getCouncilMembers = async (req, res) => {
     try {
         await client.query('BEGIN');
 
-        // const image1 = req.files.image1 && req.files.image1[0]
-
-        // if (avtImage) {
-        //     let result = await cloudinary.uploader.upload(avtImage.path, { resource_type: 'image' });
-        //     let imageUrl = result.secure_url;
-        //     console.log("Uploaded image URL:", imageUrl);
-        // } else {
-        //     console.log("No image provided");
-        // }
-
-
-        // Thêm hội đồng mới với hoidongid từ middleware
         const insertCouncilQuery = "INSERT INTO giangvien (giangvienid, hoten, hocham, hocvi, mail, tennh, stknh, cccd, gioitinh, ngaysinh, khoaid, sdt, avtimg) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)";
         await client.query(insertCouncilQuery, [giangvienid, hoten, hocham, hocvi, mail, tennh, stknh, cccd, gioitinh, ngaysinh, khoaid, sdt, imageUrl]);
 
@@ -189,7 +174,146 @@ const getCouncilMembers = async (req, res) => {
     }
   };
 
+  const updateTeacher = async (
+    id, hoten, hocham, hocvi, ngaysinh, gioitinh, khoaid, tennh, mail, sdt, stknh, cccd, imageUrl
+  ) => {
+    try {
+      let query = `
+        UPDATE giangvien
+        SET hoten = $1, hocham = $2, hocvi = $3, ngaysinh = $4, gioitinh = $5, khoaid = $6, tennh = $7, mail = $8, sdt = $9, stknh = $10, cccd = $11
+      `;
+      
+      const values = [hoten, hocham, hocvi, ngaysinh, gioitinh, khoaid, tennh, mail, sdt, stknh, cccd, id];
+      
+      if (imageUrl !== null) {
+        query += `, avtimg = $12`;
+        values.splice(11, 0, imageUrl);  // Thêm `imageUrl` vào vị trí $12
+      }
+  
+      query += ` WHERE giangvienid = $${values.length} RETURNING *;`;
+  
+      const result = await pool.query(query, values);
+  
+      if (result.rows.length === 0) {
+        return { error: "lỗi" };
+      }
+  
+      return { giangvienid: id };
+    } catch (error) {
+      console.error('Error updating teacher:', error);
+      return { error: "lỗi" };
+    }
+  };
+  
+  const uploadTeacherList = async (req, res) => {
+    const { data } = req.body;
+  
+    try {
 
+      const values = data.map((teacher) => [
+        teacher.giangvienid,
+        teacher.hoten,
+        teacher.hocham,
+        teacher.hocvi,
+        teacher.ngaysinh,
+        teacher.gioitinh,
+        teacher.khoaid,
+        teacher.tennh,
+        teacher.mail,
+        teacher.sdt,
+        teacher.stknh,
+        teacher.cccd,
+      ]);
+
+      
+      const query = `
+        INSERT INTO giangvien (giangvienid, hoten, hocham, hocvi, ngaysinh, gioitinh, khoaid, tennh, mail, sdt, stknh, cccd)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+      `;
+  
+      // Chạy một vòng lặp cho mỗi giảng viên để thêm từng người vào DB
+      for (let i = 0; i < values.length; i++) {
+        await pool.query(query, values[i]);
+      }
+  
+      res.json({ success: true, message: 'Thêm danh sách giảng viên thành công!' });
+    } catch (error) {
+      // console.error('Lỗi khi thêm danh sách giảng viên:', error);
+      // res.status(500).json({ success: false, error: 'Lỗi server!' });
+      res.json({ success: false, message: 'Thêm danh sách giảng viên thất bại!' });
+
+    }
+  };
+
+  const deleteTeacher = async (req, res) => {
+    const { id } = req.params;
+    
+    try {
+      const result = await pool.query('DELETE FROM giangvien WHERE giangvienid = $1 RETURNING *', [id]);
+  
+      if (result.rowCount === 0) {
+        res.json({ success: false, message: 'Không tìm thấy giảng viên' });
+
+      }
+  
+      res.json({ success: true, message: 'Xóa giảng viên thành công' });
+    } catch (error) {
+      res.json({ success: false, message: 'Lỗi hệ thống' });
+
+    }
+  };
+
+  const getProjectsByStatus = async (req, res) => {
+    try {
+        const query = `
+            SELECT * FROM detai
+            WHERE trangthai IN ($1, $2)
+        `;
+        const values = [1, 2]; // Các trạng thái mà bạn muốn lọc
+
+        const result = await pool.query(query, values);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: 'Không tìm thấy đề tài nào với trạng thái 1 hoặc 2' });
+        }
+
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Lỗi khi lấy đề tài:', error);
+        res.status(500).json({ message: 'Lỗi hệ thống' });
+    }
+  };
+
+  const updateProjectStatusAndCouncil = async (detaiid, trangthai, hoidongphancong) => {
+      try {
+      const checkQuery = `SELECT * FROM bangdiemthanhphan WHERE detaiid = $1`;
+      const checkResult = await pool.query(checkQuery, [detaiid]);
+
+      if (checkResult.rowCount > 0) {
+        return { success: false, message: 'Đề tài không được thay đổi' };
+      }
+      
+      const query = `
+        UPDATE detai
+        SET trangthai = $1, hoidongphancong = $2
+        WHERE detaiid = $3
+        RETURNING *;
+      `;
+      const values = [trangthai, hoidongphancong, detaiid];
+  
+      const result = await pool.query(query, values);
+        
+      if (result.rowCount === 0) {
+        return { success: false, message: 'Đề tài không tồn tại' };
+      }
+  
+      return { success: true, message: 'Cập nhật thành công', data: result.rows[0] };
+    } catch (error) {
+      console.error('Lỗi khi cập nhật đề tài:', error);
+      return { success: false, message: 'Lỗi hệ thống' };
+    }
+  };
+  
 // ------------------------------------
 const getAll = (name) => {
     switch (name) {
@@ -261,6 +385,8 @@ const getById = (obj, id) => {
             return getDepartmentById(id);
         case 'classes':
             return getClassById(id);
+        case 'councils':
+            return getCouncilById(id);
         case 'student-Byaccount':
             return getStudentIdByAccountId(id);
         case 'mentor-Byaccount':
@@ -334,6 +460,15 @@ const getProjectById = async(id) => {
     try {
         const results = await pool.query(query, [id]);
         return {"data": results.rows[0], "members": member};
+    } catch (err) {
+        return {"error": err.message};
+    }
+}
+const getCouncilById = async(id) => {
+    const query = "SELECT * FROM hoidong WHERE hoidongid = $1"
+    try {
+        const results = await pool.query(query, [id]);
+        return {"data": results.rows[0]};
     } catch (err) {
         return {"error": err.message};
     }
@@ -637,7 +772,10 @@ module.exports = {
     deleteCouncil,
     updateCouncilMember,
     addNewTeacher,
-    getById,
+    updateTeacher,
+    uploadTeacherList,
+    deleteTeacher,
+    getProjectsByStatus,
     getByKeyObject,
     updateStatus,
     getLastIdProject,
@@ -648,5 +786,6 @@ module.exports = {
     getMarkOfProject,
     uploadProposal,
     getProposalFile,
+    updateProjectStatusAndCouncil
     getAccessProject
 }
