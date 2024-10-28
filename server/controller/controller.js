@@ -258,7 +258,6 @@ const getCouncilMembers = async (req, res) => {
   
       res.json({ success: true, message: 'Xóa giảng viên thành công' });
     } catch (error) {
-      console.error('Lỗi khi xóa giảng viên:', error);
       res.json({ success: false, message: 'Lỗi hệ thống' });
 
     }

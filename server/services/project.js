@@ -107,11 +107,12 @@ projectRouter.put('/updateStatusAndCouncil', async (req, res) => {
     try {
         const result = await updateProjectStatusAndCouncil(detaiid, status, council);
         
-        if (result.error) {
-            return res.status(500).json({ "error": result.error });
+        if (!result.success) {
+            return res.status(500).json({ message: result.message, success: result.success });
         }
 
-        res.status(200).json({ message: "Project status and council updated successfully", data: result.data });
+        return res.status(200).json({ message: result.message, success: result.success });
+
     } catch (error) {
         res.status(500).json({ "error": error.message });
     }
