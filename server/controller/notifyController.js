@@ -2,13 +2,18 @@ const pool = require('../database/database')
 const { socketReceive, socketSend } = require('./websocket')
 
 const createGroupConsumer = async(id, name) => { 
-    console.log(id)
-    console.log(name)
+    // console.log(id)
+    // console.log(name)
+    const existQuery = 'SELECT * FROM groupconsumer WHERE groupconsumerid = $1'
+    const existedGroup = await pool.query(existQuery, [id])
+    if (existedGroup.error) return { error: existedGroup.error }
+    if (existedGroup.rowCount > 0) return id 
+
     const res = await pool.query('INSERT INTO groupconsumer (groupconsumerid, name_group) VALUES ($1, $2)', [id, name])
     if (res.error) {
         return { error: "error" }
     }
-    console.log(id)
+    // console.log(id)
 
     return id
 }
@@ -61,26 +66,40 @@ const createTopic = async (title, groupConsumer, detaiid=null) => {
 }
 
 const getAccountId = async (userid, type) => {
-    const allowedTables = ["giangvien", "sinhvien"]
+    const allowedTables = ["giangvien", "sinhvien", "quanly"]
     if(!allowedTables.includes(type)) return { error: "invalid table"}
     if (type == "giangvien") { // Mentor
         let prevUid = userid
+        // console.log(userid)
         const res = await pool.query('SELECT taikhoanid FROM giangvien WHERE giangvienid = $1', [userid])
         if (res.error) return { error: err }
         if (res.rows[0]) {
             prevUid = res.rows[0]
         }
+        // console.log(prevUid)
         return prevUid
     } else if (type == "sinhvien") { // Student
         const res = await pool.query('SELECT taikhoanid FROM sinhvien WHERE sinhvienid = $1', [userid])
         if (res.error) return { error: err }
         return res.rows[0]
-    } 
+    } else if (type == "quanly") {
+        return userid
+    }
 }
 
 const getAdmin = async() => {
     const res = await pool.query('SELECT taikhoanid FROM bophanql')
     if (res.error) return { error: err }
+    return res.rows
+}
+
+const getAllMemOfCouncilById = async (councilId) => {
+    const res = await pool.query(`SELECT giangvienid
+        FROM thanhvienhd
+        WHERE hoidongid = $1`, [councilId])
+    if (res.error) {
+        return { error: res.error }
+    } 
     return res.rows
 }
 
@@ -140,13 +159,14 @@ const createCheckSeen = async () => {
         consumerArr.push(filteredAcc)
     }
     const query = 'INSERT INTO seenmsgs (taikhoanid, messagesid) VALUES ($1, $2)'
+    // console.log(consumerArr)
     for (let receiver of consumerArr[0]) {
         const receiverId = receiver.taikhoanid
         // console.log(receiverId)
         const result = await pool.query(query, [receiverId, messId])
         if (result.error) return { error: result.error }
-        return { status: 201 }
     }
+    return { status: 201 }
     // const reuslt = await pool.query(query, [])
     // return { messId , consumerArr }
 }
@@ -189,6 +209,28 @@ const updateSeen = async (uid, messId) => {
     return { status: 201 }
 }
 
+const sendMessToMemsCouncil = async (councilId, detaiId, adminId) => {
+    const mems = await getAllMemOfCouncilById(councilId)
+    const groupid = await createGroupConsumer(`Hoidong_${councilId}`, `Hội đồng ${councilId}`)
+    const memArr = [] // To send socket 
+    if(groupid) {
+        for (let mem of mems) {
+            const uid = await getAccountId(mem.giangvienid, "giangvien")
+            const accountId = await uid.taikhoanid
+            memArr.push(accountId)
+            await checkExistConsumer(mem.giangvienid, groupid, "giangvien") // Assign mentor to groupConsumer
+        }
+        const topicId = await createTopic(`Hội đồng ${councilId}`, groupid, detaiId) // Create topic for groupConsumer subcribe
+        // const student = await getById('students', valuesArray[5])
+        const msg = `Đề tài ${detaiId} được phân công cho hội đồng ${councilId}, giờ đây bạn có thể xem đề tài.`
+        await createMsg(adminId, topicId.id, msg, Date.now(), "quanly") // Student sent - so get type of student
+        for (let client of memArr) {
+            sendMessFromDb(client)
+        }
+    }
+    // return memArr
+}
+
 socketReceive(getAccountId, getAdmin);
 
 const sendMessFromDb = (clientId) => {
@@ -205,4 +247,5 @@ module.exports = {
     createCheckSeen,
     updateSeen,
     getFullNotifies,
+    sendMessToMemsCouncil
 }
