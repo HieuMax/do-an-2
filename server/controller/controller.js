@@ -786,6 +786,6 @@ module.exports = {
     getMarkOfProject,
     uploadProposal,
     getProposalFile,
-    updateProjectStatusAndCouncil
+    updateProjectStatusAndCouncil,
     getAccessProject
 }

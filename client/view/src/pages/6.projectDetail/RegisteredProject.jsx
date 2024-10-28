@@ -191,8 +191,6 @@ export const RegisteredProject = ({props}) => {
 
   }, [detaiId, councilAssigned])
 
-  }, [detaiId])
-
   // --------------------------------------------------------------
   // -------------------- Get form for grading --------------------
   // --------------------------------------------------------------
@@ -276,7 +274,7 @@ export const RegisteredProject = ({props}) => {
     )
 
   }
- else
+//  else
 
 
   
@@ -384,21 +382,21 @@ export const RegisteredProject = ({props}) => {
                                         <ProjectGrading open={openModalGrading} close={closeModalGrading} userToken={accesstoken} detaiid={project.detaiid} data={data} form={gradingForm}/>
                                     </div>)
                                 : ""
-                              accesstoken.role == "giangvien" && logicStatus >= 1
-                              ? (<div className={`w-full flex justify-end gap-4 mt-8`}>
-                                  <div className="bg-system text-center px-3 py-2 rounded-xl shadow-xl text-lg font-semibold text-white cursor-pointer w-fit " onClick={() => setOpenModalGrading(true)}>
-                                    {/* Chấm điểm */}
-                                    {
-                                      logicStatus == 1
-                                      ? "Phê duyệt"
-                                      : logicStatus == 2
-                                      ? "Chấm điểm"
-                                      : ""
-                                    }
-                                  </div>
-                                  <ProjectGrading open={openModalGrading} close={closeModalGrading} userToken={accesstoken} detaiid={project.detaiid} data={data} form={gradingForm}/>
-                                </div>)
-                              : ""
+                              // accesstoken.role == "giangvien" && logicStatus >= 1
+                              // ? (<div className={`w-full flex justify-end gap-4 mt-8`}>
+                              //     <div className="bg-system text-center px-3 py-2 rounded-xl shadow-xl text-lg font-semibold text-white cursor-pointer w-fit " onClick={() => setOpenModalGrading(true)}>
+                              //       {/* Chấm điểm */}
+                              //       {
+                              //         logicStatus == 1
+                              //         ? "Phê duyệt"
+                              //         : logicStatus == 2
+                              //         ? "Chấm điểm"
+                              //         : ""
+                              //       }
+                              //     </div>
+                              //     <ProjectGrading open={openModalGrading} close={closeModalGrading} userToken={accesstoken} detaiid={project.detaiid} data={data} form={gradingForm}/>
+                              //   </div>)
+                              // : ""
                             }
 
                            
