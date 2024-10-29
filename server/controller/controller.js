@@ -2,6 +2,7 @@ const { json } = require('express');
 const pool = require('../database/database')
 const path = require('path');
 const { createTopic, createGroupConsumer, checkExistConsumer, createMsg } = require('./notifyController');
+const { error } = require('console');
 
 
 
@@ -542,10 +543,10 @@ const getLastIdProject = async () => {
 const getMarkOfProject = async(detaiid, role, userid, type) => {
     if(type == "dexuat") {
         if (role == "nguoichamdiem") {
-            const queryMark_pending = `SELECT * FROM diemtailieudexuat WHERE detaiid = $1`
-            const resultMark_pending = await pool.query(queryMark_pending, [detaiid])
-            if (resultMark_pending.rowCount > 1) {
-                return { "data": resultMark_pending.rows }
+            const queryMarked = `SELECT * FROM diemtailieudexuat WHERE detaiid = $1`
+            const resultMarked = await pool.query(queryMarked, [detaiid])
+            if (resultMarked.rowCount == 5) {
+                return { "data": resultMarked.rows }
             }
             const query = `SELECT * FROM diemtailieudexuat WHERE detaiid = $1 AND nguoichamdiem = $2`
             const result = await pool.query(query, [detaiid, userid])
@@ -586,8 +587,25 @@ const getTopicById = async(id) => {
     return { data: result.rows[0] }
 }
 
+const getRelatedToAccess = async (detaiid, uid) => {
+    const query = `SELECT detaiid FROM detai 
+    WHERE detaiid = $1
+    AND (sinhvienid = $2
+    OR giangvienchunhiemid = $3
+    OR hoidongphancong IN (SELECT hoidongid FROM thanhvienhd WHERE giangvienid = $4))`
+    const res = await pool.query(query, [detaiid, uid, uid, uid])
+    if (res.error) return { error: res.error }
+    if (res.rowCount > 0) {
+        // console.log("allowed")
+
+        return { permission: "allowed", accessedProject: res.rows }
+    }
+    // console.log("not allowed")
+    return { permission: "Not allowed" }
+}
+
 // ---------------------------------------------------------------------------
-// PUT ----------------------------------------------------------------------
+// PUT -----------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 
 
@@ -787,5 +805,6 @@ module.exports = {
     uploadProposal,
     getProposalFile,
     updateProjectStatusAndCouncil,
-    getAccessProject
+    getAccessProject,
+    getRelatedToAccess
 }

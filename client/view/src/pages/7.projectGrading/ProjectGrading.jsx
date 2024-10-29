@@ -133,7 +133,7 @@ export const ProjectGrading = ({ open, close, userToken, detaiid, data, form }) 
                           <SwitchCom label={"Nhận xét"} toggle={false} data={data}/>
                         </div>
                         {
-                          !(data && !data.data.length > 0)
+                          !(data && data.data && !data.data.length > 0)
                             ? (<div className={`bg-system text-center px-3 py-2 rounded-xl shadow-xl text-lg 
                             font-semibold text-white cursor-pointer w-fit h-fit my-3 mr-9
                             ${data? "hidden": "block"}
@@ -146,7 +146,7 @@ export const ProjectGrading = ({ open, close, userToken, detaiid, data, form }) 
                             : ""
                         }
                         {
-                          data && data.data.length > 0
+                          data && data.data && data.data.length > 0
                             ? (<Tag color={`${data.data[0]["diemtailieu"] >= 60? "green" : "red" }`} key={'grading-tag'} className='font-semibold flex justify-center items-center text-lg my-3 px-3 py-2 mr-9'>
                               {data.data[0]["diemtailieu"]} / 100
                             </Tag>)
@@ -162,7 +162,7 @@ export const ProjectGrading = ({ open, close, userToken, detaiid, data, form }) 
                 </MarkContext.Provider>
               </div>
                 {
-                  !(data && !data.data.length > 0)
+                  !(data && data.data && !data.data.length > 0)
                     ?(<div className="z-100">
                       <ConfirmDialog  titlehead={"Xác nhận chấm điểm"} parent={"Confirm"} props={""} open={isConfirmForm} close={closeGradeForm} isConfirm={handleIsConfirm}/>
                     </div>)

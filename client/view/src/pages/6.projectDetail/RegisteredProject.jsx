@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom';
-import { downloadFile, getMarkOfProject, getProjectById, getProposalFile, updateStatusProject } from '../../controller/1.projects/project';
+import { downloadFile, getMarkOfProject, getProjectById, getProposalFile, projectPermission, updateStatusProject } from '../../controller/1.projects/project';
 import { Loading } from '../../utils/Loading';
 import ConfirmDialog from '../../components/dialog/ConfirmDialog';
 import NotificationBottomRight from '../../third-party/components/Notification/NotificationBottomRight';
@@ -11,36 +11,28 @@ import TableViewMarks from '../../third-party/components/Data Display/TableViewM
 import { DisplayProjectDetail } from '../../components/project_detail/DisplayProjectDetail';
 import { DisplayFileUploaded } from '../../components/project_detail/DisplayFileUploaded';
 import ModalAssignCouncil from '../../components/modal/ModalAssignCouncil';
-
-const user = {id: "227480100000", name: "Hieu Max"}
-
-const accesstoken = { id: "GV001", role: "giangvien" }
 import { useAuthStore } from '../../api/authStore';
 import { getNotify, sendMessToAdmin } from '../../controller/7.notify/notify';
 
 
 export const RegisteredProject = ({props}) => {
   const navigate = useNavigate();
-  const { user } = useAuthStore()
+  // const { user } = useAuthStore()
+  const user = JSON.parse(window.localStorage.getItem('userInfo'))
   const accesstoken = 
   { 
-    id: user.vaitro=="Student"?user.sinhvienid : user.giangvienid,
+    // id: user.vaitro=="Student"?user.sinhvienid : user.giangvienid,
+    id: user.userId,
     role: user.vaitro=="Student"?"sinhvien" : "giangvien"
   }
 
   const location = useLocation();
   const { isAssign } = location.state || {}; // Đặt giá trị mặc định là một object rỗng
 
-  useEffect(() => {
-    if(!location.state){
-        navigate(-1)
-    }
-  },[location.state, navigate])
   // data
   const { detaiId } = location.state 
     ? location.state
     : {detaiId: location.pathname.substring(location.pathname.lastIndexOf('/')+1)}; 
-
   // --------------------------------------------------------------
   // ------------------------- DATA -------------------------------
   // --------------------------------------------------------------
@@ -188,7 +180,6 @@ export const RegisteredProject = ({props}) => {
       }
     }
     fetchProposal();
-
   }, [detaiId, councilAssigned])
 
   // --------------------------------------------------------------
@@ -215,10 +206,11 @@ export const RegisteredProject = ({props}) => {
           role: accesstoken.role == "giangvien"? "nguoichamdiem" : "sinhvien",
           type: logicStatus == 1 ? "dexuat" : "thuyetminh"
         }
-        console.log(datajson)
+        // console.log(datajson)
         if(!datajson.type) return
         const response = await getMarkOfProject(datajson);
-        if(response.data.length < 1) {
+        // console.log(response)
+        if(response.data && response.data.length < 1) {
           setData()
         } else {
           setData(response)
@@ -274,10 +266,7 @@ export const RegisteredProject = ({props}) => {
     )
 
   }
-//  else
-
-
-  
+ 
   const isReject = () => {
     ///////////////////////////////
     /////////////////////////////// Reject Project 
@@ -288,6 +277,7 @@ export const RegisteredProject = ({props}) => {
   return (
 
     <div className="py-3 px-3 h-full scroll-smooth">
+        {}
         {
             loading 
             ? <div className="h-screen m-auto"><Loading /></div>
@@ -382,21 +372,6 @@ export const RegisteredProject = ({props}) => {
                                         <ProjectGrading open={openModalGrading} close={closeModalGrading} userToken={accesstoken} detaiid={project.detaiid} data={data} form={gradingForm}/>
                                     </div>)
                                 : ""
-                              // accesstoken.role == "giangvien" && logicStatus >= 1
-                              // ? (<div className={`w-full flex justify-end gap-4 mt-8`}>
-                              //     <div className="bg-system text-center px-3 py-2 rounded-xl shadow-xl text-lg font-semibold text-white cursor-pointer w-fit " onClick={() => setOpenModalGrading(true)}>
-                              //       {/* Chấm điểm */}
-                              //       {
-                              //         logicStatus == 1
-                              //         ? "Phê duyệt"
-                              //         : logicStatus == 2
-                              //         ? "Chấm điểm"
-                              //         : ""
-                              //       }
-                              //     </div>
-                              //     <ProjectGrading open={openModalGrading} close={closeModalGrading} userToken={accesstoken} detaiid={project.detaiid} data={data} form={gradingForm}/>
-                              //   </div>)
-                              // : ""
                             }
 
                            

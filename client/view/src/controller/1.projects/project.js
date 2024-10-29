@@ -7,11 +7,6 @@ const url = "/projects";
 
 export const getAllProjects = async () => {
     const userInfo = JSON.parse(window.localStorage.getItem('userInfo'))
-    // const userId = userInfo.userId
-    // const role = userInfo.vaitro
-    // const { user } = useAuthStore()
-    // const data = { uid: uid }
-    // console.log(uid)
     const data = {
         userId: userInfo.userId,
         typeOfUser: userInfo.vaitro
@@ -143,7 +138,7 @@ export const uploadProposalfile = async (data) => {
 
 
 export const markProject = async(data) => {
-    // console.log(data)
+    console.log(data)
     try {
         const response = await fetch(`${API_ENDPOINT}${url}/markProject`, {
             method: 'POST',
@@ -166,7 +161,7 @@ export const getMarkOfProject = async(data) => {
     try {
         const response = await fetch(`${API_ENDPOINT}${url}/marks?type=${data.type}&role=${data.role}&detaiid=${data.detaiid}&userid=${data.userid}`)
         const projectMark = await response.json();
-        // console.log(projectMark)
+        console.log(projectMark)
         return projectMark;
     } catch (error) {
         return { error: error }
@@ -207,6 +202,16 @@ export const downloadFile = async (filename, originalname) => {
         const json = await response.json();
         // console.log(json)
         return json
+    } catch (error) {
+        return { error: error }
+    }
+}
+
+export const projectPermission = async (detaiid, uid) => {
+    try {
+        const response = await fetch(`${API_ENDPOINT}${url}/accessProjectPermission/?uid=${uid}&detaiid=${detaiid}`)
+        const permission = await response.json();
+        return permission;
     } catch (error) {
         return { error: error }
     }

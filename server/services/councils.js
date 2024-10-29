@@ -71,9 +71,9 @@ managementRouter.delete('/deleteCouncil/:hoidongid', deleteCouncil);
 
 managementRouter.put('/updateCouncilMember',updateCouncilMember )
 
-managementRouter.get('/allk', async(req, res) => {
-    const result = await sendMessToMemsCouncil(1, 'DT2024007', 28)
-    res.status(200).send(result)
-})
+// managementRouter.get('/allk', async(req, res) => {
+//     const result = await sendMessToMemsCouncil(1, 'DT2024007', 28)
+//     res.status(200).send(result)
+// })
 
 module.exports = managementRouter;

@@ -83,7 +83,7 @@ const ModalAssignCouncil = ({ isOpen, toggleModal, data, toggleAssigned }) => {
   const handleAssign = async () => {
     if(!member.hoidongid) return
 
-    const response = await updateProjectStatusAndCouncil(data, '2', member.hoidongid)
+    const response = await updateProjectStatusAndCouncil(data, '1', member.hoidongid)
     if(response.success){
     
       toggleAssigned();

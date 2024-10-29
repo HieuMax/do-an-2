@@ -3,7 +3,7 @@ const ms = require('ms');
 const { JwtProvider, ACCESS_TOKEN_SECRET_SIGNATURE, REFRESH_TOKEN_SECRET_SIGNATURE } = require('../providers/JwtProvider');
 const pool = require('../database/database')
 const bcryptjs = require('bcryptjs');
-const { getById } = require('./controller');
+const { getById, getRelatedToAccess } = require('./controller');
 
 /**
  * Mock nhanh thông tin user thay vì phải tạo Database rồi query.
@@ -56,6 +56,7 @@ const login = async (req, res) => {
       obj = 'admin-Byaccount'
     }
     const userId = await getById(obj, user.taikhoanid)
+    console.log(userId)
     const userInfo = {
       taikhoanid: user.taikhoanid,
       vaitro: user.vaitro,
@@ -63,9 +64,9 @@ const login = async (req, res) => {
               ? userId.data.sinhvienid
               : userId.data.giangvienid
                 ? userId.data.giangvienid
-                : userId.data.manql
+                : userId.data.manql,
+      // accessedProject: getRelatedToAccess(userInfo.userId)
     };
-   
 
     // Tạo ra 2 loại token: accessToken và refreshToken
     const accessToken = await JwtProvider.generateToken(

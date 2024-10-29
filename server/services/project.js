@@ -1,5 +1,5 @@
 const projectRouter = require('express').Router();
-const { getAll, updateProjectStatusAndCouncil, getById, updateStatus, getLastIdProject, registNewProject, updateFile, downloadFile, markType, getMarkOfProject, uploadProposal, getProposalFile, getProjectsByStatus, getAccessProject } = require('../controller/controller');
+const { getAll, updateProjectStatusAndCouncil, getById, updateStatus, getLastIdProject, registNewProject, updateFile, downloadFile, markType, getMarkOfProject, uploadProposal, getProposalFile, getProjectsByStatus, getAccessProject, getRelatedToAccess } = require('../controller/controller');
 const upload = require('../middleware/multer');
 const { generateid } = require('../utils/generateid');
 
@@ -43,15 +43,15 @@ projectRouter.get('/project/:id', async (req, res, next) => {
 
 })
 
-projectRouter.get('/:id', async (req, res) => {
-    const id = req.params.id;
-    const result = await getById(obj, id)
-    if (result.error) {
-        res.status(500).json({"error": result.error});
-    } else {
-        res.json({detai: result.data})
-    }
-})
+// projectRouter.get('/:id', async (req, res) => {
+//     const id = req.params.id;
+//     const result = await getById(obj, id)
+//     if (result.error) {
+//         res.status(500).json({"error": result.error});
+//     } else {
+//         res.json({detai: result.data})
+//     }
+// })
 
 projectRouter.get('/download/:filename', async(req, res) => {
     try {
@@ -78,10 +78,13 @@ projectRouter.get('/marks', async(req, res) => {
     if(!allowType.includes(type)) return res.status(404).send({ error: "error" })
         
     if(!detaiid || !role || !userid) {
+        // console.log("err")
         return res.status(400).send({ error: "error" })
     }
     try {
         const result = await getMarkOfProject(detaiid, role, userid, type)
+        // console.log(result)
+
         if(result.error) {
             res.status(500).json({"error": result.error})
         } else {
@@ -103,6 +106,18 @@ projectRouter.get('/proposalFile/:id', async(req, res) => {
     } catch (error) {
         return res.status(404).send(error)
     }
+})
+
+projectRouter.get('/accessProjectPermission', async (req, res) => {
+    // res.send("ok")
+    const { detaiid, uid } = req.query
+    const result = await getRelatedToAccess(detaiid, uid)
+    // console.log('ok')
+    if (result.permission == "allowed") {
+        // console.log(result)
+        return res.status(200).send({result})
+    }
+    return res.status(200).send({result})
 })
 
 // ------------------------------------------------------------------------------------------------------------------------------

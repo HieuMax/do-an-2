@@ -1,5 +1,5 @@
 // navigation.js
-import React from 'react';
+import React, { useState } from 'react';
 import CouncilListProvider from '../pages/10.councilList/CouncilListProvider';
 import AddTeacherProvider from '../pages/11.teacherList/AddTeacherProvider';
 import TeacherListProvider from '../pages/11.teacherList/TeacherListProvider';
@@ -15,6 +15,8 @@ import { NotificationPage } from '../pages/8.Notification/NotificationPage';
 import { useAuthStore } from './authStore';
 import ErrorPage from '../pages/3.errorPage/ErrorPage';
 import { ReportPage } from '../pages/9.reportPage/ReportPage';
+import { projectPermission } from '../controller/1.projects/project';
+import { useLocation } from 'react-router-dom';
 
 let navigate = null;
 
@@ -57,6 +59,32 @@ const StuAndTeaAccess = ({ children }) => {
   return children;
 }
 
+const ProjectAccessPermis = ({ children }) => {
+  const user = JSON.parse(window.localStorage.getItem('userInfo'))
+
+  try {
+    if (user.vaitro == "Admin") {
+      return children 
+    } else {
+      const location = useLocation();
+      const { detaiId } = location.state 
+      ? location.state
+      : {detaiId: location.pathname.substring(location.pathname.lastIndexOf('/')+1)}; 
+      const [ child, setChild ] = useState()
+      async function isAccess() {
+        const res = await projectPermission(detaiId, user.userId)
+        res.result.permission == "allowed"
+          ? setChild(children)
+          : setChild(<ErrorPage />)
+      }
+      isAccess();
+      return child
+    }
+  } catch (error) {
+    
+  }
+}
+
 
 export const children = [
   // All user
@@ -65,7 +93,12 @@ export const children = [
   { path: "/notification", element: <NotificationPage /> },
   // { path: "/reset-password/:token", element: <ResetPasswordPage /> },
   // { path: "/forgot-password", element: <ForgotPasswordPage /> },
-
+  { path: "/project-list/:id", 
+    element: 
+      <ProjectAccessPermis>
+        <RegisteredProject /> 
+      </ProjectAccessPermis>
+  },
   // Teacher - Student
   { path: "/project-list", 
     element: 
@@ -73,12 +106,7 @@ export const children = [
           <ProjectListProvider />
       </StuAndTeaAccess> 
   },
-  { path: "/project-list/:id", 
-    element: 
-      <StuAndTeaAccess>
-        <RegisteredProject /> 
-      </StuAndTeaAccess> 
-  },
+
   { path: "/report", 
     element: 
       <StuAndTeaAccess>

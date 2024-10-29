@@ -1,7 +1,7 @@
 import React from 'react';
 import { Tag, Timeline } from 'antd';
 const TimelineCom = ({ props }) => {
-  console.log(props);
+  // console.log(props);
   return(
     <Timeline
       items={[

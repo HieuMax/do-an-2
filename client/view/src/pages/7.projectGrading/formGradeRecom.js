@@ -4,14 +4,14 @@ export const gradingRecomForm = (data) => [
       description: 'Tên đề tài',
       max: 10,
       key: 'TC1',
-      data: data? data.data[0]["diemtc1"]: ""
+      data: (data &&data.data)? data.data[0]["diemtc1"]: ""
     },
     {
       STT: '2',
       description: 'Tính mới',
       max: 10,
       key: 'TC2',
-      data: data? data.data[0]["diemtc2"]: ""
+      data: (data &&data.data)? data.data[0]["diemtc2"]: ""
 
     },
     {
@@ -19,7 +19,7 @@ export const gradingRecomForm = (data) => [
       description: 'Sự cần thiết',
       max: 10,
       key: 'TC3',
-      data: data? data.data[0]["diemtc3"]: ""
+      data: (data &&data.data)? data.data[0]["diemtc3"]: ""
 
     },
     {
@@ -27,7 +27,7 @@ export const gradingRecomForm = (data) => [
       description: 'Mục tiêu',
       max: 10,
       key: 'TC4',
-      data: data? data.data[0]["diemtc4"]: ""
+      data: (data &&data.data)? data.data[0]["diemtc4"]: ""
 
     },
     {
@@ -35,7 +35,7 @@ export const gradingRecomForm = (data) => [
       description: 'Nội dung nghiên cứu',
       max: 10,
       key: 'TC5',
-      data: data? data.data[0]["diemtc5"]: ""
+      data: (data &&data.data)? data.data[0]["diemtc5"]: ""
 
     },
     {
@@ -43,7 +43,7 @@ export const gradingRecomForm = (data) => [
       description: 'Phương pháp nghiên cứu',
       max: 10,
       key: 'TC6',
-      data: data? data.data[0]["diemtc6"]: ""
+      data: (data &&data.data)? data.data[0]["diemtc6"]: ""
 
     },
     {
@@ -51,7 +51,7 @@ export const gradingRecomForm = (data) => [
       description: 'Sản phẩm',
       max: 10,
       key: 'TC7',
-      data: data? data.data[0]["diemtc7"]: ""
+      data: (data &&data.data)? data.data[0]["diemtc7"]: ""
 
     },
     {
@@ -59,13 +59,13 @@ export const gradingRecomForm = (data) => [
       description: 'Kinh phí thực hiện',
       max: 10,
       key: 'TC8',
-      data: data? data.data[0]["diemtc8"]: ""
+      data: (data &&data.data)? data.data[0]["diemtc8"]: ""
     },
     {
       STT: '',
       description: 'Cộng',
       max: 80,
       key: 'TC',
-      data: data? data.data[0]["diemtailieu"]: ""
+      data: (data &&data.data)? data.data[0]["diemtailieu"]: ""
     },
   ]

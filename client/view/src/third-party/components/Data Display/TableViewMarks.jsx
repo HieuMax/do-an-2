@@ -93,14 +93,17 @@ const TableViewMarks = ({ open, close, userToken, detaiid, data, form }) => {
           role: JSON.parse(window.localStorage.getItem('userInfo')).vaitro == "Teacher"? "nguoichamdiem" : "sinhvien",
           type: "dexuat"
         }
-        // console.log(datajson)
-        if(!datajson.type) return
-        const response = await getMarkOfProject(datajson);
-        // console.log(response)
-        if(response.data.length < 1) {
-          setMark()
-        } else {
-          setMark(response)
+        try {
+          // console.log(datajson)
+          if(!datajson.type) return
+          const response = await getMarkOfProject(datajson);
+          if(response.data.length < 1) {
+            setMark()
+          } else {
+            setMark(response)
+          }
+        } catch (error) {
+          
         }
       } 
       fetchMark()
