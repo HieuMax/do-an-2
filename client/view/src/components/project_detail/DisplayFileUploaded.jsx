@@ -2,7 +2,7 @@ import React from 'react'
 
 export const DisplayFileUploaded = ({ title, project, download }) => {
   return (
-    <div className=" w-4/5 max-w-7xl max-sm:w-full mb-6">
+    <div className=" w-full max-w-7xl max-sm:w-full mb-6">
         <label htmlFor="" className="block text-lg font-medium leading-6 text-gray-900">
            {title} (.doc | .docx | .pdf)
         </label>

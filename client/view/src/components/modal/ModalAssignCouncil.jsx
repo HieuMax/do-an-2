@@ -4,6 +4,7 @@ import { getCouncilById } from '../../controller/5.councils/councils';
 import { updateProjectStatusAndCouncil } from '../../controller/1.projects/project';
 import { getCouncilMembers } from '../../controller/5.councils/councils';
 import { toast } from 'react-toastify';
+import { getNotify } from '../../controller/7.notify/notify';
 
 
 const ModalAssignCouncil = ({ isOpen, toggleModal, data, toggleAssigned }) => {
@@ -82,13 +83,14 @@ const ModalAssignCouncil = ({ isOpen, toggleModal, data, toggleAssigned }) => {
 };
   const handleAssign = async () => {
     if(!member.hoidongid) return
+    const t = document.getElementById('sinhVienChuNhiem') // change after 
 
     const response = await updateProjectStatusAndCouncil(data, '1', member.hoidongid)
     if(response.success){
     
       toggleAssigned();
       toast.success('Phân công hội đồng thành công')
-
+      await getNotify(t.value, "Approval project", "sinhvien")
       handleModalClose();
       return
     } else {

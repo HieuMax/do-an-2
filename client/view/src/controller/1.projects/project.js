@@ -2,6 +2,7 @@ import { API_ENDPOINT } from "..";
 import { useAuthStore } from "../../api/authStore";
 import { getMentorById, getNameMentorById } from "../2.mentors/mentors";
 import axios from "axios";
+import { sendNoti } from "../7.notify/notify";
 
 const url = "/projects";
 
@@ -12,6 +13,23 @@ export const getAllProjects = async () => {
         typeOfUser: userInfo.vaitro
     }
     const response = await fetch(`${API_ENDPOINT}${url}/accessProject/${JSON.stringify(data)}`);
+    const projects = await response.json();
+    const arr = projects.detai
+    arr.forEach(async(element) => {
+        const name = await getNameMentorById(element.giangvienchunhiemid);
+        element.hotengiangvien = name
+    });
+    return projects;
+}
+
+export const getReportProject = async (statusIdx) => {
+    const userInfo = JSON.parse(window.localStorage.getItem('userInfo'))
+    const data = {
+        userId: userInfo.userId,
+        typeOfUser: userInfo.vaitro,
+        statusIdx: statusIdx
+    }
+    const response = await fetch(`${API_ENDPOINT}${url}/accessReportProject/${JSON.stringify(data)}`);
     const projects = await response.json();
     const arr = projects.detai
     arr.forEach(async(element) => {
@@ -119,6 +137,8 @@ export const registNewProject = async (data) => {
 }
 
 export const uploadProposalfile = async (data) => {
+    // console.log("proposal: " + data)
+
     try {
         const response = await fetch(`${API_ENDPOINT}${url}/uploadProposal`, {
             method: 'POST',
@@ -130,6 +150,37 @@ export const uploadProposalfile = async (data) => {
         if(response.error) {
             return { error: "Error"}
         }
+        await sendNoti(
+            data.detaiid,
+            3,
+            1,
+            1
+        )
+        return response;
+    } catch (error) {
+        return { error: error }
+    }
+}
+
+export const uploadReportfile = async (data) => {
+    // console.log("report: " + data)
+    try {
+        const response = await fetch(`${API_ENDPOINT}${url}/uploadReport`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        })
+        if(response.error) {
+            return { error: "Error"}
+        }
+        await sendNoti(
+            data.detaiid,
+            3,
+            1,
+            3
+        )
         return response;
     } catch (error) {
         return { error: error }
@@ -150,6 +201,20 @@ export const markProject = async(data) => {
         if(response.error) {
             return { error: "Error"  }
         }
+        await sendNoti(
+            data.detaiid,
+            data.type == "DeXuat" 
+                ? 0 
+                : data.type == "ThuyetMinh"
+                  ? 1
+                  : 2,
+            0,
+            data.type == "DeXuat" 
+            ? 0 
+            : data.type == "ThuyetMinh"
+              ? 2
+              : 4,
+        )
         return response
     } catch (err) {
         return { error: err }
@@ -161,7 +226,7 @@ export const getMarkOfProject = async(data) => {
     try {
         const response = await fetch(`${API_ENDPOINT}${url}/marks?type=${data.type}&role=${data.role}&detaiid=${data.detaiid}&userid=${data.userid}`)
         const projectMark = await response.json();
-        console.log(projectMark)
+        // console.log(projectMark)
         return projectMark;
     } catch (error) {
         return { error: error }
@@ -171,6 +236,18 @@ export const getMarkOfProject = async(data) => {
 export const getProposalFile = async (detaiid) => {
     try {
         const response = await fetch(`${API_ENDPOINT}${url}/proposalFile/${detaiid}`)
+        const proposalfile = await response.json();
+        // console.log(Object.keys(proposalfile).length < 1)
+        return proposalfile.data;
+    } catch (error) {
+        return { error: error }
+    }
+    
+}
+
+export const getReportFile = async (detaiid) => {
+    try {
+        const response = await fetch(`${API_ENDPOINT}${url}/reportFile/${detaiid}`)
         const proposalfile = await response.json();
         // console.log(Object.keys(proposalfile).length < 1)
         return proposalfile.data;

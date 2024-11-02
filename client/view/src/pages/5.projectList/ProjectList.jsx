@@ -58,7 +58,7 @@ export const ProjectList = () => {
     useEffect(() => {
         const filteredProjects = Array.isArray(projects.detai) 
             ? projects.detai.filter(item => (
-                (item.trangthai === list || (item.trangthai >= 3 && list === 3))
+                (item.trangthai === list || ((item.trangthai == 3 || item.trangthai == 4) && list === 3))
               )) 
             : []; 
         setLog({

@@ -1,5 +1,6 @@
 const projectRouter = require('express').Router();
-const { getAll, updateProjectStatusAndCouncil, getById, updateStatus, getLastIdProject, registNewProject, updateFile, downloadFile, markType, getMarkOfProject, uploadProposal, getProposalFile, getProjectsByStatus, getAccessProject, getRelatedToAccess } = require('../controller/controller');
+const { getAll, updateProjectStatusAndCouncil, getById, updateStatus, getLastIdProject, registNewProject, updateFile, downloadFile, markType, getMarkOfProject, uploadProposal, getProposalFile, getProjectsByStatus, getAccessProject, getRelatedToAccess, uploadReport, getReportFile, getAccessReportProject } = require('../controller/controller');
+const { notify_upload_proposal } = require('../controller/notifyController');
 const upload = require('../middleware/multer');
 const { generateid } = require('../utils/generateid');
 
@@ -26,6 +27,19 @@ projectRouter.get('/accessProject/:uid', async(req, res) => {
         res.json({detai: result.data})
     }
 })
+
+projectRouter.get('/accessReportProject/:uid', async(req, res) => {
+    const { uid } = req.params
+    const data = JSON.parse(uid)
+    const result = await getAccessReportProject(data.userId, data.typeOfUser, data.statusIdx);
+    if (result.error) {
+        res.status(500).json({"error": result.error});
+    } else {
+        res.json({detai: result.data})
+    }
+})
+
+
 
 
 projectRouter.get('/status', getProjectsByStatus)
@@ -74,7 +88,7 @@ projectRouter.get('/download/:filename', async(req, res) => {
 
 projectRouter.get('/marks', async(req, res) => {
     const { detaiid, role, userid, type } = req.query;
-    const allowType = ["thuyetminh", "dexuat"]
+    const allowType = ["thuyetminh", "dexuat", "baocao"]
     if(!allowType.includes(type)) return res.status(404).send({ error: "error" })
         
     if(!detaiid || !role || !userid) {
@@ -107,6 +121,21 @@ projectRouter.get('/proposalFile/:id', async(req, res) => {
         return res.status(404).send(error)
     }
 })
+
+projectRouter.get('/reportFile/:id', async(req, res) => {
+    const { id } = req.params
+    try {
+        const result = await getReportFile(id);
+        if(result.error) {
+            res.status(500).json({"error": result.error})
+        }
+        res.status(200).json({ data: result.data })
+    } catch (error) {
+        return res.status(404).send(error)
+    }
+})
+
+
 
 projectRouter.get('/accessProjectPermission', async (req, res) => {
     // res.send("ok")
@@ -162,6 +191,57 @@ projectRouter.put('/updateStatus', async (req, res, next) => {
 projectRouter.put('/updatefile', (req, res) => {
     const { type, file, id } = req.query;
     
+})
+
+projectRouter.get('/test22', async (req, res) => {
+    const { detaiid, typeOfDoc, gr_subcriber, messageProgress } = req.query
+    msgs = [
+        "đã được thành viên trong hội đồng chấm điểm, bây giờ bạn có thể xem bảng điểm và nhận xét và UPLOAD tài liệu thuyết minh (Sinh viên chủ nhiệm).", //
+        "đã được UPLOAD tài liệu thuyết minh, bây giờ bạn có thể xem (tải xuống), chấm điểm và nhận xét.", //
+        "đã được thành viên trong hội đồng chấm điểm, bây giờ bạn có thể xem bảng điểm và nhận xét và UPLOAD tài liệu báo cáo (Sinh viên chủ nhiệm).", //
+        "đã được UPLOAD tài liệu báo cáo, bây giờ bạn có thể xem (tải xuống), chấm điểm và nhận xét.", //
+        "đã được thành viên trong hội đồng chấm điểm, bây giờ bạn có thể xem bảng điểm và nhận xét bài báo cáo." //
+    ]
+
+    Docs = ["diemtailieudexuat", "diemtailieuthuyetminh", "diemtailieubaocao", "uploadfile"]
+    groupConsumer = ["Cập nhật thông tin đề tài", "Hội đồng chấm điểm"]
+    // GRADING RECOM
+    const result1 = await notify_upload_proposal(detaiid, 
+        Docs[typeOfDoc], 
+        groupConsumer[gr_subcriber],
+        msgs[messageProgress]
+     );
+
+    // UPLOAD PROPOSAL
+    const result2 = await notify_upload_proposal('DT2024005', 
+        'uploadfile', 
+        "Hội đồng chấm điểm",
+        "đã được UPLOAD tài liệu thuyết minh, bây giờ bạn có thể xem (tải xuống), chấm điểm và nhận xét."
+     );
+
+    // GRADING PROPOSAL
+     const result3 = await notify_upload_proposal('DT2024005', 
+        'diemtailieuthuyetminh', 
+        "Cập nhật thông tin đề tài",
+        "đã được thành viên trong hội đồng chấm điểm, bây giờ bạn có thể xem bảng điểm và nhận xét và UPLOAD tài liệu báo cáo (Sinh viên chủ nhiệm)."
+     );
+
+
+    // UPLOAD REPORT
+    const result4 = await notify_upload_proposal('DT2024005', 
+        'uploadfile', 
+        "Hội đồng chấm điểm",
+        "đã được UPLOAD tài liệu báo cáo, bây giờ bạn có thể xem (tải xuống), chấm điểm và nhận xét."
+     );
+
+    // GRADING REPORT
+     const result5 = await notify_upload_proposal('DT2024005', 
+        'diemtailieubaocao', 
+        "Cập nhật thông tin đề tài",
+        "đã được thành viên trong hội đồng chấm điểm, bây giờ bạn có thể xem bảng điểm và nhận xét bài báo cáo."
+     );
+
+    res.sendStatus(200)
 })
 
 
@@ -220,11 +300,27 @@ projectRouter.post('/uploadProposal', async (req, res) => {
     }
 })
 
+projectRouter.post('/uploadReport', async (req, res) => {
+
+    const data = req.body
+
+    try {
+        const response = await uploadReport(data)
+        if(response.status === 201) {       
+            res.status(201).send("successful")
+        } else {
+            res.status(response.status).send({ "error": "Unexpected response" });
+        }
+    } catch (error) {
+        res.status(500)
+    }
+})
+
 
 
 
 projectRouter.post('/markProject', async(req, res) => {
-    const { mark, comment, detaiid, nguoichamdiem, type, diemtc1, diemtc2, diemtc3, diemtc4, diemtc5, diemtc6, diemtc7, diemtc8 } = req.body
+    const { mark, comment, detaiid, nguoichamdiem, type, diemtc1, diemtc2, diemtc3, diemtc4, diemtc5, diemtc6, diemtc7, diemtc8, diemtc9 } = req.body
     const data = {
         nguoichamdiem: nguoichamdiem,
         mark: mark,
@@ -239,8 +335,9 @@ projectRouter.post('/markProject', async(req, res) => {
         diemtc7: diemtc7,
         diemtc8: diemtc8,
     }
+    if (type == "BaoCao") data.diemtc9 = diemtc9
     try {
-        // console.log(data)
+        console.log(data)
         const response = await markType(type, data)
         // console.log(response)
         if(response.status === 201) {       

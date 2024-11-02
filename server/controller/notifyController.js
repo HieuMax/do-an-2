@@ -173,11 +173,11 @@ const createCheckSeen = async () => {
 
 const getAllNotifies = async (userid) => {
     // console.log(userid)
-    const query = `SELECT topics.title, topics.detaiid, unseenmsgs.time_stamp, unseenmsgs.taikhoanid, unseenmsgs._message, seenmsgs.seen, unseenmsgs.messagesid
+    const query = `SELECT DISTINCT topics.title, topics.detaiid, unseenmsgs.time_stamp, unseenmsgs.taikhoanid, unseenmsgs._message, seenmsgs.seen, unseenmsgs.messagesid
                     FROM topics
                     INNER JOIN unseenmsgs ON unseenmsgs.topicid = topics.id
                     INNER JOIN seenmsgs ON seenmsgs.messagesid = unseenmsgs.messagesid
-                    WHERE groupconsumerid IN (SELECT groupconsumerid FROM consumers WHERE taikhoanid = $1) AND unseenmsgs.taikhoanid != $1 AND seenmsgs.seen != TRUE
+                    WHERE groupconsumerid IN (SELECT groupconsumerid FROM consumers WHERE taikhoanid = $1) AND unseenmsgs.taikhoanid != $1 AND seenmsgs.seen != TRUE AND seenmsgs.taikhoanid = $1
                     ORDER BY unseenmsgs.time_stamp DESC`
     try {
         const topics = await pool.query(query, [userid])
@@ -209,9 +209,30 @@ const updateSeen = async (uid, messId) => {
     return { status: 201 }
 }
 
+const validateEnoughMarks = async (detaiid, type) => {
+    const allowedTable = ['diemtailieudexuat', 'diemtailieuthuyetminh', 'diemtailieubaocao', 'uploadfile']
+    if (!allowedTable.includes(type)) return
+    if (type == allowedTable[3]) return true
+    const query = `SELECT * FROM ${type} WHERE detaiid = $1`
+    const result = await pool.query(query, [detaiid])
+    return result.rowCount == 5
+}
+
+const getSubcriberOfGroupById = async(id) => {
+    const query = `SELECT taikhoanid FROM consumers WHERE groupconsumerid = $1`
+    const result = await pool.query(query, [id])
+    return result.rows
+}
+
+const getTopicByIdnTitle =async (id, title) => {
+    const query = 'SELECT * FROM topics WHERE detaiid = $1 AND title = $2'
+    const result = await pool.query(query, [id, title])
+    return { data: result.rows[0] }
+}
+
 const sendMessToMemsCouncil = async (councilId, detaiId, adminId) => {
     const mems = await getAllMemOfCouncilById(councilId)
-    const groupid = await createGroupConsumer(`Hoidong_${councilId}`, `Hội đồng ${councilId}`)
+    const groupid = await createGroupConsumer(`PCHD_${councilId}`, `Hội đồng ${councilId}`)
     const memArr = [] // To send socket 
     if(groupid) {
         for (let mem of mems) {
@@ -220,7 +241,7 @@ const sendMessToMemsCouncil = async (councilId, detaiId, adminId) => {
             memArr.push(accountId)
             await checkExistConsumer(mem.giangvienid, groupid, "giangvien") // Assign mentor to groupConsumer
         }
-        const topicId = await createTopic(`Hội đồng ${councilId}`, groupid, detaiId) // Create topic for groupConsumer subcribe
+        const topicId = await createTopic(`Hội đồng chấm điểm`, groupid, detaiId) // Create topic for groupConsumer subcribe
         // const student = await getById('students', valuesArray[5])
         const msg = `Đề tài ${detaiId} được phân công cho hội đồng ${councilId}, giờ đây bạn có thể xem đề tài.`
         await createMsg(adminId, topicId.id, msg, Date.now(), "quanly") // Student sent - so get type of student
@@ -230,6 +251,32 @@ const sendMessToMemsCouncil = async (councilId, detaiId, adminId) => {
     }
     // return memArr
 }
+
+//
+// Function when all of members in coucil marked PROJECT 
+//
+const notify_upload_proposal = async (id, typeOfDoc, titleTopic, msg) => {
+    const check = await validateEnoughMarks(id, typeOfDoc);
+
+    if (!check) return;     // Check exists 5 records in table 
+
+    const topicId = await getTopicByIdnTitle(id, titleTopic)
+    if (!topicId) return; 
+    const groupid = await topicId.data.groupconsumerid
+    const message = `Đề tài ${id} ` + msg;
+    const system = await pool.query(`SELECT taikhoanid FROM taikhoan WHERE vaitro = $1 AND taikhoan."_webSocket" = $2`, ['Admin', true]) // System 
+    await createMsg(system.rows[0], topicId.data.id, message, Date.now(), "quanly") // Admin sent - so get type of quanly
+    const subcribers = await getSubcriberOfGroupById(groupid)
+
+    for (let client of subcribers) {
+        console.log(client.taikhoanid)
+        sendMessFromDb(client.taikhoanid)
+    }   
+}
+
+//
+// Function when student UPLOAD PROPOSAL 
+//
 
 socketReceive(getAccountId, getAdmin);
 
@@ -247,5 +294,6 @@ module.exports = {
     createCheckSeen,
     updateSeen,
     getFullNotifies,
-    sendMessToMemsCouncil
+    sendMessToMemsCouncil,
+    notify_upload_proposal
 }

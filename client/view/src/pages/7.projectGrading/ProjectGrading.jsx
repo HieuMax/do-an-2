@@ -12,6 +12,7 @@ import { markProject } from '../../controller/1.projects/project';
 import handleTotalMark from '../../utils/SumArray';
 import { gradingProposalForm } from './formGradeProposal';
 import { gradingRecomForm } from './formGradeRecom';
+import { gradingReportForm } from './formGradeReport';
 
 
 
@@ -28,17 +29,6 @@ export const ProjectGrading = ({ open, close, userToken, detaiid, data, form }) 
   const [ gradingForm, setGradingForm ] = useState({});
   const [ typeForm, setTypeForm ] = useState()
   const closeGradeForm = () => { setIsConfirmForm(false) }
-
-  useEffect(() => {
-    if(form == "Grading-proposal") {
-      setGradingForm(gradingProposalForm(data));
-      setTypeForm("ThuyetMinh")
-    } else if (form == "Grading-recom") {
-      setGradingForm(gradingRecomForm(data));
-      setTypeForm("DeXuat")
-    }
-    // console.log(form)
-  }, [form])
 
   //////////////////////////////////////////////////////////////
   // Handle user mark project //////////////////////////////////
@@ -67,6 +57,9 @@ export const ProjectGrading = ({ open, close, userToken, detaiid, data, form }) 
       diemtc7: resTotal.info[6]["mark"],
       diemtc8: resTotal.info[7]["mark"],
     }
+    if(typeForm == "BaoCao") {
+      data.diemtc9 = resTotal.info[8]["mark"]
+    }
     // console.log(data)
     try {
       const response = await markProject(data)
@@ -89,11 +82,20 @@ export const ProjectGrading = ({ open, close, userToken, detaiid, data, form }) 
   const handleComment = (comment) => setComment(comment)
     
   useEffect(() => {
-    // console.log(data)
     if (!open) {
         document.body.style.overflowY = "scroll"
     } else
     document.body.style.overflowY = "hidden"
+    if(form == "Grading-proposal") {
+      setGradingForm(gradingProposalForm(data));
+      setTypeForm("ThuyetMinh")
+    } else if (form == "Grading-recom") {
+      setGradingForm(gradingRecomForm(data));
+      setTypeForm("DeXuat")
+    } else if (form == "Grading-report") {
+      setGradingForm(gradingReportForm(data));
+      setTypeForm("BaoCao")
+    }
   }, [open])
 
 
@@ -127,6 +129,9 @@ export const ProjectGrading = ({ open, close, userToken, detaiid, data, form }) 
                 <MarkContext.Provider value={{ handleResMark, handleComment }}>
                   <div className="">
                       <TableGrading props={gradingForm} close={open} data={data}/>
+                      {/* {
+                        console.log(data && data.data)
+                      } */}
                       {/* comment */}
                       <div className="w-full flex justify-between gap-4 mt-8 items-end">
                         <div className="my-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-10/12">

@@ -35,6 +35,7 @@ export const FileUpload = ({ props }) => {
     }
     message.success(`Tải lên thành công.`);
     props.isConfirmToDisplay();
+    props._enableBtnConfirmChange();
     close()
   }
 

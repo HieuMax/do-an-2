@@ -5,8 +5,6 @@ import AddTeacherProvider from '../pages/11.teacherList/AddTeacherProvider';
 import TeacherListProvider from '../pages/11.teacherList/TeacherListProvider';
 import CouncilAssignmentProvider from '../pages/12.councilAssignment/CouncilAssignmentProvider';
 import Home from '../pages/2.home/Home';
-import ResetPasswordPage from '../pages/9.resetForgotPassword/ResetPasswordPage';
-import ForgotPasswordPage from '../pages/9.resetForgotPassword/ForgotPasswordPage';
 import { Profile } from '../pages/4.profile/Profile';
 import { ProjectListProvider } from '../pages/5.projectList/ProjectListProvider';
 import { ProjectDetail } from '../pages/6.projectDetail/ProjectDetail';
@@ -14,9 +12,10 @@ import { RegisteredProject } from '../pages/6.projectDetail/RegisteredProject';
 import { NotificationPage } from '../pages/8.Notification/NotificationPage';
 import { useAuthStore } from './authStore';
 import ErrorPage from '../pages/3.errorPage/ErrorPage';
-import { ReportPage } from '../pages/9.reportPage/ReportPage';
+import { ReportPage } from '../pages/13.reportPage/ReportPage';
 import { projectPermission } from '../controller/1.projects/project';
 import { useLocation } from 'react-router-dom';
+import { ReportPageList } from '../pages/13.reportPage/ReportPageList';
 
 let navigate = null;
 
@@ -91,8 +90,6 @@ export const children = [
   { path: "/", element: <Home /> },
   { path: "/profile", element: <Profile /> },
   { path: "/notification", element: <NotificationPage /> },
-  // { path: "/reset-password/:token", element: <ResetPasswordPage /> },
-  // { path: "/forgot-password", element: <ForgotPasswordPage /> },
   { path: "/project-list/:id", 
     element: 
       <ProjectAccessPermis>
@@ -108,6 +105,12 @@ export const children = [
   },
 
   { path: "/report", 
+    element: 
+      <StuAndTeaAccess>
+        <ReportPageList /> 
+      </StuAndTeaAccess> 
+  },
+  { path: "/report/:id", 
     element: 
       <StuAndTeaAccess>
         <ReportPage /> 
@@ -138,15 +141,6 @@ export const children = [
   },
   { path: "/editing-teacher/:id", 
     element: <AccessRoute><AddTeacherProvider isEdit = {true}/> </AccessRoute> 
-  },
-  { path: "/detail-product/:id", 
-    element: <AccessRoute> <ProjectDetail isAssign = {true}/> </AccessRoute> 
-  },
-  { path: "/detail-project/:id", 
-    element: 
-      <AccessRoute>
-        <RegisteredProject /> 
-      </AccessRoute> 
   },
 ]
 

@@ -48,16 +48,15 @@ export default function Navbar() {
         console.error(error.message);
       }
     };
-
     validateAndFetch();
-
   }, []);
 
   useEffect(() => {
     socket.onmessage = function(event) {
+      console.log(event)
       async function handleEvent (){
         const result = await fetchNoti()
-        console.log(result)
+        // console.log(result)
         NotifyInfo(<NotificationCard item={result && result[0]}/>)
       }
       handleEvent();

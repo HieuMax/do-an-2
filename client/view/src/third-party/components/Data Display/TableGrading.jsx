@@ -9,11 +9,8 @@ export default function TableGrading ({ props, close, data }) {
         info: Object.values(props).filter((item) => item.STT !== ""), 
         totalMark: "-"
     });
-    // useEffect(() => {
 
-    // }, []) 
     useEffect(() => {
-        // console.log(data.data[0])
         if (!data) {
           setMark({
               info: Object.values(props).filter((item) => item.STT !== ""),
@@ -23,6 +20,7 @@ export default function TableGrading ({ props, close, data }) {
 
         }
     }, [close])
+
 
     const onChange = (tc) => {
         const TC = mark.info
@@ -38,7 +36,6 @@ export default function TableGrading ({ props, close, data }) {
         }
         setMark({...mark, info: TC})
         const total = handleTotalMark(mark)
-        // console.log(mark.info)
         if(total) {
             setMark({...mark, totalMark: total})
             handleResMark(mark)

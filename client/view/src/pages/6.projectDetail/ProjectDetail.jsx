@@ -92,7 +92,8 @@ export const ProjectDetail = ({props}) => {
     isOpen: () => toggleUpload(),
     fileArray: fileArray,
     isConfirmToDisplay: () => isConfirmToDisplay(),
-    displayFile: displayFile
+    displayFile: displayFile,
+    _enableBtnConfirmChange: () => {}
   }
 
   const openUploadForm = () => {

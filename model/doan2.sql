@@ -118,9 +118,10 @@ CREATE TABLE ThanhVienThucHien (
 
 -- Table for TaiLieuNghienCuu (Research Documents)
 CREATE TABLE tailieuthuyetminh (
-    tailieupath PATH NOT NULL,
+    tailieupath TEXT NOT NULL,
     detaiid VARCHAR(10) PRIMARY KEY,
-    ngayNop DATE NOT NULL,
+    ngayNop TEXT NOT NULL,
+    originalfilename TEXT NOT NULL,
     FOREIGN KEY (detaiid) REFERENCES DeTai(deTaiId)
 )
 
@@ -143,13 +144,21 @@ CREATE TABLE diemtailieuthuyetminh (
 )
 
 -- Table for TaiLieuBaoCao (Report Documents)
+-- CREATE TABLE TaiLieuBaoCao (
+--     deTaiID VARCHAR(10),
+--     taiLieuBaoCao PATH NOT NULL,
+--     ngayNop DATE NOT NULL,
+--     FOREIGN KEY (deTaiID) REFERENCES DeTai(deTaiID),
+--     PRIMARY KEY (deTaiID)
+-- );
+
 CREATE TABLE TaiLieuBaoCao (
-    deTaiID VARCHAR(10),
-    taiLieuBaoCao PATH NOT NULL,
-    ngayNop DATE NOT NULL,
-    FOREIGN KEY (deTaiID) REFERENCES DeTai(deTaiID),
-    PRIMARY KEY (deTaiID)
-);
+    tailieupath TEXT NOT NULL,
+    detaiid VARCHAR(10) PRIMARY KEY,
+    ngayNop TEXT NOT NULL,
+    originalfilename TEXT NOT NULL,
+    FOREIGN KEY (detaiid) REFERENCES DeTai(deTaiId)
+)
 
 -- Table for BangDiemDeTai (Research Grading)
 CREATE TABLE BangDiemDeTai (
@@ -173,6 +182,26 @@ CREATE TABLE BangDiemThanhPhan (
     FOREIGN KEY (deTaiID) REFERENCES DeTai(deTaiID),
     FOREIGN KEY (vaiTro) REFERENCES ThanhVienHD(vaiTro)
 )
+
+CREATE TABLE diemtailieubaocao (
+  detaiid VARCHAR(13) NOT NULL,
+  nguoichamdiem VARCHAR(13) NOT NULL,
+  nhanxet TEXT NULL,
+  diemtailieu DOUBLE PRECISION NOT NULL,
+  diemTC1 SMALLINT NOT NULL,
+  diemTC2 SMALLINT NOT NULL,
+  diemTC3 SMALLINT NOT NULL,
+  diemTC4 SMALLINT NOT NULL,
+  diemTC5 SMALLINT NOT NULL,
+  diemTC6 SMALLINT NOT NULL,
+  diemTC7 SMALLINT NOT NULL,
+  diemTC8 SMALLINT NOT NULL,
+  diemTC9 SMALLINT NOT NULL,
+  PRIMARY KEY (detaiid,nguoichamdiem),
+  FOREIGN KEY (detaiid) REFERENCES DeTai(deTaiId),
+  FOREIGN KEY (nguoichamdiem) REFERENCES giangvien(giangvienid)
+)
+
 
 CREATE TABLE diemtailieudexuat (
 	detaiid VARCHAR(13) NOT NULL,
@@ -239,7 +268,7 @@ CREATE TABLE SeenMsgs (
 
 
 ------------------------------------------------------------------------------------------------------
--- TRIGGER -------------------------------------------------------------------------------------------
+-- TRIGGER ------------------------------------------------------------------------ TRIGGER ----------
 ------------------------------------------------------------------------------------------------------
 
 ---------------------------------------------------------------
@@ -318,11 +347,179 @@ ON diemtailieuthuyetminh
 FOR EACH ROW
 EXECUTE FUNCTION tg_autoCheckChamDiemThuyetMinh();
 
--- 0: Mới đăng ký
--- 1: GVHD duyệt
--- 2: Hội đồng góp ý và duyệt
--- 3: Nộp đề cương (đợi chấm)
--- 4: Đã chấm điểm thuyết minh -> thực hiện
--- 5: Nộp tài liệu báo cáo
--- 6: Chấm tài liệu báo cáo
--- 7: Nghiệm thu và các bước tiếp theo
+---------------------------------------------------------------
+---------------------- Tai Lieu Bao Cao -----------------------
+---------------------------------------------------------------
+--Trigger update status when upload report file
+CREATE OR REPLACE FUNCTION tg_autoUpdateStatusReportFile()
+RETURNS TRIGGER AS
+$$
+DECLARE
+    flag_update SMALLINT;
+    var_detaiid VARCHAR(13);
+BEGIN
+    -- Get detaiid from the inserted row
+    var_detaiid := NEW.detaiid;
+
+    -- Count the number of nguoichamdiem for the detaiid
+    SELECT COUNT(detaiid) INTO flag_update
+    FROM tailieubaocao
+    WHERE detaiid = var_detaiid;
+
+    -- If 5 nguoichamdiem found, update the detai table
+    IF flag_update = 1 THEN
+        UPDATE detai
+        SET trangthai = 5
+        WHERE detaiid = var_detaiid;
+    END IF;
+
+    RETURN NEW;
+END;
+$$
+LANGUAGE plpgsql;
+
+-- Now create the trigger
+CREATE TRIGGER tg_autoUpdateStatusReportFile
+AFTER INSERT
+ON tailieubaocao
+FOR EACH ROW
+EXECUTE FUNCTION tg_autoUpdateStatusReportFile();
+
+
+---------------------------------------------------------------
+---------------------- Cham Diem Bao Cao ----------------------
+---------------------------------------------------------------
+CREATE OR REPLACE FUNCTION tg_autoCheckBaoCao()
+RETURNS TRIGGER AS
+$$
+DECLARE
+    flag_update SMALLINT;
+    var_detaiid VARCHAR(13);
+BEGIN
+    -- Get detaiid from the inserted row
+    var_detaiid := NEW.detaiid;
+
+    -- Count the number of nguoichamdiem for the detaiid
+    SELECT COUNT(nguoichamdiem) INTO flag_update
+    FROM diemtailieubaocao
+    WHERE detaiid = var_detaiid;
+
+    -- If 5 nguoichamdiem found, update the detai table
+    IF flag_update = 5 THEN
+        UPDATE detai
+        SET trangthai = 6
+        WHERE detaiid = var_detaiid;
+    END IF;
+
+    RETURN NEW;
+END;
+$$
+LANGUAGE plpgsql;
+
+-- Now create the trigger
+CREATE TRIGGER tg_autoCheckBaoCao
+AFTER INSERT
+ON diemtailieubaocao
+FOR EACH ROW
+EXECUTE FUNCTION tg_autoCheckBaoCao();
+
+-- : Mới đăng ký --> mặc định 0
+-- : GVHD duyệt --> lên 1
+-- : Hội đồng phân công --> vẫn 1
+-- : Hội đồng góp ý và duyệt --> Trigger lên 2
+-- : Nộp thuyết minh --> vẫn 2
+-- : HĐ chấm đủ thuyết minh --> Trigger lên 3
+-- : Nộp báo cáo --> lên 5
+-- : Chấm báo cáo --> Trigger lên 6
+
+
+CREATE OR REPLACE FUNCTION tg_autoInsertToGroupConsumer()
+RETURNS TRIGGER AS
+$$
+DECLARE
+    var_taikhoanid INTEGER;
+    var_typeUser VARCHAR(10);
+    var_groupid BOOLEAN;
+BEGIN
+    -- Get taikhoanid from the inserted row
+    var_taikhoanid := NEW.taikhoanid;
+
+    IF NEW.vaitro = 'Admin' THEN
+        -- Check if groupconsumerid 'BQL' exists in groupconsumer table
+        SELECT EXISTS (
+            SELECT 1
+            FROM groupconsumer
+            WHERE groupconsumerid = 'BQL'
+        ) INTO var_groupid;
+
+        -- If groupconsumerid 'BQL' exists, insert into consumers
+        IF var_groupid THEN
+            INSERT INTO consumers (groupconsumerid, taikhoanid)
+            VALUES ('BQL', var_taikhoanid);
+        ELSE
+            -- If 'BQL' does not exist, insert into groupconsumer and then into consumers
+            INSERT INTO groupconsumer (groupconsumerid, name_group)
+            VALUES ('BQL', 'Ban Quản Lý');
+            
+            INSERT INTO consumers (groupconsumerid, taikhoanid)
+            VALUES ('BQL', var_taikhoanid);
+        END IF;
+    END IF;
+
+    RETURN NEW;
+END;
+$$
+LANGUAGE plpgsql;
+
+-- Now create the trigger
+CREATE TRIGGER tg_autoInsertToGroupConsumer
+AFTER INSERT
+ON taikhoan
+FOR EACH ROW
+EXECUTE FUNCTION tg_autoInsertToGroupConsumer();
+
+---------------------------------------------------------------
+---------------------- Cham Diem Bao Cao ----------------------
+---------------------------------------------------------------
+
+CREATE OR REPLACE FUNCTION tg_autoChangeTitleTopic()
+RETURNS TRIGGER AS
+$$
+DECLARE
+    status_update SMALLINT;
+    var_detaiid VARCHAR(13);
+BEGIN
+    -- Get detaiid from the inserted row
+    var_detaiid := NEW.detaiid;
+
+    -- Count the number of nguoichamdiem for the detaiid
+    SELECT trangthai INTO status_update
+    FROM detai
+    WHERE detaiid = var_detaiid;
+
+    -- If 5 nguoichamdiem found, update the detai table
+    IF status_update = 1 THEN
+        UPDATE topics
+        SET title = 'Cập nhật thông tin đề tài'
+        WHERE detaiid = var_detaiid;
+    END IF;
+
+    RETURN NEW;
+END;
+$$
+LANGUAGE plpgsql;
+
+-- Now create the trigger
+CREATE TRIGGER tg_autoChangeTitleTopic
+AFTER UPDATE
+ON detai
+FOR EACH ROW
+EXECUTE FUNCTION tg_autoChangeTitleTopic();
+
+
+------------------------------------------------------------------------------------------------------
+-- DELETE TO TEST ------------------------------------------------------------- DELETE TO TEST -------
+------------------------------------------------------------------------------------------------------
+-- DELETE FROM seenmsgs
+-- DELETE FROM unseenmsgs
+-- DELETE FROM topics

@@ -3,7 +3,7 @@ import { FileContext } from '../../provider/detailProvider'
 import { FileUpload } from '../dialog/FileUpload'
 import NotificationBottomRight from '../../third-party/components/Notification/NotificationBottomRight'
 import { message } from 'antd'
-import { uploadFile, uploadProposalfile } from '../../controller/1.projects/project'
+import { uploadFile, uploadProposalfile, uploadReportfile } from '../../controller/1.projects/project'
 
 export const UploadCom = ({ props }) => {
   const [ isOpenUpload, setIsOpenUpload ] = useState(false)
@@ -20,9 +20,9 @@ export const UploadCom = ({ props }) => {
     isOpen: () => toggleUpload(),
     fileArray: fileArray,
     isConfirmToDisplay: () => isConfirmToDisplay(),
-    displayFile: displayFile
+    displayFile: displayFile,
+    _enableBtnConfirmChange: () => props._enableBtnConfirmChange(),
   }
-
   useEffect(() => {
     if(!props.action) return
     isConfirmChange()
@@ -34,7 +34,7 @@ export const UploadCom = ({ props }) => {
         fileArray.forEach(file => {
             formData.append('file', file.originFileObj);
         });
-
+        
         try {
             const response = await uploadFile(formData);
             const filepath = response.filename
@@ -53,7 +53,13 @@ export const UploadCom = ({ props }) => {
             }
 
             if(response.status === 201) {
-                const response = await uploadProposalfile(data)
+                console.log('ok')
+                const response = props.label == "Tài liệu thuyết minh" 
+                 ? await uploadProposalfile(data)
+                 : props.label == "Tài liệu báo cáo" 
+                    ? await uploadReportfile(data)
+                    : ""
+                console.log(response)
                 if(response.error) {
                     return response.error
                 }

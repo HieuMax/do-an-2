@@ -37,7 +37,7 @@ const handleMessage = async (messageObj, ws, getAdmin) => {
             const targetCID = admin.taikhoanid
             socketSend(targetCID)
         }
-        // console.log(arr)
+        // console.log(arr) 
     } else {
         // Send message to target client
         const targetUid = messageObj.targetUid;
@@ -69,12 +69,10 @@ const socketReceive = (getAccountId, getAdmin) => {
 };
 
 const socketSend = (targetCId) => {
-    wss.on('connection', (ws) => {
-        if (clients[targetCId]) {
-            // console.log(targetCId)
-            clients[targetCId].send(JSON.stringify({ message: "Phan cong hoi dong" }))
-        }
-    })
+    if (clients[targetCId]) {
+        // console.log(targetCId)
+        clients[targetCId].send(JSON.stringify({ message: "Phan cong hoi dong" }))
+    }
 }
 
 module.exports = { wss, socketReceive, socketSend };

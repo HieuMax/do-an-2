@@ -28,7 +28,11 @@ export const DisplayProjectDetail = ({ action }) => {
         case 3: 
             return 3
         case 4:
-            return 2
+            return 4
+        case 5:
+            return 5
+        case 6:
+            return 6
         default:
             return
     }
@@ -50,9 +54,6 @@ export const DisplayProjectDetail = ({ action }) => {
       fetchData();
   }, [])
 
-//   useEffect(() => {
-//     console.log(project && project)
-//   }, [project])
 
   return (
     <div className="h-full max-w-full  flex p-3 flex-col">
@@ -76,12 +77,14 @@ export const DisplayProjectDetail = ({ action }) => {
                         : statusCss == 1
                         ? "border-orange-500 bg-orange-200"
                         : statusCss == 2
-                            ? "border-blue-500 bg-blue-200"
+                            ? "border-gray-500 bg-gray-200"
                             : statusCss == 3
-                            ? "bg-gray-200 border-gray-500" 
+                            ? "bg-blue-200 border-blue-500" 
                             : statusCss == 4 
-                                ? "bg-green-200 border-green-500"
-                                : "bg-red-200 border-red-500"
+                                ? "bg-red-200 border-red-500"
+                                : statusCss == 5
+                                    ? "bg-green-200 border-green-500"
+                                    : ""
                     }  
                     max-lg:col-span-1
                     flex justify-center text-center border-2 py-2 rounded-md text-base`}>
@@ -91,12 +94,14 @@ export const DisplayProjectDetail = ({ action }) => {
                     : statusCss == 1
                         ? "GVHD đã duyệt"
                         : statusCss == 2
-                        ? "Đề tài được duyệt"
+                        ? "Đề đã nộp đề cương"
                         : statusCss == 3
-                            ? "Chưa chấm điểm"
-                            : statusCss == 3 
-                                ? "Đạt"
-                                : "Không đạt"
+                            ? "Đã chấm điểm thuyết minh"
+                            : statusCss == 4
+                                ? "Không đạt"
+                                : statusCss == 5
+                                    ? "Đạt"
+                                    : "Không đạt"
                     }
                     
                     {

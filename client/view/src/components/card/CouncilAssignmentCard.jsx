@@ -39,7 +39,7 @@ const CouncilAssignmentCard = ({ props }) => {
   const isAssign = true; // hoặc false
 
   const handleClick = (id) => {
-    navigate(`/detail-project/${id}`, { state: { detaiId: id, isAssign } });
+    navigate(`/project-list/${id}`, { state: { detaiId: id, isAssign } });
 
   }
 

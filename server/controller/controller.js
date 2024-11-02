@@ -336,25 +336,50 @@ const getAll = (name) => {
             return
     }
 }
+
 const getAccessProject = async (uid, typeOfUser) => {
-    // const user = 
     let query = '';
     if (typeOfUser == 'Student') {
         query = `SELECT * FROM detai WHERE sinhvienid = $1`
         const results = await pool.query(query, [uid]);
         return {"data": results.rows};
     } 
-    // else if (typeOfUser == 'Teacher') {
-        query = `SELECT DISTINCT * 
-        FROM detai 
-        INNER JOIN hoidong ON hoidong.hoidongid = detai.hoidongphancong
-        WHERE giangvienchunhiemid = $1 OR detai.hoidongphancong IN (SELECT DISTINCT hoidongid FROM thanhvienhd WHERE giangvienid = $2)
-        GROUP BY detai.detaiid, hoidong.hoidongid`
-    // }
+    else if (typeOfUser == 'Teacher') {
+        query = `SELECT detai.detaiid, detai.giangvienchunhiemid, detai.tendetai, detai.trangthai
+                FROM detai
+                INNER JOIN hoidong ON hoidong.hoidongid = detai.hoidongphancong
+                WHERE detai.hoidongphancong IN (
+                    SELECT DISTINCT hoidongid
+                    FROM thanhvienhd
+                    WHERE giangvienid = $1
+                )
+                UNION
+                SELECT detai.detaiid, detai.giangvienchunhiemid, detai.tendetai, detai.trangthai
+                FROM detai
+                WHERE giangvienchunhiemid = $2`
+    }
     const results = await pool.query(query, [uid, uid]);
-    // console.log(results)
     return {"data": results.rows};
+}
 
+const getAccessReportProject = async (uid, typeOfUser, statusIdx) => {
+    // console.log(statusIdx)
+    
+    let query = '';
+    if (typeOfUser == 'Student') {
+        query = `SELECT * FROM detai WHERE sinhvienid = $1 AND trangthai = $2`
+        const results = await pool.query(query, [uid, statusIdx]);
+        return {"data": results.rows};
+    } 
+    else if (typeOfUser == 'Teacher') {
+        query = `SELECT DISTINCT * 
+        FROM detai
+        INNER JOIN hoidong ON hoidong.hoidongid = detai.hoidongphancong
+        WHERE trangthai = $1 AND (giangvienchunhiemid = $2 OR detai.hoidongphancong IN (SELECT DISTINCT hoidongid FROM thanhvienhd WHERE giangvienid = $3))
+        GROUP BY detai.detaiid, hoidong.hoidongid`
+    }
+    const results = await pool.query(query, [statusIdx, uid, uid]);
+    return {"data": results.rows};
 }
 
 const getAllFromDb = async (name) => {
@@ -572,8 +597,31 @@ const getMarkOfProject = async(detaiid, role, userid, type) => {
             return { "data": result.rows }
     
         }
+    } else if (type == "baocao") {
+        if (role == "nguoichamdiem") {
+            const checkMarked = await pool.query(`SELECT * FROM diemtailieubaocao WHERE detaiid = $1`, [detaiid])
+            if (checkMarked.rowCount == 5) {
+                for (let e of checkMarked.rows) {
+                    const name = await (await getMentorById(e.nguoichamdiem)).data.hoten
+                    e.nguoichamdiem = name
+                }
+                return { "data": checkMarked.rows }
+            }
+
+            const query = `SELECT * FROM diemtailieubaocao WHERE detaiid = $1 AND nguoichamdiem = $2`
+            const result = await pool.query(query, [detaiid, userid])
+            return { "data": result.rows }
+            
+        } else if(role == "sinhvien") {
+            const query = `SELECT * FROM diemtailieubaocao WHERE detaiid = $1`
+            const result = await pool.query(query, [detaiid])
+            return { "data": result.rows }
+    
+        }
     }
 }
+
+
 
 const getProposalFile = async(detaiid) => {
     const query = `SELECT * FROM tailieuthuyetminh WHERE detaiid = $1`
@@ -581,11 +629,21 @@ const getProposalFile = async(detaiid) => {
     return { data: result.rows[0] }
 }
 
+const getReportFile = async(detaiid) => {
+    const query = `SELECT * FROM tailieubaocao WHERE detaiid = $1`
+    const result = await pool.query(query, [detaiid])
+    return { data: result.rows[0] }
+}
+
+
+
 const getTopicById = async(id) => {
     const query = 'SELECT id FROM topics WHERE detaiid = $1'
     const result = await pool.query(query, [id])
     return { data: result.rows[0] }
 }
+
+
 
 const getRelatedToAccess = async (detaiid, uid) => {
     const query = `SELECT detaiid FROM detai 
@@ -604,6 +662,8 @@ const getRelatedToAccess = async (detaiid, uid) => {
     return { permission: "Not allowed" }
 }
 
+
+
 // ---------------------------------------------------------------------------
 // PUT -----------------------------------------------------------------------
 // ---------------------------------------------------------------------------
@@ -617,8 +677,6 @@ const updateStatus = async (status, id, uid) => {
         if (status == 1) {
             const msg = `Đề tài ${id} đã được giảng viên hướng dẫn phê duyệt`
             const topicId = await getTopicById(id)
-            // console.log(uid)
-            // console.log(topicId.data.id)
             await createMsg(uid, topicId.data.id, msg, Date.now(), "giangvien") // Mentor sent - so get type of mentor
             // console.log('ok')
 
@@ -691,7 +749,7 @@ const registNewProject = async (data) => {
         // console.log('here')
 
         // Ham create thong bao
-        const groupid = await createGroupConsumer(`HD${String(detaiId).substring(2)}`, `Giảng viên hướng dẫn đề tài ${detaiId}`)
+        const groupid = await createGroupConsumer(`SnM${String(detaiId).substring(2)}`, `Giảng viên hướng dẫn đề tài ${detaiId}`)
         // console.log(groupid)
         if(groupid) {
             const topicId = await createTopic("Phê duyệt đề tài", groupid, detaiId) // Create topic for groupConsumer subcribe
@@ -722,6 +780,24 @@ const uploadProposal = async (data) => {
     }
 }
 
+const uploadReport = async (data) => {
+    try {
+        const values = Object.values(data)
+        const text = `INSERT INTO tailieubaocao (tailieupath, detaiid, ngaynop, originalfilename) VALUES ($1, $2, $3, $4)`
+        const query = {
+            text: text,
+            values: values
+        }
+        const result = await pool.query(query)
+        if(result.error) {
+            throw result.error
+        }
+        return { status: 201 }
+    } catch (error) {
+        return {"error": error.message}
+    }
+}
+
 const permission = async(token, detaiid) => {
     const a = await pool.query(`SELECT hoidongphancong FROM detai WHERE detaiid = $1`, [detaiid])
     const hoidongid = await a.rows[0].hoidongphancong;
@@ -733,7 +809,7 @@ const permission = async(token, detaiid) => {
 }
 
 const markProject = async(type, data) => {
-    const allowedTables = ["diemtailieuthuyetminh", "diemtailieudexuat"]
+    const allowedTables = ["diemtailieuthuyetminh", "diemtailieudexuat", "diemtailieubaocao"]
     if(!allowedTables.includes(type)) {
         return json({ status: 500, message: "Invalid server" })
     }
@@ -742,15 +818,20 @@ const markProject = async(type, data) => {
         return { "Error": "Not permission" }
     } else {
         let query;
+        const value = [data.nguoichamdiem, data.mark, data.comment, data.detaiid, data.diemtc1, data.diemtc2, data.diemtc3, data.diemtc4, data.diemtc5, data.diemtc6, data.diemtc7, data.diemtc8]
         if (type == allowedTables[0]) {
             query = `INSERT INTO diemtailieuthuyetminh (nguoichamdiem, diemtailieu, nhanxet, detaiid, diemtc1, diemtc2, diemtc3, diemtc4, diemtc5, diemtc6, diemtc7, diemtc8) VALUES 
         ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`
         } else if (type == allowedTables[1]) {
             query = `INSERT INTO diemtailieudexuat (nguoichamdiem, diemtailieu, nhanxet, detaiid, diemtc1, diemtc2, diemtc3, diemtc4, diemtc5, diemtc6, diemtc7, diemtc8) VALUES 
         ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`
+        } else if (type == allowedTables[2]) {
+            query = `INSERT INTO diemtailieubaocao (nguoichamdiem, diemtailieu, nhanxet, detaiid, diemtc1, diemtc2, diemtc3, diemtc4, diemtc5, diemtc6, diemtc7, diemtc8, diemtc9) VALUES 
+        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`
+            value.push(data.diemtc9)
         }
         try {
-            const result = await pool.query(query, [data.nguoichamdiem, data.mark, data.comment, data.detaiid, data.diemtc1, data.diemtc2, data.diemtc3, data.diemtc4, data.diemtc5, data.diemtc6, data.diemtc7, data.diemtc8])
+            const result = await pool.query(query, value)
             if(result.error) {
                 throw result.error
             }
@@ -768,6 +849,8 @@ const markType = (type, data) => {
             return markProject("diemtailieuthuyetminh", data)
         case "DeXuat":
             return markProject("diemtailieudexuat", data)
+        case "BaoCao":
+            return markProject("diemtailieubaocao", data)
         default: 
             return
     }
@@ -802,9 +885,15 @@ module.exports = {
     downloadFile,
     markType,
     getMarkOfProject,
-    uploadProposal,
+    uploadProposal, 
+    uploadReport,
     getProposalFile,
+    getReportFile,
     updateProjectStatusAndCouncil,
     getAccessProject,
-    getRelatedToAccess
+    getAccessReportProject,
+    getRelatedToAccess,
+    // getTopicByIdnTitle,
+    // validateEnoughMarks,
+    // getSubcriberOfGroupById
 }

@@ -1,27 +1,24 @@
 import React, { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom';
-import { downloadFile, getMarkOfProject, getProjectById, getProposalFile, projectPermission, updateStatusProject } from '../../controller/1.projects/project';
+import { downloadFile, getMarkOfProject, getProjectById, getProposalFile, getReportFile, updateStatusProject } from '../../controller/1.projects/project';
 import { Loading } from '../../utils/Loading';
-import ConfirmDialog from '../../components/dialog/ConfirmDialog';
-import NotificationBottomRight from '../../third-party/components/Notification/NotificationBottomRight';
 import { ProjectGrading } from '../7.projectGrading/ProjectGrading';
-import TimelineCom from '../../third-party/components/Data Display/Timeline';
 import { UploadCom } from '../../components/fileupload/UploadCom';
-import TableViewMarks from '../../third-party/components/Data Display/TableViewMarks';
 import { DisplayProjectDetail } from '../../components/project_detail/DisplayProjectDetail';
 import { DisplayFileUploaded } from '../../components/project_detail/DisplayFileUploaded';
-import ModalAssignCouncil from '../../components/modal/ModalAssignCouncil';
-import { useAuthStore } from '../../api/authStore';
 import { getNotify, sendMessToAdmin } from '../../controller/7.notify/notify';
+import ConfirmDialog from '../../components/dialog/ConfirmDialog';
+import ModalAssignCouncil from '../../components/modal/ModalAssignCouncil';
+import NotificationBottomRight from '../../third-party/components/Notification/NotificationBottomRight';
+import TimelineCom from '../../third-party/components/Data Display/Timeline';
+import TableViewMarks from '../../third-party/components/Data Display/TableViewMarks';
 
 
-export const RegisteredProject = ({props}) => {
+export const RegisteredProject = () => {
   const navigate = useNavigate();
-  // const { user } = useAuthStore()
   const user = JSON.parse(window.localStorage.getItem('userInfo'))
   const accesstoken = 
   { 
-    // id: user.vaitro=="Student"?user.sinhvienid : user.giangvienid,
     id: user.userId,
     role: user.vaitro=="Student"?"sinhvien" : "giangvien"
   }
@@ -49,6 +46,7 @@ export const RegisteredProject = ({props}) => {
   const [ openModalReject, setOpenModalReject ] = useState(false);
   const [ openModalGrading, setOpenModalGrading ] = useState(false)
   const [ isConfirmForm, setIsConfirmForm ] = useState(false)
+  const [ enableBtnChange, setEnableBtnChange ] = useState(false)
 
   // --------------------------------------------------------------
   // ----------------------- Close modal --------------------------
@@ -67,14 +65,16 @@ export const RegisteredProject = ({props}) => {
   // ------------------------- Form -------------------------------
   // --------------------------------------------------------------
   const [ viewRecomForm, setViewRecomForm ] = useState(false)
+  const [ formTableView, setFormTableView ] = useState(0)
   const [ gradingForm, setGradingForm ] = useState()
   
   // --------------------------------------------------------------
   // ------------------------ Loading -----------------------------
   // --------------------------------------------------------------
   const [ loading, setLoading ] = useState(false) 
-  const action_click_timeline = () => {
+  const action_click_timeline = (idx) => {
     setViewRecomForm(true)
+    setFormTableView(idx)
  }
 
   // --------------------------------------------------------------
@@ -84,7 +84,7 @@ export const RegisteredProject = ({props}) => {
     proposal: false,
     report: false,
     status: logicStatus,
-    action_click_timeline: () => action_click_timeline()
+    action_click_timeline: (idx) => action_click_timeline(idx)
   })
 
   // --------------------------------------------------------------
@@ -95,9 +95,11 @@ export const RegisteredProject = ({props}) => {
     label: "",
     detaiid: detaiId,
     action: false,
+    _enableBtnConfirmChange: () => setEnableBtnChange(true),
     affter_action: () => handleAffterAction(),
   })
   
+
 
   const handleIsConfirm = () => {
     setPropsUpfile({
@@ -135,12 +137,14 @@ export const RegisteredProject = ({props}) => {
         NotificationBottomRight("Duyệt thành công")
         await getNotify(t.value, "Approval project", "sinhvien")
         await sendMessToAdmin("Assign council to project")
+        // dispatch(sendMessToAdmin("Assign council to project"));
     })
+    setLoading(true)
+
     setTimeout(() => {
         window.location.reload();
     }, 1500)
     clearTimeout()
-    setLoading(true)
   }
 
 
@@ -180,6 +184,18 @@ export const RegisteredProject = ({props}) => {
       }
     }
     fetchProposal();
+
+    // if (logicStatus < 3) return
+    const fetchReport = async() => {
+      const response = await getReportFile(detaiId);
+      if(response === undefined || (response && response.length < 1)) {
+          setReportFile()
+      } else {
+          setReportFile(response)
+          setPropsTimeline({...propsTimeline, proposal: true, report: true})
+      }
+    }
+    fetchReport();
   }, [detaiId, councilAssigned])
 
   // --------------------------------------------------------------
@@ -206,10 +222,8 @@ export const RegisteredProject = ({props}) => {
           role: accesstoken.role == "giangvien"? "nguoichamdiem" : "sinhvien",
           type: logicStatus == 1 ? "dexuat" : "thuyetminh"
         }
-        // console.log(datajson)
         if(!datajson.type) return
         const response = await getMarkOfProject(datajson);
-        // console.log(response)
         if(response.data && response.data.length < 1) {
           setData()
         } else {
@@ -218,7 +232,6 @@ export const RegisteredProject = ({props}) => {
       } 
       fetchMark()
   }, [logicStatus])
-
 
   // --------------------------------------------------------------
   // -------------------- Func to download file -------------------
@@ -291,7 +304,7 @@ export const RegisteredProject = ({props}) => {
                         ? 
                         <div className="my-6">
                             <div className="flex w-full max-xl:w-full flex-row-reverse">
-                                <div className="mt-3 w-2/3">
+                                <div className="mt-3 w-2/3 ml-12">
                                     <TimelineCom props={propsTimeline}/>
                                 </div>
                                 <div className="w-full">
@@ -338,7 +351,7 @@ export const RegisteredProject = ({props}) => {
 
                             {/* View mark */}
                             {
-                              <TableViewMarks open={viewRecomForm} close={() => setViewRecomForm(false)} detaiid={detaiId} userToken={user}/>
+                              <TableViewMarks open={viewRecomForm} close={() => setViewRecomForm(false)} detaiid={detaiId} userToken={user} colIdx={formTableView}/>
                             }
 
                             {/* Grading */}
@@ -378,10 +391,19 @@ export const RegisteredProject = ({props}) => {
                             
                             {/* Confirm change */}
                             {
-                              accesstoken.role == "sinhvien" && logicStatus%2==0
-                              ? (<div className={`${project.trangthai < 2 ? "hidden" : ""} w-full flex justify-end gap-4 mt-8`}>
-                                  <div className="bg-system text-center px-3 py-2 rounded-xl shadow-xl text-lg hover:bg-red-system-hover font-semibold text-white cursor-pointer w-fit bg-red-system" onClick={() => setIsConfirmForm(true)}>
-                                      Xác nhận thay đổi
+                              accesstoken.role == "sinhvien" && (logicStatus == 2 || logicStatus == 3)
+                              ? (<div className={`${project.trangthai < 2 || project.trangthai > 3 ? "hidden" : ""} w-full flex justify-end gap-4 mt-8`}>
+                                  <div className={`
+                                  ${enableBtnChange == true 
+                                    ? `bg-red-system hover:bg-red-system-hover cursor-pointer`
+                                    : `bg-gray-300 hover:bg-gray-300 select-none`
+                                  } bg-system text-center px-3 py-2 rounded-xl shadow-xl text-lg font-semibold text-white  w-fit `} 
+                                       onClick={() => enableBtnChange == true ? setIsConfirmForm(true) : ""}>
+                                      
+                                      {/* {enableBtnChange == true && logicStatus == 3 && "Báo cáo"} */}
+                                      {enableBtnChange == true && logicStatus == 2 
+                                      ? "Xác nhận thay đổi"
+                                      : "Báo cáo" }
                                   </div>
                                   <div className="z-100">
                                       <ConfirmDialog  titlehead={"Xác nhận thay đổi"} parent={"Confirm"} props={""} open={isConfirmForm} close={closeConfirmDialog} isConfirm={handleIsConfirm}/>
