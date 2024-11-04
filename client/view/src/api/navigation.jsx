@@ -16,7 +16,6 @@ import { ReportPage } from '../pages/13.reportPage/ReportPage';
 import { projectPermission, reportPermission } from '../controller/1.projects/project';
 import { useLocation } from 'react-router-dom';
 import { ReportPageList } from '../pages/13.reportPage/ReportPageList';
-import ArticlePage from '../pages/15.feedManagement/ArticlePage';
 
 let navigate = null;
 
@@ -168,9 +167,5 @@ export const children = [
   { path: "/editing-teacher/:id", 
     element: <AccessRoute><AddTeacherProvider isEdit = {true}/> </AccessRoute> 
   },
-  { path: "/feed-management", 
-    element: <AccessRoute><ArticlePage /> </AccessRoute> 
-  },
-
 ]
 
