@@ -19,23 +19,26 @@ projectRouter.get('/', async(req, res) => {
 
 projectRouter.get('/accessProject/:uid', async(req, res) => {
     const { uid } = req.params
+    // const { uid } = req.query
+    
     const data = JSON.parse(uid)
-    const result = await getAccessProject(data.userId, data.typeOfUser);
+    const result = await getAccessProject(data.userId, data.typeOfUser, data.status, data.page);
+    // console.log(uid)
     if (result.error) {
         res.status(500).json({"error": result.error});
     } else {
-        res.json({detai: result.data})
+        res.json({detai: result.data, records: result.records})
     }
 })
 
 projectRouter.get('/accessReportProject/:uid', async(req, res) => {
     const { uid } = req.params
     const data = JSON.parse(uid)
-    const result = await getAccessReportProject(data.userId, data.typeOfUser, data.statusIdx);
+    const result = await getAccessReportProject(data.userId, data.typeOfUser, data.statusIdx, data.page);
     if (result.error) {
         res.status(500).json({"error": result.error});
     } else {
-        res.json({detai: result.data})
+        res.json({detai: result.data, records: result.records})
     }
 })
 
@@ -139,8 +142,8 @@ projectRouter.get('/reportFile/:id', async(req, res) => {
 
 projectRouter.get('/accessProjectPermission', async (req, res) => {
     // res.send("ok")
-    const { detaiid, uid } = req.query
-    const result = await getRelatedToAccess(detaiid, uid)
+    const { detaiid, uid, report } = req.query
+    const result = await getRelatedToAccess(detaiid, uid, report)
     // console.log('ok')
     if (result.permission == "allowed") {
         // console.log(result)

@@ -56,7 +56,7 @@ const login = async (req, res) => {
       obj = 'admin-Byaccount'
     }
     const userId = await getById(obj, user.taikhoanid)
-    console.log(userId)
+    // console.log(userId)
     const userInfo = {
       taikhoanid: user.taikhoanid,
       vaitro: user.vaitro,

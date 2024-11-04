@@ -6,7 +6,26 @@ import { sendNoti } from "../7.notify/notify";
 
 const url = "/projects";
 
-export const getAllProjects = async () => {
+export const getAllProjects = async (status, page) => {
+    const userInfo = JSON.parse(window.localStorage.getItem('userInfo'))
+    const data = {
+        userId: userInfo.userId,
+        typeOfUser: userInfo.vaitro,
+        page: page,
+        status: status
+    }
+    console.log(data)
+    const response = await fetch(`${API_ENDPOINT}${url}/accessProject/${JSON.stringify(data)}`);
+    const projects = await response.json();
+    const arr = projects.detai
+    arr.forEach(async(element) => {
+        const name = await getNameMentorById(element.giangvienchunhiemid);
+        element.hotengiangvien = name
+    });
+    return projects;
+}
+
+export const getProjectPage = async (page) => {
     const userInfo = JSON.parse(window.localStorage.getItem('userInfo'))
     const data = {
         userId: userInfo.userId,
@@ -22,12 +41,13 @@ export const getAllProjects = async () => {
     return projects;
 }
 
-export const getReportProject = async (statusIdx) => {
+export const getReportProject = async (statusIdx, page) => {
     const userInfo = JSON.parse(window.localStorage.getItem('userInfo'))
     const data = {
         userId: userInfo.userId,
         typeOfUser: userInfo.vaitro,
-        statusIdx: statusIdx
+        statusIdx: statusIdx,
+        page: page
     }
     const response = await fetch(`${API_ENDPOINT}${url}/accessReportProject/${JSON.stringify(data)}`);
     const projects = await response.json();
@@ -284,9 +304,9 @@ export const downloadFile = async (filename, originalname) => {
     }
 }
 
-export const projectPermission = async (detaiid, uid) => {
+export const projectPermission = async (detaiid, uid, report) => {
     try {
-        const response = await fetch(`${API_ENDPOINT}${url}/accessProjectPermission/?uid=${uid}&detaiid=${detaiid}`)
+        const response = await fetch(`${API_ENDPOINT}${url}/accessProjectPermission/?uid=${uid}&detaiid=${detaiid}&report=${report}`)
         const permission = await response.json();
         return permission;
     } catch (error) {

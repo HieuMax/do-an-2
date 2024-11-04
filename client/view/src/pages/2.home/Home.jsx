@@ -28,6 +28,7 @@ const Home = () => {
         
         <div className="h-full max-w-full">
           <ListCard props={Log}/>
+          {/* <PaginationCustom /> */}
         </div>
     </div>
   )

@@ -1,7 +1,7 @@
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/20/solid'
 import { NewCard } from '../components/card/NewCard';
 import { useState } from 'react';
-import { InforProjectCard } from '../components/card/InforProjectCard';
+// import { InforProjectCard } from '../components/card/InforProjectCard';
 import CouncilListCard from '../components/card/CouncilListCard';
 import CouncilAssignmentCard from '../components/card/CouncilAssignmentCard';
 import TeacherListCard from '../components/card/TeacherListCard';
@@ -41,7 +41,7 @@ export default function Pagination({prop, parent}) {
       <div className="scroll-smooth">
         <div className="">
           {parent == "Home" && <NewCard prop={currentItems} />}
-          {parent == "ListProject" && <InforProjectCard props={currentItems}/>}
+          {/* {parent == "ListProject" && <InforProjectCard props={currentItems}/>} */}
           {parent == "CouncilListCard" && <CouncilListCard props={currentItems}/>}
           {parent == "CouncilAssignmentCard" && <CouncilAssignmentCard props={currentItems}/>}
           {parent == "TeacherListCard" && <TeacherListCard props={currentItems}/>}

@@ -173,10 +173,11 @@ const createCheckSeen = async () => {
 
 const getAllNotifies = async (userid) => {
     // console.log(userid)
-    const query = `SELECT DISTINCT topics.title, topics.detaiid, unseenmsgs.time_stamp, unseenmsgs.taikhoanid, unseenmsgs._message, seenmsgs.seen, unseenmsgs.messagesid
+    const query = `SELECT DISTINCT topics.title, topics.detaiid, unseenmsgs.time_stamp, unseenmsgs.taikhoanid, unseenmsgs._message, seenmsgs.seen, unseenmsgs.messagesid, detai.trangthai
                     FROM topics
                     INNER JOIN unseenmsgs ON unseenmsgs.topicid = topics.id
                     INNER JOIN seenmsgs ON seenmsgs.messagesid = unseenmsgs.messagesid
+                    INNER JOIN detai ON detai.detaiid = topics.detaiid
                     WHERE groupconsumerid IN (SELECT groupconsumerid FROM consumers WHERE taikhoanid = $1) AND unseenmsgs.taikhoanid != $1 AND seenmsgs.seen != TRUE AND seenmsgs.taikhoanid = $1
                     ORDER BY unseenmsgs.time_stamp DESC`
     try {
@@ -187,16 +188,27 @@ const getAllNotifies = async (userid) => {
     }
 }
 
-const getFullNotifies = async (userid) => {
-    const query = `SELECT topics.title, topics.detaiid, unseenmsgs.time_stamp, unseenmsgs.taikhoanid, unseenmsgs._message, unseenmsgs.messagesid
+const getFullNotifies = async (userid, page) => {
+    const data_per_page = 10;
+    const offset = page? (Number.parseInt(page) - 1) * 10 : 0
+    
+    const query = `SELECT topics.title, topics.detaiid, unseenmsgs.time_stamp, unseenmsgs.taikhoanid, unseenmsgs._message, unseenmsgs.messagesid, detai.trangthai
     FROM topics
     INNER JOIN unseenmsgs ON unseenmsgs.topicid = topics.id
+    INNER JOIN detai ON detai.detaiid = topics.detaiid
     WHERE groupconsumerid IN (SELECT groupconsumerid FROM consumers WHERE taikhoanid = $1) AND unseenmsgs.taikhoanid != $1
-    ORDER BY unseenmsgs.time_stamp DESC`
+    ORDER BY unseenmsgs.time_stamp DESC
+    LIMIT $2 OFFSET $3`
     // console.log(userid)
     try {
-        const topics = await pool.query(query, [userid])
-        return topics.rows
+        const topics = await pool.query(query, [userid, data_per_page, offset])
+        const queryRecords = `SELECT COUNT(unseenmsgs.messagesid)
+        FROM topics
+        INNER JOIN unseenmsgs ON unseenmsgs.topicid = topics.id
+        INNER JOIN detai ON detai.detaiid = topics.detaiid
+        WHERE groupconsumerid IN (SELECT groupconsumerid FROM consumers WHERE taikhoanid = $1) AND unseenmsgs.taikhoanid != $1`
+        const records = await pool.query(queryRecords, [userid])
+        return {data: topics.rows, records: records.rows[0]}
     } catch (error) {
         return { error }
     }

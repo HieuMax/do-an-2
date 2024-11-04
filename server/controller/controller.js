@@ -337,49 +337,84 @@ const getAll = (name) => {
     }
 }
 
-const getAccessProject = async (uid, typeOfUser) => {
+const getAccessProject = async (uid, typeOfUser, status, page) => {
+    const data_per_page = 10;
+    const offset = page? (Number.parseInt(page) - 1) * 10 : 0
     let query = '';
     if (typeOfUser == 'Student') {
-        query = `SELECT * FROM detai WHERE sinhvienid = $1`
-        const results = await pool.query(query, [uid]);
-        return {"data": results.rows};
+        query = `SELECT * FROM detai WHERE sinhvienid = $1 AND trangthai = $2 LIMIT $3 OFFSET $4`
+        const results = await pool.query(query, [uid, status, data_per_page, offset]);
+        query = `SELECT COUNT(detaiid) FROM detai WHERE sinhvienid = $1 AND trangthai = $2`
+        const records = await pool.query(query, [uid, status]);
+        return {"data": results.rows, "records": records.rows[0]};
     } 
-    else if (typeOfUser == 'Teacher') {
-        query = `SELECT detai.detaiid, detai.giangvienchunhiemid, detai.tendetai, detai.trangthai
-                FROM detai
-                INNER JOIN hoidong ON hoidong.hoidongid = detai.hoidongphancong
-                WHERE detai.hoidongphancong IN (
-                    SELECT DISTINCT hoidongid
-                    FROM thanhvienhd
-                    WHERE giangvienid = $1
-                )
-                UNION
-                SELECT detai.detaiid, detai.giangvienchunhiemid, detai.tendetai, detai.trangthai
-                FROM detai
-                WHERE giangvienchunhiemid = $2`
-    }
-    const results = await pool.query(query, [uid, uid]);
-    return {"data": results.rows};
+    // else if (typeOfUser == 'Teacher') {
+    query = `SELECT detai.detaiid, detai.giangvienchunhiemid, detai.tendetai, detai.trangthai
+            FROM detai
+            INNER JOIN hoidong ON hoidong.hoidongid = detai.hoidongphancong
+            WHERE detai.hoidongphancong IN (
+                SELECT DISTINCT hoidongid
+                FROM thanhvienhd
+                WHERE giangvienid = $1
+            ) AND trangthai = $2
+            UNION
+            SELECT detai.detaiid, detai.giangvienchunhiemid, detai.tendetai, detai.trangthai
+            FROM detai
+            WHERE trangthai = $2 AND giangvienchunhiemid = $1`
+    const records = await pool.query(query, [uid, status]);
+
+    query = `SELECT detai.detaiid, detai.giangvienchunhiemid, detai.tendetai, detai.trangthai
+            FROM detai
+            INNER JOIN hoidong ON hoidong.hoidongid = detai.hoidongphancong
+            WHERE detai.hoidongphancong IN (
+                SELECT DISTINCT hoidongid
+                FROM thanhvienhd
+                WHERE giangvienid = $1
+            ) AND trangthai = $2
+            UNION
+            SELECT detai.detaiid, detai.giangvienchunhiemid, detai.tendetai, detai.trangthai
+            FROM detai
+            WHERE trangthai = $2 AND giangvienchunhiemid = $1
+            LIMIT $3 OFFSET $4`
+    const results = await pool.query(query, [uid, status, data_per_page, offset]);
+
+
+    return {"data": results.rows, "records": records.rowCount };
 }
 
-const getAccessReportProject = async (uid, typeOfUser, statusIdx) => {
-    // console.log(statusIdx)
-    
+const getAccessReportProject = async (uid, typeOfUser, statusIdx, page) => {
+    const data_per_page = 10;
+    const offset = page? (Number.parseInt(page) - 1) * 10 : 0
     let query = '';
     if (typeOfUser == 'Student') {
-        query = `SELECT * FROM detai WHERE sinhvienid = $1 AND trangthai = $2`
-        const results = await pool.query(query, [uid, statusIdx]);
-        return {"data": results.rows};
+        query = `SELECT COUNT(detaiid) FROM detai WHERE sinhvienid = $1 AND trangthai = $2`
+        const records = await pool.query(query, [uid, statusIdx]);
+        
+        query = `SELECT * FROM detai WHERE sinhvienid = $1 AND trangthai = $2 LIMIT $3 OFFSET $4`
+        const results = await pool.query(query, [uid, statusIdx, data_per_page, offset]);
+
+        // const records = await getCountRecords(uid, statusIdx);
+        return {"data": results.rows, "records": records.rows[0]};
     } 
-    else if (typeOfUser == 'Teacher') {
-        query = `SELECT DISTINCT * 
-        FROM detai
-        INNER JOIN hoidong ON hoidong.hoidongid = detai.hoidongphancong
-        WHERE trangthai = $1 AND (giangvienchunhiemid = $2 OR detai.hoidongphancong IN (SELECT DISTINCT hoidongid FROM thanhvienhd WHERE giangvienid = $3))
-        GROUP BY detai.detaiid, hoidong.hoidongid`
-    }
-    const results = await pool.query(query, [statusIdx, uid, uid]);
-    return {"data": results.rows};
+    // else if (typeOfUser == 'Teacher') {
+    // else {
+
+    query = `SELECT COUNT(detaiid) 
+    FROM detai
+    INNER JOIN hoidong ON hoidong.hoidongid = detai.hoidongphancong
+    WHERE trangthai = $1 AND (giangvienchunhiemid = $2 OR detai.hoidongphancong IN (SELECT DISTINCT hoidongid FROM thanhvienhd WHERE giangvienid = $3))
+    GROUP BY detai.detaiid, hoidong.hoidongid`
+    const records = await pool.query(query, [statusIdx, uid, uid]);
+
+    query = `SELECT DISTINCT * 
+    FROM detai
+    INNER JOIN hoidong ON hoidong.hoidongid = detai.hoidongphancong
+    WHERE trangthai = $1 AND (giangvienchunhiemid = $2 OR detai.hoidongphancong IN (SELECT DISTINCT hoidongid FROM thanhvienhd WHERE giangvienid = $3))
+    GROUP BY detai.detaiid, hoidong.hoidongid
+    LIMIT $4 OFFSET $5`
+    // }
+    const results = await pool.query(query, [statusIdx, uid, uid, data_per_page, offset]);
+    return {"data": results.rows, "records": records.rows[0]};
 }
 
 const getAllFromDb = async (name) => {
@@ -645,18 +680,31 @@ const getTopicById = async(id) => {
 
 
 
-const getRelatedToAccess = async (detaiid, uid) => {
-    const query = `SELECT detaiid FROM detai 
-    WHERE detaiid = $1
-    AND (sinhvienid = $2
-    OR giangvienchunhiemid = $3
-    OR hoidongphancong IN (SELECT hoidongid FROM thanhvienhd WHERE giangvienid = $4))`
-    const res = await pool.query(query, [detaiid, uid, uid, uid])
-    if (res.error) return { error: res.error }
-    if (res.rowCount > 0) {
-        // console.log("allowed")
-
-        return { permission: "allowed", accessedProject: res.rows }
+const getRelatedToAccess = async (detaiid, uid, report) => {
+    if (!report) {
+        const query = `SELECT detaiid FROM detai 
+        WHERE detaiid = $1
+        AND trangthai <= 4
+        AND (sinhvienid = $2
+        OR giangvienchunhiemid = $3
+        OR hoidongphancong IN (SELECT hoidongid FROM thanhvienhd WHERE giangvienid = $4))`
+        const res = await pool.query(query, [detaiid, uid, uid, uid])
+        if (res.error) return { error: res.error }
+        if (res.rowCount > 0) {
+            return { permission: "allowed", accessedProject: res.rows }
+        }
+    } else {
+        const query = `SELECT detaiid FROM detai 
+        WHERE detaiid = $1
+        AND trangthai >= 5
+        AND (sinhvienid = $2
+        OR giangvienchunhiemid = $3
+        OR hoidongphancong IN (SELECT hoidongid FROM thanhvienhd WHERE giangvienid = $4))`
+        const res = await pool.query(query, [detaiid, uid, uid, uid])
+        if (res.error) return { error: res.error }
+        if (res.rowCount > 0) {
+            return { permission: "allowed", accessedProject: res.rows }
+        }
     }
     // console.log("not allowed")
     return { permission: "Not allowed" }

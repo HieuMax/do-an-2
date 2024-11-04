@@ -60,7 +60,6 @@ const StuAndTeaAccess = ({ children }) => {
 
 const ProjectAccessPermis = ({ children }) => {
   const user = JSON.parse(window.localStorage.getItem('userInfo'))
-
   try {
     if (user.vaitro == "Admin") {
       return children 
@@ -73,8 +72,33 @@ const ProjectAccessPermis = ({ children }) => {
       async function isAccess() {
         const res = await projectPermission(detaiId, user.userId)
         res.result.permission == "allowed"
-          ? setChild(children)
-          : setChild(<ErrorPage />)
+        ? setChild(children)
+        : setChild(<ErrorPage />)
+      }
+      isAccess();
+      return child
+    }
+  } catch (error) {
+    
+  }
+}
+
+const ReportAccessPermis = ({ children }) => {
+  const user = JSON.parse(window.localStorage.getItem('userInfo'))
+  try {
+    if (user.vaitro == "Admin") {
+      return children 
+    } else {
+      const location = useLocation();
+      const { detaiId } = location.state 
+      ? location.state
+      : {detaiId: location.pathname.substring(location.pathname.lastIndexOf('/')+1)}; 
+      const [ child, setChild ] = useState()
+      async function isAccess() {
+      const res = await projectPermission(detaiId, user.userId, true)
+      res.result.permission == "allowed"
+        ? setChild(children)
+        : setChild(<ErrorPage />)
       }
       isAccess();
       return child
@@ -85,6 +109,7 @@ const ProjectAccessPermis = ({ children }) => {
 }
 
 
+
 export const children = [
   // All user
   { path: "/", element: <Home /> },
@@ -92,7 +117,7 @@ export const children = [
   { path: "/notification", element: <NotificationPage /> },
   { path: "/project-list/:id", 
     element: 
-      <ProjectAccessPermis>
+      <ProjectAccessPermis report={false}>
         <RegisteredProject /> 
       </ProjectAccessPermis>
   },
@@ -112,9 +137,9 @@ export const children = [
   },
   { path: "/report/:id", 
     element: 
-      <StuAndTeaAccess>
+      <ReportAccessPermis>
         <ReportPage /> 
-      </StuAndTeaAccess> 
+      </ReportAccessPermis>
   },
 
 

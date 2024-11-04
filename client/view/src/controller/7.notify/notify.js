@@ -106,10 +106,10 @@ export const getNotificate =  async () => {
     }
 }
 
-export const getFullNotification = async () => {
+export const getFullNotification = async (current) => {
     try {
         const userId = JSON.parse(window.localStorage.getItem("userInfo")).taikhoanid
-        const response = await fetch(`${API_ENDPOINT}${url}/getFullNotifies/?userId=${userId}`)
+        const response = await fetch(`${API_ENDPOINT}${url}/getFullNotifies/?userId=${userId}&page=${current}`)
         const json = await response.json();
         return json
     } catch (error) {

@@ -13,10 +13,10 @@ notificateRouter.get('/getAllNotifies', async (req, res) => {
 })
 
 notificateRouter.get('/getFullNotifies', async (req, res) => {
-    const { userId } = req.query
+    const { userId, page } = req.query
     if (!userId) return
-    const result = await getFullNotifies(userId)
-    return res.status(200).send(result)
+    const result = await getFullNotifies(userId, page)
+    return res.status(200).json(result)
 })
 
 notificateRouter.get('/test', async (req, res) => {

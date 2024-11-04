@@ -8,7 +8,7 @@ export const NotificationCard = ({ item }) => {
     updateSeenMsg(item.messagesid)
   }
   return (
-    <a href={`/project-list/${item.detaiid}`} onClick={() => handleClick(item)}>
+    <a href={item.trangthai <= 4 ? `/project-list/${item.detaiid}` : `/report/${item.detaiid}`} onClick={() => handleClick(item)}>
         <div className="rounded-lg p-3 flex space-y-2 hover:bg-gray-100  cursor-pointer">
             <div className="mr-3">
                 <img 

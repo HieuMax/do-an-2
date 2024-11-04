@@ -1,9 +1,7 @@
-import { useState, useEffect } from "react";
-import authorizedAxiosInstance from "../../utils/authorizedAxios";
-import { API_ENDPOINT } from "../../controller";
-import axios from "axios";
+import { useState } from "react";
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuthStore } from "../../api/authStore";
+import { onLogin } from "../../provider/websocket";
 
 export default function InputForm() {
   const type = ["sinh viên", "giảng viên", "quản lý"];
@@ -11,7 +9,7 @@ export default function InputForm() {
   const [maSo, setMaSo] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate()
-	const { login, isAuthenticated, connectSocketServer } = useAuthStore();
+	const { login} = useAuthStore();
 
   const userTypeHandle = (type) => {
     setUserType(type);
@@ -22,7 +20,7 @@ export default function InputForm() {
 		await login(maSo, password, userType);
 
     navigate('/')
-
+    onLogin(JSON.parse(window.localStorage.getItem("userInfo")).taikhoanid);
   };
 
 

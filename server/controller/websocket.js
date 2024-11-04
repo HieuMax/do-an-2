@@ -8,7 +8,7 @@ const clients = {};
 const messageMiddleware = async (message, ws, next, getAccountId, getAdmin) => {
     try {
         const jsonMess = JSON.parse(message);
-        // console.log(jsonMess)
+
         // If the message contains a targetUid, convert it to AccountId
         if (jsonMess.targetUid) {
             const accountId = await getAccountId(jsonMess.targetUid, jsonMess.typeOfUser);
@@ -24,25 +24,22 @@ const messageMiddleware = async (message, ws, next, getAccountId, getAdmin) => {
 
 // Function to handle messages after middleware
 const handleMessage = async (messageObj, ws, getAdmin) => {
-    // console.log("Processed message:", messageObj);
-
     if (messageObj.type == 'register') {
-        // Register the client by their userId
+        // Register the client by their userId - INIT
         clients[messageObj.userId] = ws;
+
     } else if ( messageObj.type == 'sendAdmin' ) {
-        // console.log('Admin');
-        // console.log(messageObj)
         const arrAdmin = await getAdmin();
         for(let admin of arrAdmin) {
             const targetCID = admin.taikhoanid
             socketSend(targetCID)
         }
-        // console.log(arr) 
     } else {
         // Send message to target client
         const targetUid = messageObj.targetUid;
         const text = messageObj.text;
         if (clients[targetUid]) {
+            // console.log(targetUid)
             clients[targetUid].send(JSON.stringify({ from: messageObj.userId, text }));
         }
     }
@@ -61,6 +58,7 @@ const socketReceive = (getAccountId, getAdmin) => {
             // Handle user disconnect
             for (const id in clients) {
                 if (clients[id] === ws) {
+                    console.log('client out: ' + id)
                     delete clients[id];
                 }
             }
@@ -71,7 +69,7 @@ const socketReceive = (getAccountId, getAdmin) => {
 const socketSend = (targetCId) => {
     if (clients[targetCId]) {
         // console.log(targetCId)
-        clients[targetCId].send(JSON.stringify({ message: "Phan cong hoi dong" }))
+        clients[targetCId].send(JSON.stringify({ message: "Send from server" }))
     }
 }
 

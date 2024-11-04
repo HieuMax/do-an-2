@@ -1,19 +1,18 @@
 import React from 'react';
 import { Tabs } from 'antd';
-import { ReportListPending } from './ReportListPending';
-import { ReportListFinished } from './ReportListFinished';
+import { ReportList } from './ReportList';
 export const ReportPageList = () => {
 
   const itemsTabs = [
     {
       key: '1',
       label: 'Đề tài chưa được chấm điểm',
-      children: <ReportListPending />,
+      children: <ReportList prop={5}/>,
     },
     {
       key: '2',
       label: 'Đề tài đã hoàn tất chấm điểm',
-      children: <ReportListFinished />,
+      children: <ReportList prop={6}/>,
     },
   ];
 

@@ -4,19 +4,30 @@ import { ListCard } from '../../components/card/ListCard'
 import { getAllProjects } from '../../controller/1.projects/project';
 import ProjectsContext from '../../provider/projectProvider';
 import { Loading } from '../../utils/Loading';
+import { InforProjectCard } from '../../components/card/InforProjectCard';
+import { Pagination } from 'antd';
 
 export const ProjectList = () => {
     // const [list, setList] = useState(0);
-
+    const [ isLoading, setIsLoading ] = useState(true)
+    const [ current, setCurrent ] = useState(1)
+    const [ records, setRecords ] = useState()
+    const onChangePag = (current) => {
+        setIsLoading(true)
+        setCurrent(current)
+    }
     const {
         state: { projects, list },
         dispatch,
     } = useContext(ProjectsContext);
 
     useEffect(() => {
+        setIsLoading(true)
         async function fetchData() {
             try {
-                const projectsData = await getAllProjects();
+                const projectsData = await getAllProjects(list, current);
+                console.log(projectsData)
+                setRecords(projectsData.records.count? projectsData.records.count :projectsData.records)
                 setTimeout(() => {
                     dispatch({ 
                         type: "LOADED_PROJECTS",
@@ -26,14 +37,15 @@ export const ProjectList = () => {
                         type: "CHANGED_LIST",
                         payload: list
                     })
-                }, 1200)
+                    setIsLoading(false)
+                }, 1000)
                 clearTimeout();
             } catch (error) {
                 throw new Error(error)
             }
         }
         fetchData();
-    }, [dispatch])
+    }, [dispatch, current, list])
 
 
     const status = [
@@ -50,22 +62,18 @@ export const ProjectList = () => {
         })
     }
     
-    const [log, setLog] = useState({
-        data: projects? projects.detai: [],
-        parent: "ListProject"
-    })
+    // const [log, setLog] = useState({
+    //     data: projects? projects.detai: [],
+    //     parent: "ListProject"
+    // })
 
     useEffect(() => {
-        const filteredProjects = Array.isArray(projects.detai) 
-            ? projects.detai.filter(item => (
-                (item.trangthai === list || ((item.trangthai == 3 || item.trangthai == 4) && list === 3))
-              )) 
-            : []; 
-        setLog({
-            data: projects? filteredProjects: [],
-            parent: log.parent
-        })
-    }, [projects, list])
+        setIsLoading(true)
+    }, [list])
+
+    // useEffect(() => {
+    //     console.log(isLoading)
+    // }, [isLoading])
 
 
   return (
@@ -91,8 +99,14 @@ export const ProjectList = () => {
                     </div>
 
                     {
-                        projects.detai && log.data
-                        ? <ListCard props={log} />
+                        !isLoading
+                        ? 
+                        (
+                            <>
+                                <InforProjectCard props={projects.detai}/>
+                                <div className="my-6"><Pagination align='end' total={records} current={current} onChange={onChangePag}/></div>
+                            </>
+                        )
                         : <Loading />
                     }
                 </div>
