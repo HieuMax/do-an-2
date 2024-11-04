@@ -211,7 +211,8 @@ const updateSeen = async (uid, messId) => {
 
 const sendMessToMemsCouncil = async (councilId, detaiId, adminId) => {
     const mems = await getAllMemOfCouncilById(councilId)
-    const groupid = await createGroupConsumer(`Hoidong_${councilId}`, `Hội đồng ${councilId}`)
+    const groupid = await createGroupConsumer(`${councilId}`, `Hội đồng ${councilId}`)
+
     const memArr = [] // To send socket 
     if(groupid) {
         for (let mem of mems) {
@@ -228,7 +229,7 @@ const sendMessToMemsCouncil = async (councilId, detaiId, adminId) => {
             sendMessFromDb(client)
         }
     }
-    // return memArr
+    return memArr
 }
 
 socketReceive(getAccountId, getAdmin);

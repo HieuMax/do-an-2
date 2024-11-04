@@ -17,6 +17,7 @@ import ErrorPage from '../pages/3.errorPage/ErrorPage';
 import { ReportPage } from '../pages/9.reportPage/ReportPage';
 import { projectPermission } from '../controller/1.projects/project';
 import { useLocation } from 'react-router-dom';
+import ArticlePage from '../pages/15.feedManagement/ArticlePage';
 
 let navigate = null;
 
@@ -139,14 +140,9 @@ export const children = [
   { path: "/editing-teacher/:id", 
     element: <AccessRoute><AddTeacherProvider isEdit = {true}/> </AccessRoute> 
   },
-  { path: "/detail-product/:id", 
-    element: <AccessRoute> <ProjectDetail isAssign = {true}/> </AccessRoute> 
+  { path: "/feed-management", 
+    element: <AccessRoute><ArticlePage /> </AccessRoute> 
   },
-  { path: "/detail-project/:id", 
-    element: 
-      <AccessRoute>
-        <RegisteredProject /> 
-      </AccessRoute> 
-  },
+
 ]
 

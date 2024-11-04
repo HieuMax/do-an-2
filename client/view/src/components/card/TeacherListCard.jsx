@@ -88,7 +88,7 @@ const TeacherListCard = ({ props }) => {
                 </thead>
                 <tbody className="divide-y divide-gray-200 bg-white">
                   {isLoading ? (
-                    Array.from({ length: 6 }).map((_, index) => (
+                    Array.from({ length: 1 }).map((_, index) => (
                       <tr key={index}>
                         <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
                           <Skeleton.Input active size="small" style={{ width: 226 }} />
@@ -126,7 +126,7 @@ const TeacherListCard = ({ props }) => {
                         </td>
                         <td className="whitespace-nowrap px-3 py-4 sm:text-base text-sm text-center">
                           <button
-                            className="bg-[#B80011] text-white px-4 py-2 rounded min-w-[100px]"
+                            className="bg-red-500 text-white px-4 py-2 rounded min-w-[100px]"
                             onClick={() => handleDeleteClick(board)}
                           >
                             Xóa

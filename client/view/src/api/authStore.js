@@ -7,11 +7,9 @@ import { registToServer } from "../provider/websocket";
 axios.defaults.withCredentials = true;
 
 export const useAuthStore = create((set) => ({
-	// user: null,
 	user: JSON.parse(localStorage.getItem('userInfo')) || null,
 	isAuthenticated: !!localStorage.getItem('userInfo'),  // Kiểm tra xem có thông tin người dùng trong localStorage không
 	error: null,
-	// error: null,
 	isLoading: false,
 	isCheckingAuth: true,
 	message: null,
@@ -51,7 +49,7 @@ export const useAuthStore = create((set) => ({
 	forgotPassword: async (email) => {
 		set({ isLoading: true, error: null });
 		try {
-			const response = await axios.post(`${API_ENDPOINT}/forgot-password`, { email });
+			const response = await axios.post(`${API_ENDPOINT}/auth/forgot-password`, { email });
 			set({ message: response.data.message, isLoading: false });
 		} catch (error) {
 			set({
@@ -64,7 +62,20 @@ export const useAuthStore = create((set) => ({
 	resetPassword: async (token, password) => {
 		set({ isLoading: true, error: null });
 		try {
-			const response = await axios.post(`${API_ENDPOINT}/reset-password/${token}`, { password });
+			const response = await axios.post(`${API_ENDPOINT}/auth/reset-password/${token}`, { password });
+			set({ message: response.data.message, isLoading: false });
+		} catch (error) {
+			set({
+				isLoading: false,
+				error: error.response.data.message || "Error resetting password",
+			});
+			throw error;
+		}
+	},
+	changePassword: async (taikhoanid, password, oldPassword) => {
+		set({ isLoading: true, error: null });
+		try {
+			const response = await axios.post(`${API_ENDPOINT}/auth/change-password`, { taikhoanid, password, oldPassword });
 			set({ message: response.data.message, isLoading: false });
 		} catch (error) {
 			set({
@@ -79,7 +90,6 @@ export const useAuthStore = create((set) => ({
 		try {
 			const response = await authorizedAxiosInstance.get(`${API_ENDPOINT}/dashboard/accessa`);
 			set({ user: response.data, isAuthenticated: true, isCheckingAuth: false });
-			// return { isAuthenticated }
 		} catch (error) {
 			set({ error: null, isCheckingAuth: false, isAuthenticated: false });
 		}

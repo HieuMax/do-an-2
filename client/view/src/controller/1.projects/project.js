@@ -21,11 +21,12 @@ export const getAllProjects = async () => {
     return projects;
 }
 
-export const updateProjectStatusAndCouncil = async (detaiid, status, council) => {
+export const updateProjectStatusAndCouncil = async (detaiid, status, council, taikhoanid) => {
     const data = {
         detaiid: detaiid,
         status: status,
-        council: council
+        council: council,
+        taikhoanid: taikhoanid
     };
 
     try {
@@ -93,10 +94,12 @@ export const uploadFile = async (formData) => {
 export const getProjectsByStatus = async () => {
     try {
         const response = await axios.get(`${API_ENDPOINT}${url}/status`);
+        if(!response.data.success){
+            return response.data
+        }
         return response.data;
 
     } catch (error) {
-        console.error('Error:', error);
         return { success: false, message: 'Error' };
     }
 }
@@ -138,7 +141,6 @@ export const uploadProposalfile = async (data) => {
 
 
 export const markProject = async(data) => {
-    console.log(data)
     try {
         const response = await fetch(`${API_ENDPOINT}${url}/markProject`, {
             method: 'POST',
@@ -161,7 +163,7 @@ export const getMarkOfProject = async(data) => {
     try {
         const response = await fetch(`${API_ENDPOINT}${url}/marks?type=${data.type}&role=${data.role}&detaiid=${data.detaiid}&userid=${data.userid}`)
         const projectMark = await response.json();
-        console.log(projectMark)
+        // console.log(projectMark)
         return projectMark;
     } catch (error) {
         return { error: error }
@@ -239,3 +241,4 @@ export const updateFile = async(data) => {
         // }
 }
 // module.exports = 
+

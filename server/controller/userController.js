@@ -2,8 +2,14 @@ const { StatusCodes } = require('http-status-codes');
 const ms = require('ms');
 const { JwtProvider, ACCESS_TOKEN_SECRET_SIGNATURE, REFRESH_TOKEN_SECRET_SIGNATURE } = require('../providers/JwtProvider');
 const pool = require('../database/database')
-const bcryptjs = require('bcryptjs');
 const { getById, getRelatedToAccess } = require('./controller');
+const crypto = require('crypto')
+const { 
+  sendPasswordResetEmail, 
+  sendResetSuccessEmail, 
+  sendVerificationEmail, 
+  sendWelcomeEmail 
+} = require("../mailtrap/emails.js");
 
 /**
  * Mock nhanh thông tin user thay vì phải tạo Database rồi query.
@@ -30,7 +36,7 @@ const login = async (req, res) => {
 
     // Nếu không tìm thấy user
     if (result.rows.length === 0) {
-      return res.status(StatusCodes.FORBIDDEN).json({ message: 'Invalid credentials' });
+      return res.status(StatusCodes.FORBIDDEN).json({ message: 'Tài khoản hoặc mật khẩu của bạn không hợp lệ !!' });
     }
 
     const user = result.rows[0];
@@ -42,7 +48,7 @@ const login = async (req, res) => {
     // }
 
     if (tendangnhap !== user.tendangnhap || matkhau !== user.matkhau) {
-      res.status(StatusCodes.FORBIDDEN).json({ message: 'Your username or password is incorrect!' });
+      res.status(StatusCodes.FORBIDDEN).json({ message: 'Tài khoản hoặc mật khẩu của bạn không hợp lệ !!' });
       return;
     }
 
@@ -56,7 +62,6 @@ const login = async (req, res) => {
       obj = 'admin-Byaccount'
     }
     const userId = await getById(obj, user.taikhoanid)
-    console.log(userId)
     const userInfo = {
       taikhoanid: user.taikhoanid,
       vaitro: user.vaitro,
@@ -162,32 +167,32 @@ const refreshToken = async (req, res) => {
 const forgotPassword = async (req, res) => {
 	const { email } = req.body;
 	try {
-		// const user = await User.findOne({ email });
+    const query = `
+    SELECT taikhoanid, mail FROM giangvien WHERE mail = $1
+    UNION
+    SELECT taikhoanid, mail FROM sinhvien WHERE mail = $1
+    UNION
+    SELECT taikhoanid, mail FROM bophanql WHERE mail = $1;
+    `;
+    const result = await pool.query(query, [email]);
 
-		// if (!user) {
-		// 	return res.status(400).json({ success: false, message: "User not found" });
-		// }
-
-    // Tìm user bằng email trong bảng "users"
-    const query = 'SELECT * FROM taikhoan WHERE tendangnhap = $1 and vaitro = $2';
-    const result = await pool.query(query, [tendangnhap, vaitro]);
-
-    // Nếu không tìm thấy user
     if (result.rows.length === 0) {
-      return res.status(StatusCodes.BAD_REQUEST).json({success: false, message: '"User not found' });
+      return res.status(StatusCodes.BAD_REQUEST).json({ success: false, message: "User not found" });
     }
 
 		// Generate reset token
 		const resetToken = crypto.randomBytes(20).toString("hex");
 		const resetTokenExpiresAt = Date.now() + 1 * 60 * 60 * 1000; // 1 hour
 
-		user.resetPasswordToken = resetToken;
-		user.resetPasswordExpiresAt = resetTokenExpiresAt;
-
-		await user.save();
-
+    const updateQuery = `
+      UPDATE taikhoan
+      SET resetpwdtoken = $1, resetpwdexp = $2
+      WHERE taikhoanid = $3
+    `;
+    await pool.query(updateQuery, [resetToken, resetTokenExpiresAt, result.rows[0].taikhoanid]);
+    
 		// send email
-		await sendPasswordResetEmail(user.email, `${process.env.CLIENT_URL}/reset-password/${resetToken}`);
+		await sendPasswordResetEmail(result.rows[0].mail, `${process.env.CLIENT_URL}/reset-password/${resetToken}`);
 
 		res.status(200).json({ success: true, message: "Password reset link sent to your email" });
 	} catch (error) {
@@ -196,11 +201,85 @@ const forgotPassword = async (req, res) => {
 	}
 };
 
+const resetPassword = async (req, res) => {
+	try {
+		const { token } = req.params;
+		const { password } = req.body;
+
+		const resetTokenExpiresAt = Date.now(); // 1 hour
+    const query = `
+      SELECT * FROM taikhoan
+      WHERE resetpwdtoken = $1
+      AND resetpwdexp > $2
+    `;
+    const { rows } = await pool.query(query, [token, resetTokenExpiresAt]);
+    const user = rows[0];
+
+    if (!user) {
+    return res.status(400).json({ success: false, message: `Invalid or expired reset token`});
+    }
+
+    const updateQuery = `
+      UPDATE taikhoan
+      SET matkhau = $1, resetpwdtoken = NULL, resetpwdexp = NULL
+      WHERE taikhoanid = $2
+    `;
+    await pool.query(updateQuery, [password, user.taikhoanid]);
+
+		await sendResetSuccessEmail("phuc12104@gmail.com");
+
+		res.status(200).json({ success: true, message: "Password reset successful" });
+	} catch (error) {
+		console.log("Error in resetPassword ", error);
+		res.status(400).json({ success: false, message: error.message });
+	}
+};
+
+const changePassword = async (req, res) => {
+  try {
+    const { taikhoanid, password, oldPassword } = req.body;
+  
+    // Kiểm tra xem người dùng có tồn tại hay không
+    const userQuery = `SELECT * FROM taikhoan WHERE taikhoanid = $1`;
+    const userResult = await pool.query(userQuery, [taikhoanid]);
+
+    if (userResult.rows.length === 0) {
+      return res.status(StatusCodes.NOT_FOUND).json({ success: false, message: 'User not found' });
+    }
+
+    const user = userResult.rows[0];
+
+    if (user.matkhau !== oldPassword) { 
+      return res.status(StatusCodes.BAD_REQUEST).json({ success: false, message: 'Mật khẩu cũ không hợp lệ' });
+    }
+
+    if (user.matkhau === password) { 
+      return res.status(StatusCodes.NOT_MODIFIED).json({ success: false, message: 'Mật khẩu chưa có gì thay đổi' });
+    }
+    
+    // Cập nhật mật khẩu mới
+    const updateQuery = `
+      UPDATE taikhoan
+      SET matkhau = $1
+      WHERE taikhoanid = $2
+    `;
+    await pool.query(updateQuery, [password, taikhoanid]); 
+
+    res.status(StatusCodes.OK).json({ success: true, message: 'Password updated successfully' });
+  } catch (error) {
+    console.log('Error in changePassword', error);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ success: false, message: error.message });
+  }
+};
+
+
 module.exports = {
   userController: {
     login,
     logout,
     refreshToken,
-    forgotPassword
+    forgotPassword,
+    resetPassword,
+    changePassword
   }
 };

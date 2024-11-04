@@ -15,6 +15,13 @@ userRouter.delete('/logout', userController.logout)
 userRouter.put('/refresh_token', userController.refreshToken)
 
 // API quên mật khẩu.
-userRouter.post("/forgot-password", userController.forgotPassword);
+userRouter.post("/forgot-password", userController.forgotPassword)
+
+// API reset mật khẩu
+userRouter.post("/reset-password/:token", userController.resetPassword)
+
+// API đổi mật khẩu
+userRouter.post("/change-password", userController.changePassword)
+
 
 module.exports = userRouter;

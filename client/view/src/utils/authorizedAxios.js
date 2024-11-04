@@ -89,7 +89,6 @@ authorizedAxiosInstance.interceptors.response.use((response) => {
     if (error.response?.status !== 410 && error.response?.status !== 500){
       // toast.error(error.response?.data?.message || error?.message)
       toast.error(error.response?.data?.message || error?.message)
-
     }
     if (error.response?.status == 500){
       // toast.error(error.response?.data?.message || error?.message)

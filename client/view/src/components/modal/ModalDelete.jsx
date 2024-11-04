@@ -29,7 +29,7 @@ const ModalDelete = ({ isOpen, toggleModal, data, onDelete }) => {
           await getCouncilsData()
           toast.success('Xóa hội đồng thành công!')
         } else {
-          toast.error(`Không thể xóa ${nameSelected} !!`);
+          toast.error(`Không thể xóa hội đồng ${nameSelected} !!`);
         }
         toggleModal(); // Đóng modal
       }
@@ -40,14 +40,14 @@ const ModalDelete = ({ isOpen, toggleModal, data, onDelete }) => {
           await getTeachersData()
           toast.success('Xóa giảng viên thành công!')
         } else {
-          toast.error(`Không thể xóa ${nameSelected} !!`);
+          toast.error(`Không thể xóa giảng viên ${nameSelected} !!`);
         }
         toggleModal()
         
       }
    
     } catch (error) {
-      toast.error(`Khôngaaaa ${nameSelected} !!`);
+      toast.error(`Không thể xóa ${nameSelected} !!`);
  
     }
   };

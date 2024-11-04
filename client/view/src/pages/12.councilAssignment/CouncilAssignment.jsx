@@ -24,7 +24,6 @@ const CouncilAssignment = () => {
 
     
     useEffect(() => {
-  
         setData(projects)
 
     }, [projects])
@@ -53,11 +52,12 @@ const CouncilAssignment = () => {
 
     useEffect(() => {
         let filteredByProject = projects;
-
-        if (selectedStatus && selectedStatus.id != "0") {
-          filteredByProject = projects.filter(project => project.trangthai === selectedStatus.id);
+        if (selectedStatus && selectedStatus.id == "1") {
+            filteredByProject = projects.filter(project => project.hoidongphancong === null);
         }
-
+        if (selectedStatus && selectedStatus.id == "2") {
+            filteredByProject = projects.filter(project => project.hoidongphancong !== null);
+        }
         const searchResult = filteredByProject.filter(project =>
           project.detaiid.toLowerCase().includes(debouncedSearchValue.toLowerCase()) || 
           project.tendetai.toLowerCase().includes(debouncedSearchValue.toLowerCase())

@@ -4,6 +4,7 @@ import { Dialog, DialogBackdrop, DialogPanel } from '@headlessui/react'
 import { getCouncilMembers, updateCouncilMember } from '../../controller/5.councils/councils';
 import { ManagementContext } from '../../context/ManagementContext';
 import { toast } from 'react-toastify';
+import ModalConfirm from './ModalConfirm';
 
 const modalEditCouncil = ({ isOpen, toggleModal, data }) => {
 
@@ -120,46 +121,7 @@ const modalEditCouncil = ({ isOpen, toggleModal, data }) => {
     };
 
     /* ---------- Handle nút sửa thành viên theo vai trò trong hội đồng ---------- */
-    const submitHandler = async (e) => {
-
-      if(continueButton){
-        setContinueButton(!continueButton)
-        return
-      }
-      if (!selectedRole) {
-        toast.warn("Vui lòng chọn vai trò")
-        return;
-      }
-      if (!selectedDepartment) {
-        toast.warn("Vui lòng chọn khoa")
-        return;
-      }
-      if (!selectedLecturer) {
-        toast.warn("Vui lòng chọn giảng viên")
-        return;
-      }
-      let rowIndex;
-      if(selectedRole === 'Chủ tịch'){
-        rowIndex = 'chuTichID';
-      }
-      if(selectedRole === 'Phản biện 1'){
-        rowIndex = 'phanBien1ID';
-      }
-      if(selectedRole === 'Phản biện 2'){
-        rowIndex = 'phanBien2ID';
-      }
-      if(selectedRole === 'Ủy viên'){
-        rowIndex = 'uyVienID';
-      }
-      if(selectedRole === 'Thư ký'){
-        rowIndex = 'thuKyID';
-      }
-
-      const currentLecturerId = oldMembers[rowIndex];
-      if (currentLecturerId === selectedLecturer) {
-        alert("Chưa có thông tin nào được thay đổi");
-        return;
-      }
+    const onSubmitHandler = async () => {
 
       const updatedMember = {
         hoidongid: data.hoidongid,
@@ -198,14 +160,82 @@ const modalEditCouncil = ({ isOpen, toggleModal, data }) => {
     };
 
     const handleModalClose = () => {
+      setContinueButton(false)
       resetForm();
       toggleModal();
+    };
+    /* ---------- Confirm Dialog ---------- */
+    const [isConfirmOpen, setIsConfirmOpen] = useState(false); // Kiểm soát mở/đóng dialog xác nhận
+
+    // Hàm mở Confirm Dialog
+    const openConfirmDialog = () => setIsConfirmOpen(true);
+
+    // Hàm đóng Confirm Dialog
+    const closeConfirmDialog = () => setIsConfirmOpen(false);
+
+    const handleSubmitWithConfirmation = () => {
+      
+      if(continueButton){
+        setContinueButton(!continueButton)
+        return
+      }
+      if (!selectedRole) {
+        toast.warn("Vui lòng chọn vai trò")
+        return;
+      }
+      if (!selectedDepartment) {
+        toast.warn("Vui lòng chọn khoa")
+        return;
+      }
+      if (!selectedLecturer) {
+        toast.warn("Vui lòng chọn giảng viên")
+        return;
+      }
+      let rowIndex;
+      if(selectedRole === 'Chủ tịch'){
+        rowIndex = 'chuTichID';
+      }
+      if(selectedRole === 'Phản biện 1'){
+        rowIndex = 'phanBien1ID';
+      }
+      if(selectedRole === 'Phản biện 2'){
+        rowIndex = 'phanBien2ID';
+      }
+      if(selectedRole === 'Ủy viên'){
+        rowIndex = 'uyVienID';
+      }
+      if(selectedRole === 'Thư ký'){
+        rowIndex = 'thuKyID';
+      }
+
+      const currentLecturerId = oldMembers[rowIndex];
+      if (currentLecturerId === selectedLecturer) {
+        toast.info("Chưa có thông tin nào được thay đổi");
+        return;
+      }
+
+      
+      openConfirmDialog()
     };
 
     /* ---------- Ending ---------- */
 
   return (
     <>
+
+
+      <ModalConfirm
+        isOpen={isConfirmOpen}
+        onClose={closeConfirmDialog}
+        onConfirm={() => {
+          closeConfirmDialog();
+          onSubmitHandler();
+        }}
+        title="Xác nhận chỉnh sửa hội đồng"
+        message="Bạn có chắc chắn muốn chỉnh sửa thành viên hội đồng này không ?"
+      />
+
+
       <Dialog open={isOpen} onClose={handleModalClose} className="relative z-50">
         {/* ---------- Modal Overlay ----------*/}
         <DialogBackdrop
@@ -355,7 +385,7 @@ const modalEditCouncil = ({ isOpen, toggleModal, data }) => {
               <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
                 <button
                   type="button"
-                  onClick={(e) => submitHandler(e)}
+                  onClick={handleSubmitWithConfirmation}
 
                   className="inline-flex w-full justify-center rounded-md bg-system px-3 py-2 text-sm font-semibold text-white shadow-sm sm:ml-3 sm:w-auto"
                 >

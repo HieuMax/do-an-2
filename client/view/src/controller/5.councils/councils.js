@@ -92,6 +92,15 @@ const getCouncilById = async (hoidongid) => {
     }
 }
 
+const checkCouncilAssigned = async (hoidongid) => {
+    try {
+        const response = await axios.get(`${API_ENDPOINT}${url}/checkCouncilAssigned/${hoidongid}`);
+        return response.data;
+    } catch (error) {
+        console.error('Error:', error);
+        return null;
+    }
+}
 export {
     getAllCouncils,
     getAllTeachers,
@@ -100,5 +109,6 @@ export {
     getCouncilMembers,
     updateCouncilMember,
     deleteCouncil,
-    getCouncilById
+    getCouncilById,
+    checkCouncilAssigned
 };

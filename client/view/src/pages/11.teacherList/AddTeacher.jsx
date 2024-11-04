@@ -6,6 +6,7 @@ import { assets } from '../../assets/assets';
 import { toast } from 'react-toastify';
 import { getMentorById, updateTeacher } from '../../controller/2.mentors/mentors';
 import { Skeleton } from 'antd';
+import ModalConfirm from '../../components/modal/ModalConfirm';
 
 const AddTeacher = ({ isEdit }) => {
   const { id } = useParams(); // lấy id giảng viên khi chỉnh sửa
@@ -158,8 +159,66 @@ const AddTeacher = ({ isEdit }) => {
     setAvtImage(false);
   }
 
-  const handleAddTeacher = async () => {
+  const onSubmitHandler = async () => {
 
+
+
+    const formData = new FormData()
+
+    formData.append("hoten",hoten)
+    formData.append("hocham",hocham)
+    formData.append("hocvi",hocvi)
+    formData.append("mail",mail)
+    formData.append("tennh",tennh)
+    formData.append("stknh",stknh)
+    formData.append("cccd",cccd)
+    formData.append("gioitinh",gioitinh)
+    formData.append("ngaysinh",ngaysinh)
+    formData.append("khoaid",khoaid)
+    formData.append("sdt",sdt)
+
+    avtImage && formData.append("avtImage",avtImage)
+    // setLoadingAdd(true)
+
+    try {
+      if (isEdit) {
+        await updateTeacherContext(id, formData); // Gọi hàm update thay vì thêm mới
+        setChanged(!changed)
+
+      } else {
+        await addTeacherContext(formData);
+        resetForm()
+      }
+      
+
+    } catch (error) {
+      toast.error('Bị trùng Mail, CCCD hoặc SĐT')
+      // console.error('Failed to add new teacher:', error);
+    } finally{
+      // setLoadingAdd(false)
+
+    }
+  };
+
+  const handleBackClick = () => {
+    navigate('/teacher-management'); 
+  };
+
+  const handleAvtImgChoose = (e) => {
+    setAvtImage(e.target.files[0])
+    setAvtImageShow(e.target.files[0])
+  }
+  /* ---------- Confirm Dialog ---------- */
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false); // Kiểm soát mở/đóng dialog xác nhận
+
+  // Hàm mở Confirm Dialog
+  const openConfirmDialog = () => setIsConfirmOpen(true);
+
+  // Hàm đóng Confirm Dialog
+  const closeConfirmDialog = () => setIsConfirmOpen(false);
+
+  const handleSubmitWithConfirmation = () => {
+    
     let newErrors = {};
     let firstErrorField = null;
 
@@ -266,53 +325,24 @@ const AddTeacher = ({ isEdit }) => {
       return;
     }
 
-    const formData = new FormData()
-
-    formData.append("hoten",hoten)
-    formData.append("hocham",hocham)
-    formData.append("hocvi",hocvi)
-    formData.append("mail",mail)
-    formData.append("tennh",tennh)
-    formData.append("stknh",stknh)
-    formData.append("cccd",cccd)
-    formData.append("gioitinh",gioitinh)
-    formData.append("ngaysinh",ngaysinh)
-    formData.append("khoaid",khoaid)
-    formData.append("sdt",sdt)
-
-    avtImage && formData.append("avtImage",avtImage)
-    // setLoadingAdd(true)
-
-    try {
-      if (isEdit) {
-        await updateTeacherContext(id, formData); // Gọi hàm update thay vì thêm mới
-        setChanged(!changed)
-
-      } else {
-        await addTeacherContext(formData);
-        resetForm()
-      }
-      
-
-    } catch (error) {
-      toast.error('Bị trùng Mail, CCCD hoặc SĐT')
-      // console.error('Failed to add new teacher:', error);
-    } finally{
-      // setLoadingAdd(false)
-
-    }
+    
+    openConfirmDialog()
   };
-
-  const handleBackClick = () => {
-    navigate('/teacher-management'); 
-  };
-
-  const handleAvtImgChoose = (e) => {
-    setAvtImage(e.target.files[0])
-    setAvtImageShow(e.target.files[0])
-  }
 
   return (
+    <>
+
+    <ModalConfirm
+      isOpen={isConfirmOpen}
+      onClose={closeConfirmDialog}
+      onConfirm={() => {
+        closeConfirmDialog();
+        onSubmitHandler();
+      }}
+      title="Xác nhận thêm/ chỉnh sửa giảng viên"
+      message="Bạn có chắc chắn muốn thêm/ chỉnh sửa giảng viên này ?"
+    />
+
     <div className="flex flex-col sm:flex-row w-full  ">
       {/* Left Column - Image */}
       <div className="sm:w-1/4 w-full p-8 flex flex-col items-center border-r-[1px] ">
@@ -549,8 +579,8 @@ const AddTeacher = ({ isEdit }) => {
                 ? 
                 (
                   <button
-                  className="bg-red-500 text-white px-4 py-2 rounded-lg flex items-center"
-                  onClick={handleAddTeacher}
+                  className="bg-system text-white px-4 py-2 rounded-lg flex items-center"
+                  onClick={handleSubmitWithConfirmation}
                   disabled={loadingButtonEditTeacher}
                 >
                   {loadingButtonEditTeacher 
@@ -566,8 +596,8 @@ const AddTeacher = ({ isEdit }) => {
                 : 
                 (
                   <button
-                  className="bg-red-500 text-white px-4 py-2 rounded-lg flex items-center"
-                  onClick={handleAddTeacher}
+                  className="bg-system text-white px-4 py-2 rounded-lg flex items-center"
+                  onClick={handleSubmitWithConfirmation}
                   disabled={loadingButtonAddTeacher}
                 >
                   {loadingButtonAddTeacher 
@@ -598,6 +628,7 @@ const AddTeacher = ({ isEdit }) => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 
