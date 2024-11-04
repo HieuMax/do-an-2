@@ -59,11 +59,12 @@ export const getReportProject = async (statusIdx, page) => {
     return projects;
 }
 
-export const updateProjectStatusAndCouncil = async (detaiid, status, council) => {
+export const updateProjectStatusAndCouncil = async (detaiid, status, council, taikhoanid) => {
     const data = {
         detaiid: detaiid,
         status: status,
-        council: council
+        council: council,
+        taikhoanid: taikhoanid
     };
 
     try {
@@ -131,10 +132,12 @@ export const uploadFile = async (formData) => {
 export const getProjectsByStatus = async () => {
     try {
         const response = await axios.get(`${API_ENDPOINT}${url}/status`);
+        if(!response.data.success){
+            return response.data
+        }
         return response.data;
 
     } catch (error) {
-        console.error('Error:', error);
         return { success: false, message: 'Error' };
     }
 }
@@ -209,7 +212,6 @@ export const uploadReportfile = async (data) => {
 
 
 export const markProject = async(data) => {
-    console.log(data)
     try {
         const response = await fetch(`${API_ENDPOINT}${url}/markProject`, {
             method: 'POST',
@@ -304,9 +306,18 @@ export const downloadFile = async (filename, originalname) => {
     }
 }
 
-export const projectPermission = async (detaiid, uid, report) => {
+export const projectPermission = async (detaiid, uid) => {
     try {
-        const response = await fetch(`${API_ENDPOINT}${url}/accessProjectPermission/?uid=${uid}&detaiid=${detaiid}&report=${report}`)
+        const response = await fetch(`${API_ENDPOINT}${url}/accessProjectPermission/?uid=${uid}&detaiid=${detaiid}`)
+        const permission = await response.json();
+        return permission;
+    } catch (error) {
+        return { error: error }
+    }
+}
+export const reportPermission = async (detaiid, uid, report) => {
+    try {
+        const response = await fetch(`${API_ENDPOINT}${url}/accessReportPermission/?uid=${uid}&detaiid=${detaiid}`)
         const permission = await response.json();
         return permission;
     } catch (error) {
@@ -336,3 +347,4 @@ export const updateFile = async(data) => {
         // }
 }
 // module.exports = 
+

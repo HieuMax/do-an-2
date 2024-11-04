@@ -13,9 +13,10 @@ import { NotificationPage } from '../pages/8.Notification/NotificationPage';
 import { useAuthStore } from './authStore';
 import ErrorPage from '../pages/3.errorPage/ErrorPage';
 import { ReportPage } from '../pages/13.reportPage/ReportPage';
-import { projectPermission } from '../controller/1.projects/project';
+import { projectPermission, reportPermission } from '../controller/1.projects/project';
 import { useLocation } from 'react-router-dom';
 import { ReportPageList } from '../pages/13.reportPage/ReportPageList';
+import ArticlePage from '../pages/15.feedManagement/ArticlePage';
 
 let navigate = null;
 
@@ -95,7 +96,7 @@ const ReportAccessPermis = ({ children }) => {
       : {detaiId: location.pathname.substring(location.pathname.lastIndexOf('/')+1)}; 
       const [ child, setChild ] = useState()
       async function isAccess() {
-      const res = await projectPermission(detaiId, user.userId, true)
+      const res = await reportPermission(detaiId, user.userId)
       res.result.permission == "allowed"
         ? setChild(children)
         : setChild(<ErrorPage />)
@@ -117,7 +118,7 @@ export const children = [
   { path: "/notification", element: <NotificationPage /> },
   { path: "/project-list/:id", 
     element: 
-      <ProjectAccessPermis report={false}>
+      <ProjectAccessPermis>
         <RegisteredProject /> 
       </ProjectAccessPermis>
   },
@@ -167,5 +168,9 @@ export const children = [
   { path: "/editing-teacher/:id", 
     element: <AccessRoute><AddTeacherProvider isEdit = {true}/> </AccessRoute> 
   },
+  { path: "/feed-management", 
+    element: <AccessRoute><ArticlePage /> </AccessRoute> 
+  },
+
 ]
 

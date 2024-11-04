@@ -1,6 +1,6 @@
 const projectRouter = require('express').Router();
-const { getAll, updateProjectStatusAndCouncil, getById, updateStatus, getLastIdProject, registNewProject, updateFile, downloadFile, markType, getMarkOfProject, uploadProposal, getProposalFile, getProjectsByStatus, getAccessProject, getRelatedToAccess, uploadReport, getReportFile, getAccessReportProject } = require('../controller/controller');
-const { notify_upload_proposal } = require('../controller/notifyController');
+const { getAll, updateProjectStatusAndCouncil, getById, updateStatus, getLastIdProject, registNewProject, updateFile, downloadFile, markType, getMarkOfProject, uploadProposal, getProposalFile, getProjectsByStatus, getAccessProject, getRelatedToAccess, uploadReport, getReportFile, getAccessReportProject, getRelatedReportToAccess } = require('../controller/controller');
+const { notify_upload_proposal, sendMessToMemsCouncil } = require('../controller/notifyController');
 const upload = require('../middleware/multer');
 const { generateid } = require('../utils/generateid');
 
@@ -141,10 +141,18 @@ projectRouter.get('/reportFile/:id', async(req, res) => {
 
 
 projectRouter.get('/accessProjectPermission', async (req, res) => {
-    // res.send("ok")
-    const { detaiid, uid, report } = req.query
-    const result = await getRelatedToAccess(detaiid, uid, report)
-    // console.log('ok')
+    const { detaiid, uid } = req.query
+    const result = await getRelatedToAccess(detaiid, uid)
+    if (result.permission == "allowed") {
+        // console.log(result)
+        return res.status(200).send({result})
+    }
+    return res.status(200).send({result})
+})
+
+projectRouter.get('/accessReportPermission', async (req, res) => {
+    const { detaiid, uid } = req.query
+    const result = await getRelatedReportToAccess(detaiid, uid)
     if (result.permission == "allowed") {
         // console.log(result)
         return res.status(200).send({result})
@@ -156,24 +164,31 @@ projectRouter.get('/accessProjectPermission', async (req, res) => {
 // PUT --------------------------------------------------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------------------------------------------------------
 projectRouter.put('/updateStatusAndCouncil', async (req, res) => {
-    const { detaiid, status, council } = req.body;
+    const { detaiid, status, council, taikhoanid } = req.body;
 
     if (!detaiid || !status || !council) {
         return res.status(400).send({ error: "Missing required fields" });
     }
 
     try {
+
         const result = await updateProjectStatusAndCouncil(detaiid, status, council);
         
+        // await sendMessToMemsCouncil(1, 'DT2024007', 28)
         if (!result.success) {
             return res.status(500).json({ message: result.message, success: result.success });
         }
 
+
+        await sendMessToMemsCouncil(council, detaiid, taikhoanid)
+        
         return res.status(200).json({ message: result.message, success: result.success });
 
     } catch (error) {
         res.status(500).json({ "error": error.message });
     }
+    return
+
 });
 
 

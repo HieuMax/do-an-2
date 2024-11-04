@@ -268,17 +268,18 @@ const getCouncilMembers = async (req, res) => {
     try {
         const query = `
             SELECT * FROM detai
-            WHERE trangthai IN ($1, $2)
+            WHERE trangthai between $1 and $2
         `;
-        const values = [1, 2]; // Các trạng thái mà bạn muốn lọc
+        const values = [1, 7]; 
 
         const result = await pool.query(query, values);
 
         if (result.rows.length === 0) {
-            return res.status(404).json({ message: 'Không tìm thấy đề tài nào với trạng thái 1 hoặc 2' });
+            return res.json({ success: false, message: 'Không tìm thấy đề tài nào với trạng thái 1 hoặc 2' });
         }
 
-        res.json(result.rows);
+        return res.json({ success: true, data: result.rows});
+        
     } catch (error) {
         console.error('Lỗi khi lấy đề tài:', error);
         res.status(500).json({ message: 'Lỗi hệ thống' });
@@ -287,7 +288,7 @@ const getCouncilMembers = async (req, res) => {
 
   const updateProjectStatusAndCouncil = async (detaiid, trangthai, hoidongphancong) => {
       try {
-      const checkQuery = `SELECT * FROM bangdiemthanhphan WHERE detaiid = $1`;
+      const checkQuery = `SELECT * FROM diemtailieudexuat WHERE detaiid = $1`;
       const checkResult = await pool.query(checkQuery, [detaiid]);
 
       if (checkResult.rowCount > 0) {
@@ -303,7 +304,7 @@ const getCouncilMembers = async (req, res) => {
       const values = [trangthai, hoidongphancong, detaiid];
   
       const result = await pool.query(query, values);
-        
+      
       if (result.rowCount === 0) {
         return { success: false, message: 'Đề tài không tồn tại' };
       }
@@ -314,7 +315,23 @@ const getCouncilMembers = async (req, res) => {
       return { success: false, message: 'Lỗi hệ thống' };
     }
   };
-  
+
+  const checkCouncilAssigned = async (req, res) => {
+    const {hoidongid} = req.params;
+    try {
+        const query = "SELECT hoidongphancong FROM detai WHERE hoidongphancong = $1";
+
+        const results = await pool.query(query, [hoidongid]);
+        if (results.rows.length > 0) {
+            return res.json({ assigned: true });
+        } else {
+            return res.json({ assigned: false });
+        }
+    } catch (err) {
+        return res.json({ error: err.message });
+    }
+  };
+
 // ------------------------------------
 const getAll = (name) => {
     switch (name) {
@@ -680,8 +697,10 @@ const getTopicById = async(id) => {
 
 
 
-const getRelatedToAccess = async (detaiid, uid, report) => {
-    if (!report) {
+const getRelatedToAccess = async (detaiid, uid) => {
+    // console.log(report)
+    // if (!report || report == undefined) {
+        // console.log("ok")
         const query = `SELECT detaiid FROM detai 
         WHERE detaiid = $1
         AND trangthai <= 4
@@ -693,18 +712,35 @@ const getRelatedToAccess = async (detaiid, uid, report) => {
         if (res.rowCount > 0) {
             return { permission: "allowed", accessedProject: res.rows }
         }
-    } else {
-        const query = `SELECT detaiid FROM detai 
-        WHERE detaiid = $1
-        AND trangthai >= 5
-        AND (sinhvienid = $2
-        OR giangvienchunhiemid = $3
-        OR hoidongphancong IN (SELECT hoidongid FROM thanhvienhd WHERE giangvienid = $4))`
-        const res = await pool.query(query, [detaiid, uid, uid, uid])
-        if (res.error) return { error: res.error }
-        if (res.rowCount > 0) {
-            return { permission: "allowed", accessedProject: res.rows }
-        }
+    // } else {
+    //     const query = `SELECT detaiid FROM detai 
+    //     WHERE detaiid = $1
+    //     AND trangthai >= 5
+    //     AND (sinhvienid = $2
+    //     OR giangvienchunhiemid = $3
+    //     OR hoidongphancong IN (SELECT hoidongid FROM thanhvienhd WHERE giangvienid = $4))`
+    //     const res = await pool.query(query, [detaiid, uid, uid, uid])
+    //     if (res.error) return { error: res.error }
+    //     if (res.rowCount > 0) {
+    //         return { permission: "allowed", accessedProject: res.rows }
+    //     }
+    // }
+    // console.log("not allowed")
+    return { permission: "Not allowed" }
+}
+
+const getRelatedReportToAccess = async (detaiid, uid) => {
+    // console.log(report)
+    const query = `SELECT detaiid FROM detai 
+    WHERE detaiid = $1
+    AND trangthai >= 5
+    AND (sinhvienid = $2
+    OR giangvienchunhiemid = $2
+    OR hoidongphancong IN (SELECT hoidongid FROM thanhvienhd WHERE giangvienid = $2))`
+    const res = await pool.query(query, [detaiid, uid])
+    if (res.error) return { error: res.error }
+    if (res.rowCount > 0) {
+        return { permission: "allowed", accessedProject: res.rows }
     }
     // console.log("not allowed")
     return { permission: "Not allowed" }
@@ -944,4 +980,6 @@ module.exports = {
     // getTopicByIdnTitle,
     // validateEnoughMarks,
     // getSubcriberOfGroupById
+    checkCouncilAssigned,
+    getRelatedReportToAccess
 }
