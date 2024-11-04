@@ -10,6 +10,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { ManagementContext } from '../../context/ManagementContext';
 import Dropdown from '../../components/dropdown/Dropdown';
 import { FileUploadManagement } from '../../components/dialog/FileUploadManagement';
+import ModalConfirm from '../../components/modal/ModalConfirm';
 
 const TeacherList = () => {
   const { teachers, departmentsContext, getTeachersData } = useContext(ManagementContext);
@@ -76,11 +77,8 @@ const TeacherList = () => {
     setIsUploadOpen(false);
   };
 
-  const handleAddListClick = async () => {
-    if (fileList.length <= 0) {
-      toast.warn('Chưa chọn file excel để thêm');
-      return;
-    }
+  const onSubmitHandler = async () => {
+
 
     try {
       const result = await uploadTeacherList(fileList);
@@ -105,9 +103,42 @@ const TeacherList = () => {
     parent: "TeacherListCard"
   };
 
+  /* ---------- Confirm Dialog ---------- */
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false); // Kiểm soát mở/đóng dialog xác nhận
+
+  // Hàm mở Confirm Dialog
+  const openConfirmDialog = () => setIsConfirmOpen(true);
+
+  // Hàm đóng Confirm Dialog
+  const closeConfirmDialog = () => setIsConfirmOpen(false);
+
+  const handleSubmitWithConfirmation = () => {
+    
+    if (fileList.length <= 0) {
+      toast.warn('Chưa chọn file excel để thêm');
+      return;
+    }
+
+    
+    openConfirmDialog()
+  };
+
   // ------------------ End ------------------
 
   return (
+    <>
+
+    <ModalConfirm
+      isOpen={isConfirmOpen}
+      onClose={closeConfirmDialog}
+      onConfirm={() => {
+        closeConfirmDialog();
+        onSubmitHandler();
+      }}
+      title="Xác nhận thêm danh sách giảng viên từ file excel"
+      message="Bạn có chắc chắn muốn thêm danh sách từ file excel này không ?"
+    />
+
     <div className="h-full ">
       <div className="h-full max-w-full mt-3 py-3 px-6 flex p-[-12px] flex-col">
         <h1 className="sm:text-2xl text-xl font-bold underline">Danh sách giảng viên</h1>
@@ -120,7 +151,7 @@ const TeacherList = () => {
                 Thêm giảng viên
               </button>
               <button 
-                onClick={handleAddListClick} 
+                onClick={handleSubmitWithConfirmation} 
                 className="bg-system mt-2 font-semibold text-white px-4 sm:w-fit w-3/4 py-2 rounded">
                 Thêm danh sách giảng viên
               </button>
@@ -144,6 +175,7 @@ const TeacherList = () => {
                   </div>
                 </div>
               </div>
+
 
               <div className="w-1/3">
                 <div
@@ -181,6 +213,7 @@ const TeacherList = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

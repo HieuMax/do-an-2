@@ -157,6 +157,7 @@ const ManagementContextProvider = (prop) => {
         getTeachersData();
         getDepartmentsData();
         getStudentsData();
+        getProjectsData();
     },[])
 
     // Các controller của CouncilAssignment
@@ -167,7 +168,12 @@ const ManagementContextProvider = (prop) => {
             const response = await getProjectsByStatus();
             setLoadingButtonCA(true)
             if(response) {
-                const sortedProjects = response.sort((a, b) => {
+
+                if(!response.success){
+                    setProjects([])
+                    return 
+                }
+                const sortedProjects = response.data.sort((a, b) => {
                     const numA = parseInt(a.detaiid.replace('DT', '')); 
                     const numB = parseInt(b.detaiid.replace('DT', '')); 
                     if(sort === 'asc'){
@@ -191,14 +197,6 @@ const ManagementContextProvider = (prop) => {
             }, 1200);
         }
     }
-
-    useEffect(() => {
-        getProjectsData();
-
-    },[])
-
-
-
 
     const value = {
         councils, teachers, departmentsContext,

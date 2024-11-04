@@ -1,5 +1,6 @@
 const projectRouter = require('express').Router();
 const { getAll, updateProjectStatusAndCouncil, getById, updateStatus, getLastIdProject, registNewProject, updateFile, downloadFile, markType, getMarkOfProject, uploadProposal, getProposalFile, getProjectsByStatus, getAccessProject, getRelatedToAccess, uploadReport, getReportFile, getAccessReportProject, getRelatedReportToAccess } = require('../controller/controller');
+// const { sendMessToMemsCouncil } = require('../controller/notifyController');
 const { notify_upload_proposal, sendMessToMemsCouncil } = require('../controller/notifyController');
 const upload = require('../middleware/multer');
 const { generateid } = require('../utils/generateid');

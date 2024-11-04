@@ -8,6 +8,7 @@ import Navbar from './components/header/Navbar'
 import ForgotPasswordPage from './pages/9.resetForgotPassword/ForgotPasswordPage'
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import ResetPasswordPage from './pages/9.resetForgotPassword/ResetPasswordPage'
 
 // ---------------- Check User Authentication ----------------
 import { useNavigate } from 'react-router-dom';
@@ -104,6 +105,12 @@ const router = createBrowserRouter([
     path: '/forgot-password',
     element: (
         <ForgotPasswordPage />
+    ),
+  },
+  { 
+    path: '/reset-password/:token',
+    element: (
+        <ResetPasswordPage />
     ),
   },
   {

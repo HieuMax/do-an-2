@@ -4,8 +4,8 @@ import { getCouncilById } from '../../controller/5.councils/councils';
 import { updateProjectStatusAndCouncil } from '../../controller/1.projects/project';
 import { getCouncilMembers } from '../../controller/5.councils/councils';
 import { toast } from 'react-toastify';
-import { getNotify } from '../../controller/7.notify/notify';
-
+import { useAuthStore } from '../../api/authStore';
+import ModalConfirm from './ModalConfirm';
 
 const ModalAssignCouncil = ({ isOpen, toggleModal, data, toggleAssigned }) => {
   const [member, setMember] = useState({});
@@ -81,16 +81,16 @@ const ModalAssignCouncil = ({ isOpen, toggleModal, data, toggleAssigned }) => {
     }
 
 };
-  const handleAssign = async () => {
-    if(!member.hoidongid) return
-    const t = document.getElementById('sinhVienChuNhiem') // change after 
 
-    const response = await updateProjectStatusAndCouncil(data, '1', member.hoidongid)
+  const { user } = useAuthStore();  
+
+  const onSubmitHandler = async () => {
+    const response = await updateProjectStatusAndCouncil(data, '1', member.hoidongid, user.taikhoanid)
     if(response.success){
     
       toggleAssigned();
       toast.success('Phân công hội đồng thành công')
-      await getNotify(t.value, "Approval project", "sinhvien")
+      // await getNotify(t.value, "Approval project", "sinhvien")
       handleModalClose();
       return
     } else {
@@ -108,8 +108,36 @@ const ModalAssignCouncil = ({ isOpen, toggleModal, data, toggleAssigned }) => {
   };
 
 
+  /* ---------- Confirm Dialog ---------- */
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false); // Kiểm soát mở/đóng dialog xác nhận
+
+  // Hàm mở Confirm Dialog
+  const openConfirmDialog = () => setIsConfirmOpen(true);
+
+  // Hàm đóng Confirm Dialog
+  const closeConfirmDialog = () => setIsConfirmOpen(false);
+
+  const handleSubmitWithConfirmation = () => {
+    
+    if(!member.hoidongid) return
+    
+    openConfirmDialog()
+  };
+
   return (
     <>
+
+      <ModalConfirm
+        isOpen={isConfirmOpen}
+        onClose={closeConfirmDialog}
+        onConfirm={() => {
+          closeConfirmDialog();
+          onSubmitHandler();
+        }}
+        title="Xác nhận phân công hội đồng"
+        message="Bạn có xác nhận phân công hội đồng cho đề tài này không ?"
+      />
+
       <Dialog open={isOpen} onClose={handleModalClose} className="relative z-50">
         <DialogBackdrop
           transition
@@ -226,7 +254,7 @@ const ModalAssignCouncil = ({ isOpen, toggleModal, data, toggleAssigned }) => {
                 <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 mt-4">
                   <button
                     type="button"
-                    onClick={handleAssign}
+                    onClick={handleSubmitWithConfirmation}
                     className="inline-flex min-w-16 w-full justify-center rounded-md bg-system px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-system-500 sm:ml-3 sm:w-auto"
                   >
                     Phân công

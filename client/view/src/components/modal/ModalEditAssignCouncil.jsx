@@ -1,11 +1,10 @@
 import React from 'react'
 import { useState, useEffect, useContext, useRef } from 'react';
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react'
-import { ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 import { ManagementContext } from '../../context/ManagementContext';
-import { PaperClipIcon } from '@heroicons/react/20/solid'
 import { updateProjectStatusAndCouncil } from '../../controller/1.projects/project';
 import { toast } from 'react-toastify';
+import ModalConfirm from './ModalConfirm';
 
 const ModalEditAssignCouncil = ({ isOpen, toggleModal, data }) => {
 
@@ -48,13 +47,7 @@ const ModalEditAssignCouncil = ({ isOpen, toggleModal, data }) => {
       };
     
     
-    const handleEditAssigned = async (e) => {
-      e.preventDefault()
-
-      if(!selectedDepartment){
-        toast.warning('Chưa chọn hội đồng để sửa')
-        return
-      }
+    const onSubmitHandler = async () => {
 
       const response = await updateProjectStatusAndCouncil(data.detaiid, '2', selectedDepartment)
       if(response.success){
@@ -76,17 +69,46 @@ const ModalEditAssignCouncil = ({ isOpen, toggleModal, data }) => {
       const councilName = council ? council.tenhoidong : 'Không tìm thấy hội đồng';
 
       setCouncilnamea(councilName)
-      // Xóa lỗi nếu người dùng đã chọn khoa
-      // if (errors.selectedDepartment) {
-      //   setErrors((prev) => ({ ...prev, selectedDepartment: '' }));
-      // }
+      
     };
 
-    // useEffect(() => {
-    //   console.log(councilNamea)
-    // },[selectedDepartment])
+    /* ---------- Confirm Dialog ---------- */
+    const [isConfirmOpen, setIsConfirmOpen] = useState(false); // Kiểm soát mở/đóng dialog xác nhận
+
+    // Hàm mở Confirm Dialog
+    const openConfirmDialog = () => setIsConfirmOpen(true);
+
+    // Hàm đóng Confirm Dialog
+    const closeConfirmDialog = () => setIsConfirmOpen(false);
+
+    const handleSubmitWithConfirmation = () => {
+      
+      if(!selectedDepartment){
+        toast.warning('Chưa chọn hội đồng để sửa')
+        return
+      }
+
+      
+      openConfirmDialog()
+    };
+
+
+
   return (
         <>
+
+
+      <ModalConfirm
+        isOpen={isConfirmOpen}
+        onClose={closeConfirmDialog}
+        onConfirm={() => {
+          closeConfirmDialog();
+          onSubmitHandler();
+        }}
+        title="Xác nhận chỉnh sửa hội đồng"
+        message="Bạn có chắc chắn muốn chỉnh sửa hội đồng cho đề tài này không ?"
+      />
+
       <Dialog open={isOpen} onClose={handleModalClose} className="relative z-50">
         {/* Modal Overlay */}
         <DialogBackdrop
@@ -193,8 +215,8 @@ const ModalEditAssignCouncil = ({ isOpen, toggleModal, data }) => {
 
                 <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
                     <button
-                    type="submit"
-                    onClick={handleEditAssigned}
+                    type="button"
+                    onClick={handleSubmitWithConfirmation}
 
                     className={`${dataEdited ? 'hidden' : ''} inline-flex w-full justify-center rounded-md bg-system px-3 py-2 text-sm font-semibold text-white shadow-sm sm:ml-3 sm:w-auto`}
                     >

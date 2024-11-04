@@ -4,6 +4,8 @@ import ModalAddCouncil from '../modal/ModalAddCouncil';
 import ModalDelete from '../modal/ModalDelete';
 import { ManagementContext } from '../../context/ManagementContext';
 import { Skeleton } from 'antd';
+import { checkCouncilAssigned } from '../../controller/5.councils/councils';
+import { toast } from 'react-toastify';
 
 const CouncilListCard = ({ props }) => {
   const [isModalAddOpen, setIsModalAddOpen] = useState(false);
@@ -36,7 +38,12 @@ const CouncilListCard = ({ props }) => {
     setIsModalEditOpen(!isModalEditOpen);
   };
 
-  const handleEditClick = (board) => {
+  const handleEditClick = async (board) => {
+    const res = await checkCouncilAssigned(board.hoidongid);
+    if(res.assigned){
+      toast.warning('Hội đồng này đã được phân công, kh thể chỉnh sửa')
+      return;
+    }
     setSelectedData(board);
     toggleModalEdit();
   };
@@ -133,21 +140,21 @@ const CouncilListCard = ({ props }) => {
                       </tr>
                     ))
                   ) : (
-                    Array.from({ length: 6 }).map((_, index) => (
+                    Array.from({ length: 1 }).map((_, index) => (
                       <tr key={index}>
-                        <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
-                          <Skeleton.Input active size="small" style={{ width: 226 }} />
+                        <td className="whitespace-nowrap  text-sm font-medium text-gray-900 sm:pl-6">
+                          <Skeleton.Input active size="small" style={{ width: 250 }} />
                         </td>
                         <td className="whitespace-nowrap px-3 py-6 text-sm text-gray-500">
                           <Skeleton.Input active size="small" style={{ width: 250 }} />
                         </td>
-                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                        <td className="whitespace-nowrap px-3  text-sm text-gray-500">
                           <Skeleton.Input active size="small" style={{ width: 400 }} />
                         </td>
-                        <td className="whitespace-nowrap px-3 py-4 text-sm text-center">
+                        <td className="whitespace-nowrap px-3  text-sm text-center">
                           <Skeleton.Input active size="small" style={{ width: 150 }} />
                         </td>
-                        <td className="whitespace-nowrap px-3 py-4 text-sm text-center">
+                        <td className="whitespace-nowrap px-3  text-sm text-center">
                           <Skeleton.Input active size="small" style={{ width: 150 }} />
                         </td>
                       </tr>

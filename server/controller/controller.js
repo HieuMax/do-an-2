@@ -977,6 +977,7 @@ module.exports = {
     getAccessProject,
     getAccessReportProject,
     getRelatedToAccess,
+    checkCouncilAssigned,
     // getTopicByIdnTitle,
     // validateEnoughMarks,
     // getSubcriberOfGroupById

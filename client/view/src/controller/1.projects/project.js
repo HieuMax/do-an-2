@@ -59,7 +59,7 @@ export const getReportProject = async (statusIdx, page) => {
     return projects;
 }
 
-export const updateProjectStatusAndCouncil = async (detaiid, status, council, taikhoanid) => {
+export const updateProjectStatusAndCouncil = async (detaiid, status, council, taikhoanid, taikhoanid) => {
     const data = {
         detaiid: detaiid,
         status: status,

@@ -1,5 +1,5 @@
 const managementRouter = require('express').Router();
-const { getAll, addCouncilWithMembers, getCouncilMembers, deleteCouncil, updateCouncilMember, getById } = require('../controller/controller')
+const { getAll, addCouncilWithMembers, getCouncilMembers, deleteCouncil, updateCouncilMember, getById, checkCouncilAssigned } = require('../controller/controller')
 const { sendMessToMemsCouncil } = require('../controller/notifyController');
 const { generateCouncilId } = require('../middleware/generateCouncilId');
 
@@ -70,6 +70,8 @@ managementRouter.get('/getCouncilMembers/:hoidongid', getCouncilMembers);
 managementRouter.delete('/deleteCouncil/:hoidongid', deleteCouncil);
 
 managementRouter.put('/updateCouncilMember',updateCouncilMember )
+
+managementRouter.get('/checkCouncilAssigned/:hoidongid',checkCouncilAssigned )
 
 // managementRouter.get('/allk', async(req, res) => {
 //     const result = await sendMessToMemsCouncil(1, 'DT2024007', 28)

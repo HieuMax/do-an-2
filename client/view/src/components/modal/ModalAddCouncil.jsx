@@ -5,6 +5,7 @@ import { ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 import { addCouncilWithMembers } from '../../controller/5.councils/councils';
 import { toast } from 'react-toastify';
 import { ManagementContext } from '../../context/ManagementContext';
+import ModalConfirm from './ModalConfirm';
 
 const modalCouncil = ({ isOpen, toggleModal, data, getCouncilData }) => {
 
@@ -98,9 +99,98 @@ const modalCouncil = ({ isOpen, toggleModal, data, getCouncilData }) => {
     },[selectedLecturers])
 
     /* ---------- Handle nút thêm hội đồng ---------- */
-    const onSubmitHandler = async (e) => {
-      e.preventDefault();
+    const onSubmitHandler = async () => {
+ 
+      const chuTich = selectedLecturers.chuTich;
+      const phanBien1 = selectedLecturers.phanBien1;
+      const phanBien2 = selectedLecturers.phanBien2;
+      const thuKy = selectedLecturers.thuKy;
+      const uyVien = selectedLecturers.uyVien;
 
+      const giangVienIds = [chuTich, phanBien1, phanBien2, thuKy, uyVien];
+
+      const uniqueGiangVienIds = new Set(giangVienIds);
+      if (uniqueGiangVienIds.size !== giangVienIds.length) {
+          toast.warning('Không được phép chọn trùng giảng viên cho các vai trò khác nhau.');
+          return;
+      }
+
+      const requestData = {
+        tenhoidong: tenHoidong,
+        mota: moTa,
+        thanhvien: [
+          { giangvienid: chuTich, vaitro: 'Chủ tịch' },
+          { giangvienid: phanBien1, vaitro: 'Phản biện 1' },
+          { giangvienid: phanBien2, vaitro: 'Phản biện 2' },
+          { giangvienid: thuKy, vaitro: 'Thư ký' },
+          { giangvienid: uyVien, vaitro: 'Ủy viên' },
+        ],
+      };
+
+      try {
+
+        setSubmitted(true);
+        await addCouncilWithMembers(requestData);
+        await getCouncilsData(); // Load lại danh sách hội đồng sau khi thêm thành công
+
+      } catch (error) {
+        toast.warning('Đã xảy ra lỗi khi thêm hội đồng và thành viên.');
+
+        setSubmitted(false);
+
+      }
+
+  
+    };
+
+    useEffect(() => {
+      if (submitted && !loadingButtonCC) {
+        setSubmitted(false)
+        toast.success('Hội đồng mới đã được thêm thành công!!')
+        handleModalClose()
+      }
+    }, [loadingButtonCC]);
+
+    
+    /* ---------- Handle khi tắt form ---------- */
+    const resetForm = () => {
+      setSelectedDepartment('');
+      setFilteredGiangVienList([]);
+      setTenHoidong('');
+      setMoTa('');
+      setSelectedLecturers({
+        chuTich: '',
+        phanBien1: '',
+        phanBien2: '',
+        thuKy: '',
+        uyVien: ''
+      });
+    };
+
+    const handleModalClose = () => {
+      toggleModal();
+
+      setTimeout(() => {
+          resetForm();
+          setErrors({});
+
+      }, 200);
+
+    };
+    /* ---------- Confirm Dialog ---------- */
+    const [isConfirmOpen, setIsConfirmOpen] = useState(false); // Kiểm soát mở/đóng dialog xác nhận
+
+    // Hàm mở Confirm Dialog
+    const openConfirmDialog = () => setIsConfirmOpen(true);
+
+    // Hàm đóng Confirm Dialog
+    const closeConfirmDialog = () => setIsConfirmOpen(false);
+
+
+  // Mở dialog xác nhận trước khi thực hiện submit
+    const handleSubmitWithConfirmation = (e) => {
+      e.preventDefault();
+      
       let newErrors = {};
       let firstErrorField = null;
     
@@ -146,92 +236,31 @@ const modalCouncil = ({ isOpen, toggleModal, data, getCouncilData }) => {
         }
         return;
       }
-
       // Reset errors if no errors found
       setErrors({});
-
-      const chuTich = selectedLecturers.chuTich;
-      const phanBien1 = selectedLecturers.phanBien1;
-      const phanBien2 = selectedLecturers.phanBien2;
-      const thuKy = selectedLecturers.thuKy;
-      const uyVien = selectedLecturers.uyVien;
-
-      const giangVienIds = [chuTich, phanBien1, phanBien2, thuKy, uyVien];
-
-      const uniqueGiangVienIds = new Set(giangVienIds);
-      if (uniqueGiangVienIds.size !== giangVienIds.length) {
-          alert('Không được phép chọn trùng giảng viên cho các vai trò khác nhau.');
-          return;
-      }
-
-      const requestData = {
-        tenhoidong: tenHoidong,
-        mota: moTa,
-        thanhvien: [
-          { giangvienid: chuTich, vaitro: 'Chủ tịch' },
-          { giangvienid: phanBien1, vaitro: 'Phản biện 1' },
-          { giangvienid: phanBien2, vaitro: 'Phản biện 2' },
-          { giangvienid: thuKy, vaitro: 'Thư ký' },
-          { giangvienid: uyVien, vaitro: 'Ủy viên' },
-        ],
-      };
-
-      try {
-
-        setSubmitted(true);
-        await addCouncilWithMembers(requestData);
-        await getCouncilsData(); // Load lại danh sách hội đồng sau khi thêm thành công
-
-      } catch (error) {
-        alert('Đã xảy ra lỗi khi thêm hội đồng và thành viên.');
-
-        setSubmitted(false);
-
-      }
-
-  
-    };
-
-    useEffect(() => {
-      if (submitted && !loadingButtonCC) {
-        setSubmitted(false)
-        toast.success('Hội đồng và thành viên đã được thêm thành công!')
-        handleModalClose()
-      }
-    }, [loadingButtonCC]);
-
-    
-    /* ---------- Handle khi tắt form ---------- */
-    const resetForm = () => {
-      setSelectedDepartment('');
-      setFilteredGiangVienList([]);
-      setTenHoidong('');
-      setMoTa('');
-      setSelectedLecturers({
-        chuTich: '',
-        phanBien1: '',
-        phanBien2: '',
-        thuKy: '',
-        uyVien: ''
-      });
-    };
-
-    const handleModalClose = () => {
-      toggleModal();
-
-      setTimeout(() => {
-          resetForm();
-          setErrors({});
-
-      }, 200);
-
+      openConfirmDialog()
     };
 
     /* ---------- Ending ---------- */
 
+
     
   return (
     <>
+      
+      <ModalConfirm
+        isOpen={isConfirmOpen}
+        onClose={closeConfirmDialog}
+        onConfirm={() => {
+          closeConfirmDialog();
+          onSubmitHandler();
+        }}
+        title="Xác nhận thêm hội đồng"
+        message="Bạn có chắc chắn muốn thêm hội đồng mới này không?"
+      />
+
+
+
       <Dialog open={isOpen} onClose={handleModalClose} className="relative z-50">
         {/* Modal Overlay */}
         <DialogBackdrop
@@ -275,7 +304,7 @@ const modalCouncil = ({ isOpen, toggleModal, data, getCouncilData }) => {
               </button>
             </div>
             {/* Modal body */}
-            <form onSubmit={onSubmitHandler} className="">
+            <form onSubmit={handleSubmitWithConfirmation} className="">
                 <div className="grid gap-x-16 gap-y-4 p-6 grid-cols-2">
                     <div className="col-span-2">
                         <label  className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Tên hội đồng</label>

@@ -94,7 +94,7 @@ const CouncilAssignmentCard = ({ props }) => {
                         </td>
                         <td className="whitespace-nowrap px-3 py-4 sm:text-base text-sm text-black">{board.tendetai}</td>
                         <td className="whitespace-nowrap px-3 py-4 sm:text-base text-sm">
-                        {board.trangthai == "2" ? (
+                        {board.hoidongphancong ? (
                             <div className="flex items-center space-x-2 border border-green-500 justify-center bg-green-50 w-[170px] text-green-700 px-5 py-3 ">
                                 <span>Đã phân công</span>
                                 <svg xmlns="http://www.w3.org/2000/svg" className="rounded-full h-5 w-5 bg-green-500 text-white" viewBox="0 0 20 20" fill="currentColor">
@@ -110,7 +110,7 @@ const CouncilAssignmentCard = ({ props }) => {
                         </td>
 
                         <td className="whitespace-nowrap px-3 py-4 sm:text-base text-sm text-center">
-                            {board.trangthai == "2" ? (
+                            {board.hoidongphancong ? (
                                 <button
                                  className="bg-gray-600 text-white px-4 py-2 rounded min-w-[120px] mr-2"
                                  onClick={() => handleAssignClick(board)}
@@ -131,18 +131,18 @@ const CouncilAssignmentCard = ({ props }) => {
                       </tr>
                     ))
                   ) : (
-                    Array.from({ length: 4 }).map((_, index) => (
+                    Array.from({ length: 1 }).map((_, index) => (
                       <tr key={index}>
-                        <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
+                        <td className="whitespace-nowrap  pl-4 text-sm font-medium text-gray-900 sm:pl-6">
                           <Skeleton.Input active size="small" style={{ width: 226 }} />
                         </td>
                         <td className="whitespace-nowrap px-3 py-6 text-sm text-gray-500">
                           <Skeleton.Input active size="small" style={{ width: 250 }} />
                         </td>
-                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                        <td className="whitespace-nowrap px-3  text-sm text-gray-500">
                           <Skeleton.Input active size="small" style={{ width: 400 }} />
                         </td>
-                        <td className="whitespace-nowrap px-3 py-4 text-sm text-center">
+                        <td className="whitespace-nowrap px-3  text-sm text-center">
                           <Skeleton.Input active size="small" style={{ width: 150 }} />
                         </td>
         
