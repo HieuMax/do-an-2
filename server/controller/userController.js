@@ -7,20 +7,8 @@ const crypto = require('crypto')
 const { 
   sendPasswordResetEmail, 
   sendResetSuccessEmail, 
-  sendVerificationEmail, 
-  sendWelcomeEmail 
 } = require("../mailtrap/emails.js");
 
-/**
- * Mock nhanh thông tin user thay vì phải tạo Database rồi query.
- */
-const MOCK_DATABASE = {
-  USER: {
-    ID: 'phuctrandevj-sample-id-12345678',
-    EMAIL: 'phuctrandevj.official@gmail.com',
-    PASSWORD: 'phuctrandevj@123'
-  }
-};
 
 /**
  * 2 chữ ký bí mật quan trọng trong dự án. Dành cho JWT - JsonWebTokens

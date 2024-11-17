@@ -18,6 +18,7 @@ const CouncilAssignment = () => {
     const [selectedStatus, setSelectedStatus] = useState(null);
     const [searchValue, setSearchValue] = useState('');
     const [filteredProjects, setFilteredProjects] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1); 
 
     const debouncedSearchValue = useDebounce(searchValue, 500);
 
@@ -38,6 +39,7 @@ const CouncilAssignment = () => {
         {id: 0, name: "Chọn đề tài "},
         {id: 1, name: "Chưa phân công "},
         {id: 2, name: "Đã phân công "},
+        {id: 3, name: "Đã thanh lý "},
 
     ]
 
@@ -46,17 +48,22 @@ const CouncilAssignment = () => {
     };
     const handleStatusChange = (selectedDept) => {
         setSelectedStatus(selectedDept)
+        setCurrentPage(1); 
 
     };
 
 
     useEffect(() => {
-        let filteredByProject = projects;
+        let filteredByProject = projects.filter(project => project.trangthai < 7);
+
         if (selectedStatus && selectedStatus.id == "1") {
-            filteredByProject = projects.filter(project => project.hoidongphancong === null);
+            filteredByProject = projects.filter(project => project.hoidongphancong === null && project.trangthai !== 7);
         }
         if (selectedStatus && selectedStatus.id == "2") {
-            filteredByProject = projects.filter(project => project.hoidongphancong !== null);
+            filteredByProject = projects.filter(project => project.hoidongphancong !== null && project.trangthai !== 7);
+        }
+        if (selectedStatus && selectedStatus.id == "3") {
+            filteredByProject = projects.filter(project => project.trangthai === 7);
         }
         const searchResult = filteredByProject.filter(project =>
           project.detaiid.toLowerCase().includes(debouncedSearchValue.toLowerCase()) || 
@@ -110,7 +117,7 @@ const CouncilAssignment = () => {
                     </div>
 
                     <div className="h-full max-w-full p-[-3px]">
-                        <ListCard props={Log}/>
+                        <ListCard props={Log} currentPage={currentPage} setCurrentPage={setCurrentPage} newsPerPage={6}/>
                     </div>
                     
                 </div>

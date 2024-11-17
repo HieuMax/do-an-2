@@ -426,10 +426,10 @@ EXECUTE FUNCTION tg_autoCheckBaoCao();
 -- : Mới đăng ký --> mặc định 0
 -- : GVHD duyệt --> lên 1
 -- : Hội đồng phân công --> vẫn 1
--- : Hội đồng góp ý và duyệt --> Trigger lên 2
+-- : Hội đồng góp ý và duyệt --> Trigger lên 2 (Thuyet Minh)
 -- : Nộp thuyết minh --> vẫn 2
--- : HĐ chấm đủ thuyết minh --> Trigger lên 3
--- : Nộp báo cáo --> lên 5
+-- : HĐ chấm đủ thuyết minh --> Trigger lên 3 (Thuc hien)
+-- : Nộp báo cáo --> lên 5 (Bao cao)
 -- : Chấm báo cáo --> Trigger lên 6
 
 

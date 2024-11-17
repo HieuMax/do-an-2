@@ -287,29 +287,54 @@ const getCouncilMembers = async (req, res) => {
   };
 
   const updateProjectStatusAndCouncil = async (detaiid, trangthai, hoidongphancong) => {
-      try {
-      const checkQuery = `SELECT * FROM diemtailieudexuat WHERE detaiid = $1`;
-      const checkResult = await pool.query(checkQuery, [detaiid]);
+    try {
+        const checkQuery = `SELECT * FROM diemtailieudexuat WHERE detaiid = $1`;
+        const checkResult = await pool.query(checkQuery, [detaiid]);
 
-      if (checkResult.rowCount > 0) {
-        return { success: false, message: 'Đề tài không được thay đổi' };
-      }
+        if (checkResult.rowCount > 0) {
+            return { success: false, message: 'Đề tài không được thay đổi' };
+        }
+        
+        const query = `
+            UPDATE detai
+            SET trangthai = $1, hoidongphancong = $2
+            WHERE detaiid = $3
+            RETURNING *;
+        `;
+        const values = [trangthai, hoidongphancong, detaiid];
+    
+        const result = await pool.query(query, values);
+        
+        if (result.rowCount === 0) {
+            return { success: false, message: 'Đề tài không tồn tại' };
+        }
+    
+        return { success: true, message: 'Cập nhật thành công', data: result.rows[0] };
+    } catch (error) {
+      console.error('Lỗi khi cập nhật đề tài:', error);
+      return { success: false, message: 'Lỗi hệ thống' };
+    }
+  };
+
+  const updateLiquidation = async (detaiid, trangthai, hoidongphancong) => {
+    try {
       
-      const query = `
-        UPDATE detai
-        SET trangthai = $1, hoidongphancong = $2
-        WHERE detaiid = $3
-        RETURNING *;
-      `;
-      const values = [trangthai, hoidongphancong, detaiid];
-  
-      const result = await pool.query(query, values);
-      
-      if (result.rowCount === 0) {
-        return { success: false, message: 'Đề tài không tồn tại' };
-      }
-  
-      return { success: true, message: 'Cập nhật thành công', data: result.rows[0] };
+        
+        const query = `
+            UPDATE detai
+            SET trangthai = $1, hoidongphancong = $2
+            WHERE detaiid = $3
+            RETURNING *;
+        `;
+        const values = [trangthai, hoidongphancong, detaiid];
+    
+        const result = await pool.query(query, values);
+        
+        if (result.rowCount === 0) {
+            return { success: false, message: 'Đề tài không tồn tại' };
+        }
+    
+        return { success: true, message: 'Cập nhật thành công', data: result.rows[0] };
     } catch (error) {
       console.error('Lỗi khi cập nhật đề tài:', error);
       return { success: false, message: 'Lỗi hệ thống' };
@@ -332,6 +357,94 @@ const getCouncilMembers = async (req, res) => {
     }
   };
 
+  const getDeTaiDetails = async (req, res) => {
+    try {
+      const result = await pool.query(`
+        SELECT 
+          detai.detaiid, 
+          detai.tendetai, 
+          detai.linhvuc, 
+          detai.kinhphi, 
+          detai.trangthai, 
+          detai.thoigianthuchien, 
+          detai.ngaybatdau, 
+          detai.tailieudexuat, 
+          giangvien.hoten AS giangvienchunhiem,
+          sinhvien.hoten AS sinhvien,
+          hoidong.tenhoidong as hoidongphancong
+        FROM detai
+        LEFT JOIN giangvien 
+          ON detai.giangvienchunhiemid = giangvien.giangvienid
+        LEFT JOIN sinhvien 
+          ON detai.sinhvienid = sinhvien.sinhvienid
+        LEFT JOIN hoidong
+          ON detai.hoidongphancong = hoidong.hoidongid
+      `);
+  
+      res.json({ success: true, detai: result.rows });
+    } catch (error) {
+      console.error(error);
+      res.json({ success: false, message: 'Lỗi hệ thống' });
+    }
+  };
+  
+  const countDeTaiOccurrences = async (req, res) => {
+    const { detaiid } = req.params; 
+  
+    try {
+      const result = await pool.query(`
+        SELECT 
+          (
+            CASE WHEN detai.detaiid IS NOT NULL THEN 1 ELSE 0 END +
+            CASE WHEN tailieuthuyetminh.detaiid IS NOT NULL THEN 1 ELSE 0 END +
+            CASE WHEN tailieubaocao.detaiid IS NOT NULL THEN 1 ELSE 0 END
+          ) AS soluong_tailieu
+        FROM detai
+        FULL JOIN tailieuthuyetminh
+          ON detai.detaiid = tailieuthuyetminh.detaiid
+        FULL JOIN tailieubaocao
+          ON detai.detaiid = tailieubaocao.detaiid
+        WHERE detai.detaiid = $1 OR tailieuthuyetminh.detaiid = $1 OR tailieubaocao.detaiid = $1
+      `, [detaiid]);
+  
+      // Nếu không tìm thấy, trả về thông báo
+      if (result.rows.length === 0) {
+        return res.json({ success: false, message: 'Không tìm thấy detaiid' });
+      }
+  
+      res.json({ success: true, data: result.rows[0] });
+    } catch (error) {
+      console.error(error);
+      res.json({ success: false, message: 'Lỗi hệ thống' });
+    }
+  };
+  
+  const getTotalScoreByDeTaiID = async (req, res) => {
+    const { detaiid } = req.params; // Lấy detaiid từ tham số request
+  
+    try {
+      // Thực thi query để tính tổng điểm
+      const result = await pool.query(
+        `SELECT COALESCE(SUM(diemtailieu), 0) AS tongdiem 
+         FROM diemtailieubaocao 
+         WHERE detaiid = $1`,
+        [detaiid]
+      );
+  
+      // Trả về tổng điểm
+      res.json({
+        success: true,
+        totalScore: result.rows[0].tongdiem/5,
+      });
+    } catch (error) {
+      console.error("Error fetching total score:", error);
+      res.status(500).json({
+        success: false,
+        message: "Lỗi hệ thống. Không thể tính tổng điểm.",
+      });
+    }
+  };
+
 // ------------------------------------
 const getAll = (name) => {
     switch (name) {
@@ -349,8 +462,10 @@ const getAll = (name) => {
             return getAllFromDb('khoa');
         case 'classes':
             return getAllFromDb('lop');
+        case 'articles':
+            return getAllFromDb('baiviet');
         default: 
-            return
+            return 
     }
 }
 
@@ -436,7 +551,7 @@ const getAccessReportProject = async (uid, typeOfUser, statusIdx, page) => {
 
 const getAllFromDb = async (name) => {
     // prevent SQL injection
-    const allowedTables = ['sinhvien', 'giangvien', 'detai','hoidong','khoa','lop'];
+    const allowedTables = ['sinhvien', 'giangvien', 'detai','hoidong','khoa','lop','baiviet'];
     if (!allowedTables.includes(name)) {
         return json({"error": "Invalid table name"});
     }
@@ -982,5 +1097,9 @@ module.exports = {
     // validateEnoughMarks,
     // getSubcriberOfGroupById
     checkCouncilAssigned,
-    getRelatedReportToAccess
+    getRelatedReportToAccess,
+    getDeTaiDetails,
+    countDeTaiOccurrences,
+    getTotalScoreByDeTaiID,
+    updateLiquidation
 }

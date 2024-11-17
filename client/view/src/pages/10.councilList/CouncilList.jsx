@@ -18,6 +18,7 @@ const CouncilList = () => {
 
     const [isModalAddOpen, setIsModalAddOpen] = useState(false);
     const [searchValue, setSearchValue] = useState('');
+    const [currentPage, setCurrentPage] = useState(1); 
 
     const [filteredCouncils, setFilteredCouncils] = useState([]);
     const debouncedSearchValue = useDebounce(searchValue, 500);
@@ -100,7 +101,7 @@ const CouncilList = () => {
 
 
                     <div className="h-full max-w-full p-[-3px]">
-                        <ListCard props={Log}/>
+                        <ListCard props={Log} currentPage={currentPage} setCurrentPage={setCurrentPage} newsPerPage={6}/>
                     </div>
 
                     <ModalAddCouncil isOpen={isModalAddOpen} toggleModal={toggleModalAdd} />
