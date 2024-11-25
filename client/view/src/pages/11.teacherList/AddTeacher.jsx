@@ -2,7 +2,7 @@ import React, { useState, useContext, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { addNewTeacher } from '../../controller/2.mentors/mentors';
 import { ManagementContext } from '../../context/ManagementContext';
-import { assets } from '../../assets/assets';
+// import { assert } from '../../assets/assets';
 import { toast } from 'react-toastify';
 import { getMentorById, updateTeacher } from '../../controller/2.mentors/mentors';
 import { Skeleton } from 'antd';
