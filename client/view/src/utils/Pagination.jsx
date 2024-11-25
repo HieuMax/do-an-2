@@ -6,10 +6,8 @@ import CouncilListCard from '../components/card/CouncilListCard';
 import CouncilAssignmentCard from '../components/card/CouncilAssignmentCard';
 import TeacherListCard from '../components/card/TeacherListCard';
 
-export default function Pagination({prop, parent}) {
+export default function Pagination({prop, parent, currentPage, setCurrentPage, newsPerPage}) {
   const data = prop;
-  const [currentPage, setCurrentPage] = useState(1);
-  const newsPerPage = 6
   if (!prop) return
   const totalPages = prop.length%newsPerPage != 0 ? Math.floor(prop.length/newsPerPage) + 1 : prop.length/newsPerPage
 
@@ -36,24 +34,44 @@ export default function Pagination({prop, parent}) {
 
     }
   };
+
+  const generatePageNumbers = (currentPage, totalPages) => {
+    const delta = 2; // Số trang hiển thị trước và sau trang hiện tại
+    const range = [];
+  
+    for (let i = Math.max(2, currentPage - delta); i <= Math.min(totalPages - 1, currentPage + delta); i++) {
+      range.push(i);
+    }
+  
+    if (currentPage - delta > 2) {
+      range.unshift('...');
+    }
+  
+    if (currentPage + delta < totalPages - 1) {
+      range.push('...');
+    }
+  
+    range.unshift(1); // Trang đầu tiên
+    if (totalPages > 1) range.push(totalPages); // Trang cuối cùng (nếu có nhiều hơn 1 trang)
+  
+    return range;
+  };
+  
   return (
     <div className='h-full flex flex-col scroll-smooth '>
       <div className="scroll-smooth">
         <div className="">
           {parent == "Home" && <NewCard prop={currentItems} />}
-          {/* {parent == "ListProject" && <InforProjectCard props={currentItems}/>} */}
           {parent == "CouncilListCard" && <CouncilListCard props={currentItems}/>}
           {parent == "CouncilAssignmentCard" && <CouncilAssignmentCard props={currentItems}/>}
           {parent == "TeacherListCard" && <TeacherListCard props={currentItems}/>}
-
-          {/* <NewCard prop={currentItems} /> */}
         </div>
       </div>
       <div className="flex  items-center justify-between border-t border-gray-200 w-full bg-white px-4 py-3 sm:px-6 ">
         <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
           <div>
             <p className="text-sm text-gray-700">
-              Showing <span className="font-medium">1</span> to <span className="font-medium">{prop.length>6? "6": prop.length}</span> of{' '}
+              Showing <span className="font-medium">1</span> to <span className="font-medium">{currentItems.length}</span> of{' '}
               <span className="font-medium">{prop.length}</span> results
             </p>
           </div>
@@ -69,20 +87,26 @@ export default function Pagination({prop, parent}) {
               </a>
 
               <div className="flex justify-center gap-1">
-                {Array.from({ length: totalPages }, (_, index) => (
-                  <button 
-                    key={index} 
-                    onClick={() => {
-                      setCurrentPage(index + 1)
-                      scrollTo(top)
-                    }} 
-                    className={currentPage === index + 1 
-                      ? 'relative z-10 inline-flex items-center px-4 py-2 text-sm font-semibold focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 bg-system text-white ' 
-                      : 'relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0'}
-                  >
-                    {index + 1}
-                  </button>
-                ))}
+              {generatePageNumbers(currentPage, totalPages).map((page, index) => (
+                <button
+                  key={index}
+                  onClick={() => {
+                    if (page !== '...') {
+                      setCurrentPage(page);
+                      scrollTo(top);
+                    }
+                  }}
+                  className={
+                    currentPage === page
+                      ? 'relative z-10 inline-flex items-center px-4 py-2 text-sm font-semibold focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 bg-system text-white'
+                      : 'relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0'
+                  }
+                  disabled={page === '...'}
+                >
+                  {page}
+                </button>
+              ))}
+
               </div>
               <a
                 href="#top"

@@ -14,7 +14,6 @@ export const getAllProjects = async (status, page) => {
         page: page,
         status: status
     }
-    console.log(data)
     const response = await fetch(`${API_ENDPOINT}${url}/accessProject/${JSON.stringify(data)}`);
     const projects = await response.json();
     const arr = projects.detai
@@ -80,6 +79,25 @@ export const updateProjectStatusAndCouncil = async (detaiid, status, council, ta
     }
 };
 
+export const updateProjectliquidation = async (detaiid, status, council) => {
+    const data = {
+        detaiid: detaiid,
+        status: status,
+        council: council,
+    };
+
+    try {
+        const response = await axios.put(`${API_ENDPOINT}${url}/updateLiquidation`, data, {
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        return response.data
+    } catch (error) {
+        // Xử lý lỗi khi xảy ra
+        return { error: error.response?.data?.message || error.message || 'Unexpected error occurred' };
+    }
+};
 
 export const getProjectById = async(id) => {
     const response = await fetch(`${API_ENDPOINT}${url}/project/${id}`)
@@ -324,7 +342,38 @@ export const reportPermission = async (detaiid, uid, report) => {
         return { error: error }
     }
 }
+export const getAllProjectsDashboard = async () => {
+    try {
+        const response = await fetch(`${API_ENDPOINT}${url}/projectDetails/`)
+        const data = await response.json();
+    
+        return data;
+        // return permission;
+    } catch (error) {
+        return { error: error }
+    }
+}
+export const getQuantityOfDocsByID = async (detaiid) => {
+    try {
+        const response = await fetch(`${API_ENDPOINT}${url}/countDeTaiOccurrences/${detaiid}`)
+        const data = await response.json();
+        return data;
+        // return permission;
+    } catch (error) {
+        return { error: error }
+    }
+}
 
+export const getTotalMarksOfProject = async (detaiid) => {
+    try {
+        const response = await fetch(`${API_ENDPOINT}${url}/getTotalScoreByDeTaiID/${detaiid}`)
+        const data = await response.json();
+        return data;
+        // return permission;
+    } catch (error) {
+        return { error: error }
+    }
+}
 // export const insertMemberToProject = async (data) => {
 //     try {
 

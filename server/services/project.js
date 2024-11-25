@@ -1,8 +1,8 @@
 const projectRouter = require('express').Router();
-const { getAll, updateProjectStatusAndCouncil, getById, updateStatus, getLastIdProject, registNewProject, updateFile, downloadFile, markType, getMarkOfProject, uploadProposal, getProposalFile, getProjectsByStatus, getAccessProject, getRelatedToAccess, uploadReport, getReportFile, getAccessReportProject, getRelatedReportToAccess } = require('../controller/controller');
+const { getAll, updateLiquidation,updateProjectStatusAndCouncil, getById, updateStatus, getLastIdProject, registNewProject, updateFile, downloadFile, markType, getMarkOfProject, uploadProposal, getProposalFile, getProjectsByStatus, getAccessProject, getRelatedToAccess, uploadReport, getReportFile, getAccessReportProject, getRelatedReportToAccess, getDeTaiDetails, countDeTaiOccurrences, getTotalScoreByDeTaiID } = require('../controller/controller');
 // const { sendMessToMemsCouncil } = require('../controller/notifyController');
 const { notify_upload_proposal, sendMessToMemsCouncil } = require('../controller/notifyController');
-const upload = require('../middleware/multer');
+const {upload} = require('../middleware/multer');
 const { generateid } = require('../utils/generateid');
 
 module.exports = projectRouter;
@@ -17,6 +17,10 @@ projectRouter.get('/', async(req, res) => {
         res.json({detai: result.data})
     }
 })
+
+projectRouter.get('/projectDetails', getDeTaiDetails)
+projectRouter.get('/countDeTaiOccurrences/:detaiid', countDeTaiOccurrences)
+projectRouter.get('/getTotalScoreByDeTaiID/:detaiid', getTotalScoreByDeTaiID)
 
 projectRouter.get('/accessProject/:uid', async(req, res) => {
     const { uid } = req.params
@@ -192,6 +196,32 @@ projectRouter.put('/updateStatusAndCouncil', async (req, res) => {
 
 });
 
+projectRouter.put('/updateLiquidation', async (req, res) => {
+    const { detaiid, status, council } = req.body;
+
+    if (!detaiid || !status || !council) {
+        return res.status(400).send({ error: "Missing required fields" });
+    }
+
+    try {
+
+        const result = await updateLiquidation(detaiid, status, council);
+        
+        // await sendMessToMemsCouncil(1, 'DT2024007', 28)
+        if (!result.success) {
+            return res.status(500).json({ message: result.message, success: result.success });
+        }
+
+
+        
+        return res.status(200).json({ message: result.message, success: result.success });
+
+    } catch (error) {
+        res.status(500).json({ "error": error.message });
+    }
+    return
+
+});
 
 projectRouter.put('/updateStatus', async (req, res, next) => {
     const body = req.body

@@ -10,6 +10,7 @@ const councils = require('../services/councils');
 const notificate = require("../services/notificate");
 const users = require('../services/user')
 const dashboard = require('../services/dashboard')
+const article = require('../services/article')
 
 apiRouter.use('/students', students);
 apiRouter.use('/mentors', mentors);
@@ -20,5 +21,6 @@ apiRouter.use('/councils', councils);
 apiRouter.use('/notify', notificate);
 apiRouter.use('/auth', users);
 apiRouter.use('/dashboard', dashboard);
+apiRouter.use('/article', article);
 
 module.exports = apiRouter

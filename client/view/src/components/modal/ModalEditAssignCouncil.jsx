@@ -2,14 +2,16 @@ import React from 'react'
 import { useState, useEffect, useContext, useRef } from 'react';
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react'
 import { ManagementContext } from '../../context/ManagementContext';
-import { updateProjectStatusAndCouncil } from '../../controller/1.projects/project';
+import { updateProjectStatusAndCouncil, updateProjectliquidation } from '../../controller/1.projects/project';
 import { toast } from 'react-toastify';
 import ModalConfirm from './ModalConfirm';
 
-const ModalEditAssignCouncil = ({ isOpen, toggleModal, data }) => {
+const ModalEditAssignCouncil = ({ isOpen, toggleModal, data, actionType }) => {
 
+    const isThanhLy = actionType === 'thanhly'; 
+    const buttonLabel = isThanhLy ? 'Thanh lý' : 'Phân công'; 
 
-    const { teachers, students, councils } = useContext(ManagementContext);
+    const { teachers, students, councils, getProjectsData } = useContext(ManagementContext);
     const [selectedDepartment, setSelectedDepartment] = useState(''); // Lưu trữ Khoa được lựa chọn
     const [councilNamea, setCouncilnamea] = useState('')
     const [councilNameOfficial, setCouncilnameOfficial] = useState('')
@@ -29,7 +31,7 @@ const ModalEditAssignCouncil = ({ isOpen, toggleModal, data }) => {
 
     useEffect(() => {
       const council = councils.find((t) => t.hoidongid === data.hoidongphancong);
-      const councilName = council ? council.tenhoidong : 'Không tìm thấy hội đồng'; 
+      const councilName = council ? council.tenhoidong : 'Không tìm thấy hội đồng';
       setCouncilnameOfficial(councilName)
     },[data])
 
@@ -49,22 +51,38 @@ const ModalEditAssignCouncil = ({ isOpen, toggleModal, data }) => {
     
     const onSubmitHandler = async () => {
 
-      const response = await updateProjectStatusAndCouncil(data.detaiid, '2', selectedDepartment)
-      if(response.success){
-        setCouncilnameOfficial(councilNamea)
-        setDataEdited(!dataEdited)
-        toast.success('Chỉnh sửa hội đồng thành công')
-        return
-      } else {
-        toast.warning('Không thể sửa đề tài đang được thực hiện')
-        return
+      if(!isThanhLy){
+        const response = await updateProjectStatusAndCouncil(data.detaiid, '2', selectedDepartment)
+        if(response.success){
+          setCouncilnameOfficial(councilNamea)
+          setDataEdited(!dataEdited)
+          toast.success('Chỉnh sửa hội đồng thành công')
+          await getProjectsData()
+          return
+        } else {
+          toast.warning('Không thể sửa đề tài đang được thực hiện')
+          return
+        } 
+      }
+      else {
+        const response = await updateProjectliquidation(data.detaiid, '7', data.hoidongphancong)
+        if(response.success){
+          setCouncilnameOfficial(councilNamea)
+          setDataEdited(!dataEdited)
+          toast.success('Thanh lí hội đồng thành công')
+          await getProjectsData()
+
+          return
+        } else {
+          toast.warning('Không thể thanh lí hội đồng này')
+          return
+        } 
       }
     }
 
     const handleDepartmentChange = (e) => {
       const departmentId = e.target.value;
       setSelectedDepartment(departmentId);
-
       const council = councils.find((t) => t.hoidongid === departmentId);
       const councilName = council ? council.tenhoidong : 'Không tìm thấy hội đồng';
 
@@ -82,11 +100,13 @@ const ModalEditAssignCouncil = ({ isOpen, toggleModal, data }) => {
     const closeConfirmDialog = () => setIsConfirmOpen(false);
 
     const handleSubmitWithConfirmation = () => {
-      
-      if(!selectedDepartment){
-        toast.warning('Chưa chọn hội đồng để sửa')
-        return
+      if(!isThanhLy){
+        if(!selectedDepartment){
+          toast.warning('Chưa chọn hội đồng để sửa')
+          return
+        }
       }
+     
 
       
       openConfirmDialog()
@@ -179,36 +199,42 @@ const ModalEditAssignCouncil = ({ isOpen, toggleModal, data }) => {
                         </div>
                         <div className="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                             <dt className="text-base font-medium leading-6 text-gray-900">Hội đồng được phân công</dt>
-                            <dd className="mt-1 text-base leading-6 text-gray-700 sm:col-span-2 sm:mt-0">{councilNameOfficial}</dd>
+                            <dd className="mt-1 text-base leading-6 text-gray-700 sm:col-span-2 sm:mt-0">{!councilNameOfficial ? data.hoidongphancong : councilNameOfficial}</dd>
                         </div>
                     </dl>
                 </div>
-                <div className="flex mt-6 px-4 sm:px-0 justify-center">
+
+                {!isThanhLy && (
+                  <>
+                  <div className="flex mt-6 px-4 sm:px-0 justify-center">
                     <h3 className="text-lg font-semibold leading-7 text-gray-900">Chỉnh sửa hội đồng</h3>
-                </div>
-                <div className="col-span-2 mt-2">
-                    <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                    Chọn hội đồng
-                    </label>
-                    <select
-                    id="department"
-                    disabled={dataEdited}
-                    // value={}
-                    // ref={}
-                    onChange={handleDepartmentChange}
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                    >
-                    <option value="">Chọn hội đồng</option>
-                    {councils.map((council) => (
-                        <option key={council.hoidongid} value={council.hoidongid} disabled={council.hoidongid === data.hoidongphancong}>
-                        {council.tenhoidong}
-                        </option>
-                    ))}
-                    </select>
-                    {/* {errors.selectedDepartment && (
-                    <p className="mt-1 text-sm text-red-600">{errors.selectedDepartment}</p>
-                    )} */}
-                </div>
+                  </div>
+                  <div className="col-span-2 mt-2">
+                      <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                      Chọn hội đồng
+                      </label>
+                      <select
+                      id="department"
+                      disabled={dataEdited}
+                      // value={}
+                      // ref={}
+                      onChange={handleDepartmentChange}
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                      >
+                      <option value="">Chọn hội đồng</option>
+                        {councils.map((council) => (
+                            <option key={council.hoidongid} value={council.hoidongid} disabled={council.hoidongid === data.hoidongphancong}>
+                            {council.tenhoidong}
+                            </option>
+                        ))}
+                      </select>
+                      {/* {errors.selectedDepartment && (
+                      <p className="mt-1 text-sm text-red-600">{errors.selectedDepartment}</p>
+                      )} */}
+                  </div>
+                  </>
+                )}
+                
             </div>
 
                      
@@ -228,14 +254,14 @@ const ModalEditAssignCouncil = ({ isOpen, toggleModal, data }) => {
                         </svg> 
                         : ''} */}
                     
-                        <span className="font-medium">Phân công</span>
+                        <span className="font-medium">{buttonLabel}</span>
                     </button>
 
                     <button
-                    type="button"
-                    data-autofocus
-                    onClick={handleModalClose}
-                    className={`min-w-16 mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto`}
+                      type="button"
+                      data-autofocus
+                      onClick={handleModalClose}
+                      className={`min-w-16 mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto`}
                     >
                       {dataEdited ? 'Xong' : 'Hủy'}
                     </button>

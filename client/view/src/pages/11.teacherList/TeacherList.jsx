@@ -21,6 +21,7 @@ const TeacherList = () => {
   const [fileList, setFileList] = useState([]);
   const [fileName, setFileName] = useState([]);
   const [resetFileArray, setResetFileArray] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1); 
 
   const debouncedSearchValue = useDebounce(searchValue, 500);
   const navigate = useNavigate();
@@ -56,6 +57,8 @@ const TeacherList = () => {
   // ------------------ Handle Filter Select Department ------------------
   const handleDepartmentChange = (selectedDept) => {
     setSelectedDepartment(selectedDept);
+    setCurrentPage(1); 
+
   };
   
   useEffect(() => {
@@ -208,7 +211,7 @@ const TeacherList = () => {
               {status.length > 0 && <Dropdown prop={status} update={handleDepartmentChange} />}
             </div>
 
-            <ListCard props={Log}/>
+            <ListCard props={Log} currentPage={currentPage} setCurrentPage={setCurrentPage} newsPerPage={6}/>
           </div>
         </div>
       </div>

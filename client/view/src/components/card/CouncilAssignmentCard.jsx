@@ -11,6 +11,7 @@ const CouncilAssignmentCard = ({ props }) => {
   const [selectedData, setSelectedData] = useState('HD000');
   const { loadingCA, getProjectsData } = useContext(ManagementContext);
   const [sortOrder, setSortOrder] = useState('desc'); // Thêm trạng thái sắp xếp
+  const [actionType, setActionType] = useState('')
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -24,10 +25,12 @@ const CouncilAssignmentCard = ({ props }) => {
     setIsModalAssignOpen(!isModalAssignOpen);
   };
 
-  const handleAssignClick = (board) => {
+  const handleAssignClick = (board, action) => {
     setSelectedData(board);
+    setActionType(action); // Truyền loại hành động (Phân công/Thanh lý)
     toggleModalAssign();
   };
+  
 
   const handleSort = async () => {
     const newSortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
@@ -94,37 +97,80 @@ const CouncilAssignmentCard = ({ props }) => {
                         </td>
                         <td className="whitespace-nowrap px-3 py-4 sm:text-base text-sm text-black">{board.tendetai}</td>
                         <td className="whitespace-nowrap px-3 py-4 sm:text-base text-sm">
-                        {board.hoidongphancong ? (
+                        {board.trangthai === 7 
+                        ? (
+                          <div className="flex items-center space-x-2 border border-red-800 justify-center bg-[#FFD6D6] w-[170px] text-red-600 px-5 py-3 ">
+                            <span>Đã thanh lý</span>
+                            {/* <svg xmlns="http://www.w3.org/2000/svg" className="rounded-full h-5 w-5 bg-green-500 text-white" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-7.9 7.9a1 1 0 01-1.415 0l-3.6-3.6a1 1 0 011.415-1.415l3.187 3.186 7.187-7.187a1 1 0 011.415 0z" clipRule="evenodd" />
+                            </svg> */}
+                          </div>
+                        ) 
+                        : (
+                          board.hoidongphancong ? (
                             <div className="flex items-center space-x-2 border border-green-500 justify-center bg-green-50 w-[170px] text-green-700 px-5 py-3 ">
                                 <span>Đã phân công</span>
                                 <svg xmlns="http://www.w3.org/2000/svg" className="rounded-full h-5 w-5 bg-green-500 text-white" viewBox="0 0 20 20" fill="currentColor">
                                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-7.9 7.9a1 1 0 01-1.415 0l-3.6-3.6a1 1 0 011.415-1.415l3.187 3.186 7.187-7.187a1 1 0 011.415 0z" clipRule="evenodd" />
                                 </svg>
                             </div>
-                        ) : (
+                            ) : (
                             <div className="flex items-center space-x-2 border border-gray-300 justify-center w-[170px] bg-gray-50 text-gray-700 px-5 py-3">
                                 <span>Chưa phân công</span>
                          
                             </div>
-                        )}
+                        )
+                        )
+                        }
+           
                         </td>
 
                         <td className="whitespace-nowrap px-3 py-4 sm:text-base text-sm text-center">
-                            {board.hoidongphancong ? (
+                            {board.trangthai === 7 
+                            ? ""
+                            : (
+                              board.hoidongphancong ? (
                                 <button
                                  className="bg-gray-600 text-white px-4 py-2 rounded min-w-[120px] mr-2"
-                                 onClick={() => handleAssignClick(board)}
+                                 onClick={() => handleAssignClick(board, 'phancong')}
                                >
                                  Chỉnh sửa
                                </button>
-                            ) : (
-                                  <button 
-                                    className="bg-system text-white px-4 py-2 rounded min-w-[120px] mr-2"
-                                    onClick={() => handleClick(board.detaiid)}
-                                  >
-                                    Phân công
-                                  </button>
-                            )}
+                                ) : (
+                                    <button
+                                      className="bg-system text-white px-4 py-2 rounded min-w-[120px] mr-2"
+                                      onClick={() => handleClick(board.detaiid)}
+                                    >
+                                      Phân công
+                                    </button>
+
+                                )
+                              )
+                            }
+                            
+                         
+
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-4 sm:text-base text-sm text-center">
+                          {board.trangthai === 7 
+                            ? (
+                              <button
+                                className="bg-gray-600 text-white px-4 py-2 rounded min-w-[120px] mr-2"
+                                onClick={() => navigate(`/project-view/${board.detaiid}`)} // Truyền 'thanhly'
+                              >
+                                Xem chi tiết
+                              </button>
+                            )
+                            : (
+                              <button
+                                className="bg-red-500 text-white px-4 py-2 rounded min-w-[120px] mr-2"
+                                onClick={() => handleAssignClick(board, 'thanhly')} // Truyền 'thanhly'
+                              >
+                                Thanh lý
+                              </button>
+                            )
+                          }
+                          
                          
 
                         </td>
@@ -159,7 +205,13 @@ const CouncilAssignmentCard = ({ props }) => {
 
       {/* Modal */}
 
-      <ModalEditAssignCouncil isOpen={isModalAssignOpen} toggleModal={toggleModalAssign} data={selectedData} />
+      <ModalEditAssignCouncil
+        isOpen={isModalAssignOpen}
+        toggleModal={toggleModalAssign}
+        data={selectedData}
+        actionType={actionType} // Truyền trạng thái
+      />
+
     </>
   );
 };

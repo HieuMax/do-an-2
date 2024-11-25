@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuthStore } from "../../api/authStore";
 import { onLogin } from "../../provider/websocket";
+import { motion } from "framer-motion";
 
 export default function InputForm() {
   const type = ["sinh viên", "giảng viên", "quản lý"];
@@ -32,7 +33,12 @@ export default function InputForm() {
         <div className="absolute top-5 w-max text-center bg-white py-3 px-40 text-3xl max-lg:text-xl max-lg:px-20 max-md:text-lg max-md:px-10 max-sm:px-5">
           <h1>Hệ thống quản lý đề tài nghiên cứu khoa học sinh viên</h1>
         </div>
-        <div className="flex flex-1 flex-col justify-center px-6 py-12 bg-white lg:px-8 m-auto max-w-md">
+        <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="flex flex-1 flex-col justify-center px-6 py-12 bg-white lg:px-8 m-auto max-w-md rounded-2xl"
+        >
           <div className="sm:mx-auto sm:w-full sm:max-w-sm">
             <img
               alt="Logo"
@@ -121,7 +127,7 @@ export default function InputForm() {
               </div>
             </form>
           </div>
-        </div>
+        </motion.div>
       </div>
     </>
   );

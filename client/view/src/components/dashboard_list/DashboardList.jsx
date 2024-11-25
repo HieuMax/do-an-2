@@ -5,12 +5,10 @@ import { getAllArticle } from '../../controller/8.articles/article'
 import { useAuthStore } from '../../api/authStore'
 import { useNavigate } from 'react-router-dom'
 
-const Home = () => {
+const DashboardList = () => {
   
   const [card, setCard ] = useState('')
   const {user} = useAuthStore();
-  const [currentPage, setCurrentPage] = useState(1); 
-
   const getArticlesData = async () => {
     try {
         const response = await getAllArticle();
@@ -36,7 +34,7 @@ const Home = () => {
 
   const Log = {
     data: card,
-    parent: "Home"
+    parent: "DashBoardList"
   }
 
   return (
@@ -58,10 +56,11 @@ const Home = () => {
         
 
         <div className="h-full mt-6 max-w-full">
-          <ListCard props={Log} currentPage={currentPage} setCurrentPage={setCurrentPage} newsPerPage={20}/>
+          <ListCard props={Log}/>
+          {/* <PaginationCustom /> */}
         </div>
     </div>
   )
 }
 
-export default Home
+export default DashboardList

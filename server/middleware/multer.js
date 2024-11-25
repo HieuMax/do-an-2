@@ -11,8 +11,15 @@ const storage = multer.diskStorage({
     },
 })
 
+const storage2 = multer.diskStorage({
+    filename: function(req, file, callback){
+        callback(null,file.originalname)
+    }
+})
+const upload2 = multer({storage: storage2})
+
 const upload = multer({ storage: storage });
 
-module.exports = upload;
+module.exports = {upload, upload2};
 
 // module.exports = { downloadFile }

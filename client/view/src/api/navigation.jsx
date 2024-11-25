@@ -17,6 +17,8 @@ import { projectPermission, reportPermission } from '../controller/1.projects/pr
 import { useLocation } from 'react-router-dom';
 import { ReportPageList } from '../pages/13.reportPage/ReportPageList';
 import ArticlePage from '../pages/15.feedManagement/ArticlePage';
+import ArticleDetail from '../pages/15.feedManagement/ArticleDetail';
+import DashboardPage from '../pages/14.dashboard/DashboardPage';
 
 let navigate = null;
 
@@ -122,6 +124,10 @@ export const children = [
         <RegisteredProject /> 
       </ProjectAccessPermis>
   },
+  { path: "/article/:slug", 
+    element: <ArticleDetail />
+  },
+  
   // Teacher - Student
   { path: "/project-list", 
     element: 
@@ -169,8 +175,19 @@ export const children = [
     element: <AccessRoute><AddTeacherProvider isEdit = {true}/> </AccessRoute> 
   },
   { path: "/feed-management", 
+    element: <AccessRoute><Home /> </AccessRoute> 
+  },
+  { path: "/adding-feed", 
     element: <AccessRoute><ArticlePage /> </AccessRoute> 
   },
-
+  { path: "/editing-feed/:id", 
+    element: <AccessRoute><ArticlePage /> </AccessRoute> 
+  },
+  { path: "/project-view/:id", 
+    element: <AccessRoute><RegisteredProject /> </AccessRoute> 
+  },
+  { path: "/dashboard-management", 
+    element: <AccessRoute><DashboardPage /> </AccessRoute> 
+  },
 ]
 

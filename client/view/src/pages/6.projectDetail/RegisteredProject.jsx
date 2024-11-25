@@ -25,6 +25,7 @@ export const RegisteredProject = () => {
 
   const location = useLocation();
   const { isAssign } = location.state || {}; // Đặt giá trị mặc định là một object rỗng
+  const showActions = window.location.pathname.includes("/project-view");
 
   // data
   const { detaiId } = location.state 
@@ -264,25 +265,25 @@ export const RegisteredProject = () => {
   const toggleCouncilAssigned = () => {
     setCouncilAssigned(!councilAssigned)
   }
-  if(isAssign && project.hoidongphancong && user.vaitro == "Admin" || project.hoidongphancong && user.vaitro == "Admin"){
+  if(isAssign && project.hoidongphancong && user.vaitro == "Admin" && !showActions || project.hoidongphancong && user.vaitro == "Admin" && !showActions){
     return (
-        <div className='h-screen flex flex-col items-center justify-center'>
-            <p className='text-4xl w-full text-center mb-4'>Đề tài: {project.tendetai} </p>
-            <div className="text-2xl flex items-center space-x-2 border border-green-500 justify-center bg-green-50  text-green-700 px-5 py-3 ">
-              <span className='pr-2'>Đã được phân công</span>
-              <svg xmlns="http://www.w3.org/2000/svg" className="rounded-full h-5 w-5 bg-green-500 text-white" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-7.9 7.9a1 1 0 01-1.415 0l-3.6-3.6a1 1 0 011.415-1.415l3.187 3.186 7.187-7.187a1 1 0 011.415 0z" clipRule="evenodd" />
-              </svg>
-            </div>
+      <div className='h-screen flex flex-col items-center justify-center'>
+          <p className='text-4xl w-full text-center mb-4'>Đề tài: {project.tendetai} </p>
+          <div className="text-2xl flex items-center space-x-2 border border-green-500 justify-center bg-green-50  text-green-700 px-5 py-3 ">
+            <span className='pr-2'>Đã được phân công</span>
+            <svg xmlns="http://www.w3.org/2000/svg" className="rounded-full h-5 w-5 bg-green-500 text-white" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-7.9 7.9a1 1 0 01-1.415 0l-3.6-3.6a1 1 0 011.415-1.415l3.187 3.186 7.187-7.187a1 1 0 011.415 0z" clipRule="evenodd" />
+            </svg>
+          </div>
 
-            <div className="mt-4 inline-flex justify-center rounded-md min-w-16 max-w-fit bg-gray-600 px-3 py-2 cursor-pointer
-            text-2xl font-semibold text-white shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-500
-            sm:w-auto" 
-                onClick={() => navigate('/council-assignment')}
-            >
-                Trở về
-            </div>
-        </div>
+          <div className="mt-4 inline-flex justify-center rounded-md min-w-16 max-w-fit bg-gray-600 px-3 py-2 cursor-pointer
+          text-2xl font-semibold text-white shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-500
+          sm:w-auto" 
+              onClick={() => navigate('/council-assignment')}
+          >
+              Trở về
+          </div>
+      </div>
     )
 
   }
@@ -363,7 +364,10 @@ export const RegisteredProject = () => {
 
                             {/* Grading */}
                             {
-                                isAssign && !project.hoidongphancong
+                              !showActions && (
+                                <>
+                                {
+                                isAssign && !project.hoidongphancong && user.vaitro == "Admin" || !project.hoidongphancong && user.vaitro == "Admin"
                                 ?
                                     <div 
                                         className={`w-full flex justify-end gap-4 mt-8`}
@@ -393,6 +397,10 @@ export const RegisteredProject = () => {
                                     </div>)
                                 : ""
                             }
+                                </>
+                              )
+                            }
+                            
 
                            
                             

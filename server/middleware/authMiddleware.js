@@ -6,7 +6,7 @@ const isAuthorized = async (req, res, next) => {
     // Cách 1: Lấy accessToken nằm trong request cookies phía client - withCredentials trong file authorizeAxios và credentials trong CORS
     const accessTokenFromCookie = req.cookies?.accessToken
     if( !accessTokenFromCookie ){
-        res.status(StatusCodes.UNAUTHORIZED).json({message: "Unauthorized! (Token not found)"})
+        res.status(StatusCodes.UNAUTHORIZED).json({message: "Đăng xuất thành công"})
         return
     }
     
@@ -29,11 +29,11 @@ const isAuthorized = async (req, res, next) => {
         // console.log("Error from authMiddleware: ", error)
         // Trường hợp lỗi 01: Nếu cái accessToken nó bị hết hạn (expired) thì mình cần trả về 1 cái mã lỗi GONE - 410 cho phía FE biết để gọi refreshToken
         if(error.message?.includes('jwt expired')){
-            res.status(StatusCodes.GONE).json({message: 'Need to refresh token'})
+            res.status(StatusCodes.GONE).json({message: 'Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại'})
             return
         }
         // Trường hợp lỗi 02: Nếu cái accessToken nó không hợp lệ vì bất cứ lý do gì ngoài vụ hết hạn thì trả về mã 401; phía FE xử lý Logout / hoặc gọi API Logout
-        res.status(StatusCodes.UNAUTHORIZED).json({message: "Unauthorized! Please Login"})
+        res.status(StatusCodes.UNAUTHORIZED).json({message: "Vui lòng đăng nhập lại"})
 
     }
 };
