@@ -1,5 +1,6 @@
 // Open socket to server 
-const socket = new WebSocket('ws://localhost:8000');
+const socket = new WebSocket('wss://ssrpm.onrender.com');
+// const socket = new WebSocket('ws://localhost:8000');
 
 export const registToServer = (userId) => {
     // const socket = new WebSocket('ws://localhost:8000');
