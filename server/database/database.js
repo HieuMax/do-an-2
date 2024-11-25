@@ -4,11 +4,12 @@ const path = require('path');
 dotenv.config({ path: path.join(__dirname, 'config', '.env') });
 
 const pool = new Pool({
-    user: process.env.DB_USER,
-    database: process.env.DB_DATABASE,
-    host: process.env.DB_HOST,
-    password: process.env.DB_PASSWORD,
-    port: process.env.DB_PORT,
+    // user: process.env.DB_USER,
+    // database: process.env.DB_DATABASE,
+    // host: process.env.DB_HOST,
+    // password: process.env.DB_PASSWORD,
+    // port: process.env.DB_PORT,
+    connectionString: process.env.DATABASE_URL, // Deploy
 })
 // console.log('Database Configuration:', {
 //     user: process.env.DB_USER,
