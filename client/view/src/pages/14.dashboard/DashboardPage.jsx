@@ -30,7 +30,7 @@ const DashboardPage = () => {
         const filteredPieData = processPieChartData(response.detai);
         const filteredBarData = processBarChartData(response.detai);
         setPieData(filteredPieData);
-        setBarData(filteredBarData);
+        setBarData(filteredBarData) ;
 
         const filteredProcessData = filterDeTaiInProgress(response.detai);
         const filteredAcceptedData = filterDeTaiAccepted(response.detai);
