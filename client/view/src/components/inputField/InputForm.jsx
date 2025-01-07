@@ -42,7 +42,7 @@ export default function InputForm() {
           <div className="sm:mx-auto sm:w-full sm:max-w-sm">
             <img
               alt="Logo"
-              src="/view/src/assets/logo.webp"
+              src="/view/public/assets/logo.webp"
               // src="/view"
               className="mx-auto h-10 w-auto"
             />
