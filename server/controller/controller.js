@@ -872,14 +872,11 @@ const updateStatus = async (status, id, uid) => {
     const query = `UPDATE detai SET trangthai = $1 WHERE detaiid = $2`
     try {
         await pool.query(query, [status, id]);
-        // console.log(status)
         if (status == 1) {
             const msg = `Đề tài ${id} đã được giảng viên hướng dẫn phê duyệt`
             const topicId = await getTopicById(id)
             await createMsg(uid, topicId.data.id, msg, Date.now(), "giangvien") // Mentor sent - so get type of mentor
-            // console.log('ok')
 
-            // const groupid = await createGroupConsumer(`PCHD${String(id).substring(2)}`, `Phân công hội đồng cho đề tài ${id}`)
             const sendMessToAdmin = async () => {
                 const groupid = 'BQL';
                 const topicId = await createTopic("Phân công hội đồng", groupid, id) // Create topic for groupConsumer subcribe

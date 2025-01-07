@@ -225,7 +225,6 @@ projectRouter.put('/updateLiquidation', async (req, res) => {
 
 projectRouter.put('/updateStatus', async (req, res, next) => {
     const body = req.body
-    const header = req.headers
 
     const result = await updateStatus(body.status, body.id, body.uid)
     if (result.status === 200) {
@@ -233,8 +232,6 @@ projectRouter.put('/updateStatus', async (req, res, next) => {
     } else {
         res.status(204).send(result.error)
     }
-    if(header.apikey !== "test") return
-    console.log(header)
 })
 
 projectRouter.put('/updatefile', (req, res) => {

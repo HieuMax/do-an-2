@@ -124,11 +124,10 @@ export const updateStatusProject = async (status, id) => {
         id: id,
         uid: uid
     }
-    const response = await fetch(`${API_ENDPOINT}${url}/updateStatus`, {
+    await fetch(`${API_ENDPOINT}${url}/updateStatus`, {
         method: "PUT",
         headers: {
-            'Content-type': 'application/json',
-            'apiKey': "notest"
+            'Content-type': 'application/json'
         },
         body: JSON.stringify(data)
     })
@@ -152,7 +151,7 @@ export const getProjectsByStatus = async () => {
         const response = await axios.get(`${API_ENDPOINT}${url}/status`);
         if(!response.data.success){
             return response.data
-        }
+        }S
         return response.data;
 
     } catch (error) {

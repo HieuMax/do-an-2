@@ -25,3 +25,6 @@ dist-ssr
 
 #Secret Server
 server/config/.secretEnv
+
+#Server 
+server/files-upload

@@ -16,10 +16,10 @@ import NotificationBottomRight from '../../third-party/components/Notification/N
 import { getNotify } from '../../controller/7.notify/notify';
 
 const staticLinhVuc = [
-    {id: 0 ,name: "CNTT"},
-    {id: 1 ,name: "KD"},
-    {id: 2 ,name: "NCKH"},
-    {id: 3 ,name: "ABC"},
+    {id: 0 ,name: "Trí tuệ nhân tạo"},
+    {id: 1 ,name: "Môi trường"},
+    {id: 2 ,name: "Khoa học Xã hội Nhân văn"},
+    {id: 3 ,name: "Mô phỏng vật liệu"},
     {id: 4 ,name: "Khác"},
   ]
 
@@ -128,7 +128,7 @@ export const ProjectDetail = ({props}) => {
     // console.log(data)
     // return
     const parseName = (key) => {
-        switch(key) {
+        switch(key) {   
             case "tenDeTai":
                 return "Tên đề tài"
             case "linhVuc":
@@ -181,8 +181,6 @@ export const ProjectDetail = ({props}) => {
 
         try {
             const response = await uploadFile(formData);
-            // console.log(response)
-            // data = { ...data, TaiLieuDeXuat: response.filename }
             data.TaiLieuDeXuat = response.filename
             data.originalfilename = response.originalname.originalname
         } catch (error) {
@@ -191,7 +189,6 @@ export const ProjectDetail = ({props}) => {
     }
     await handleUploadFile();
     try {
-        // console.log(data)
         const response = await registNewProject(data)
         if(response.error) {
             return response.error
@@ -322,7 +319,7 @@ export const ProjectDetail = ({props}) => {
                                         border-2 w-3 p-3 rounded-full mr-3`}/>
                                     Trong trường
                                 </div>
-                                <div className="flex w-fit cursor-pointer" onClick={() => setSource(false)}>
+                                <div className="hidden w-fit cursor-pointer" onClick={() => setSource(false)}>
                                     <div className={`
                                         ${source
                                             ? "border-gray-500 "
